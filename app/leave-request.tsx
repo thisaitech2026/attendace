@@ -10,23 +10,61 @@ import {
   View,
 } from 'react-native';
 import { useRouter } from 'expo-router';
+import { format, isBefore, isValid, parseISO, startOfDay } from 'date-fns';
 
 import { Button } from '@/components/ui/Button';
-import { DateInputField } from '@/components/ui/DateInputField';
 import { useApp } from '@/contexts/AppContext';
 import Colors from '@/constants/Colors';
 import { LEAVE_TYPE_LABELS } from '@/constants/config';
 import type { LeaveType } from '@/types/employee';
 import { useColorScheme } from '@/components/useColorScheme';
-import {
-  calculateLeaveDays,
-  getDateInputError,
-  shouldValidateDateField,
-  validateLeaveForm,
-  validateLeaveDateRange,
-} from '@/utils/leaveValidation';
 
 const LEAVE_TYPES: LeaveType[] = ['annual', 'sick', 'personal', 'unpaid'];
+const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
+const INVALID_DATE_MSG = 'Enter a valid date (YYYY-MM-DD)';
+
+function formatDateInput(text: string): string {
+  const digits = text.replace(/\D/g, '').slice(0, 8);
+  if (digits.length <= 4) return digits;
+  if (digits.length <= 6) return `${digits.slice(0, 4)}-${digits.slice(4)}`;
+  return `${digits.slice(0, 4)}-${digits.slice(4, 6)}-${digits.slice(6)}`;
+}
+
+function isValidYyyyMmDd(value: string): boolean {
+  const trimmed = value.trim();
+  if (!DATE_PATTERN.test(trimmed)) return false;
+
+  const [year, month, day] = trimmed.split('-').map(Number);
+  if (month < 1 || month > 12 || day < 1 || day > 31) return false;
+
+  const date = new Date(year, month - 1, day);
+  if (date.getFullYear() !== year || date.getMonth() !== month - 1 || date.getDate() !== day) {
+    return false;
+  }
+
+  const parsed = startOfDay(parseISO(trimmed));
+  return isValid(parsed) && format(parsed, 'yyyy-MM-dd') === trimmed;
+}
+
+function getStartDateError(value: string): string | undefined {
+  if (!value.trim()) return 'Start date is required';
+  if (value.length < 10) return 'Use format YYYY-MM-DD';
+  if (!isValidYyyyMmDd(value)) return INVALID_DATE_MSG;
+  if (isBefore(startOfDay(parseISO(value)), startOfDay(new Date()))) {
+    return 'Start date cannot be in the past';
+  }
+  return undefined;
+}
+
+function getEndDateError(value: string, startValue: string, startValid: boolean): string | undefined {
+  if (!value.trim()) return 'End date is required';
+  if (value.length < 10) return 'Use format YYYY-MM-DD';
+  if (!isValidYyyyMmDd(value)) return INVALID_DATE_MSG;
+  if (startValid && isValidYyyyMmDd(startValue) && isBefore(parseISO(value), parseISO(startValue))) {
+    return 'End date cannot be before start date';
+  }
+  return undefined;
+}
 
 function showAlert(title: string, message: string, onOk?: () => void) {
   if (Platform.OS === 'web') {
@@ -48,91 +86,62 @@ export default function LeaveRequestModal() {
   const [endDate, setEndDate] = useState('');
   const [reason, setReason] = useState('');
   const [submitting, setSubmitting] = useState(false);
-  const [showErrors, setShowErrors] = useState(false);
   const [touched, setTouched] = useState({ start: false, end: false, reason: false });
 
-  const formValidation = useMemo(
-    () => validateLeaveForm(startDate, endDate, reason, { rejectPastStart: true }),
-    [startDate, endDate, reason]
-  );
-
-  const leaveDays = useMemo(() => {
-    if (!formValidation.valid) return 0;
-    return calculateLeaveDays(startDate, endDate);
-  }, [formValidation.valid, startDate, endDate]);
-
   const startError = useMemo(() => {
-    if (!shouldValidateDateField(startDate, touched.start, showErrors)) return undefined;
-    return getDateInputError(startDate, {
-      required: true,
-      fieldLabel: 'Start date',
-      rejectPast: true,
-    });
-  }, [startDate, touched.start, showErrors]);
+    if (!touched.start && startDate.length < 10) return undefined;
+    return getStartDateError(startDate);
+  }, [startDate, touched.start]);
+
+  const startDateValid = useMemo(() => !getStartDateError(startDate), [startDate]);
 
   const endError = useMemo(() => {
-    if (!shouldValidateDateField(endDate, touched.end, showErrors)) return undefined;
+    if (!touched.end && endDate.length < 10) return undefined;
+    return getEndDateError(endDate, startDate, startDateValid);
+  }, [endDate, startDate, startDateValid, touched.end]);
 
-    const fieldError = getDateInputError(endDate, {
-      required: true,
-      fieldLabel: 'End date',
-      minDate: startDate.length === 10 && !startError ? startDate : undefined,
-    });
-    if (fieldError) return fieldError;
-
-    if (
-      startDate.length === 10 &&
-      endDate.length === 10 &&
-      !startError &&
-      formValidation.errors.end
-    ) {
-      return formValidation.errors.end;
-    }
-
-    return undefined;
-  }, [endDate, touched.end, showErrors, startDate, startError, formValidation.errors.end]);
-
-  const reasonError = (showErrors || touched.reason) && !reason.trim() ? 'Reason is required' : undefined;
-
-  const datesValid = useMemo(
-    () => validateLeaveDateRange(startDate, endDate, { rejectPastStart: true }).valid,
-    [startDate, endDate]
+  const endDateValid = useMemo(
+    () => !getEndDateError(endDate, startDate, startDateValid),
+    [endDate, startDate, startDateValid]
   );
 
+  const reasonError = touched.reason && !reason.trim() ? 'Reason is required' : undefined;
+
+  const datesValid = startDateValid && endDateValid && startDate.length === 10 && endDate.length === 10;
   const canSubmit = datesValid && reason.trim().length > 0 && Boolean(employee);
   const submitDisabled = submitting || !canSubmit;
 
-  const markTouched = (field: 'start' | 'end' | 'reason') => {
-    setTouched((prev) => ({ ...prev, [field]: true }));
-  };
+  const leaveDays = useMemo(() => {
+    if (!datesValid) return 0;
+    const start = parseISO(startDate);
+    const end = parseISO(endDate);
+    return Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+  }, [datesValid, startDate, endDate]);
 
-  const handleStartDateChange = (next: string) => {
-    setStartDate(next);
-    if (next.length > 0) {
-      setTouched((prev) => ({ ...prev, start: true }));
-    }
-    if (endDate && next.length === 10 && endDate < next) {
+  const handleStartDateChange = (text: string) => {
+    const formatted = formatDateInput(text);
+    setStartDate(formatted);
+    setTouched((prev) => ({ ...prev, start: true }));
+    if (endDate && formatted.length === 10 && endDate < formatted) {
       setEndDate('');
     }
   };
 
-  const handleEndDateChange = (next: string) => {
-    setEndDate(next);
-    if (next.length > 0) {
-      setTouched((prev) => ({ ...prev, end: true }));
-    }
+  const handleEndDateChange = (text: string) => {
+    setEndDate(formatDateInput(text));
+    setTouched((prev) => ({ ...prev, end: true }));
   };
 
   const handleSubmit = async () => {
-    setShowErrors(true);
     setTouched({ start: true, end: true, reason: true });
 
-    const validation = validateLeaveForm(startDate, endDate, reason, { rejectPastStart: true });
+    const startErr = getStartDateError(startDate);
+    const endErr = getEndDateError(endDate, startDate, startDateValid);
 
-    if (!validation.valid) {
+    if (startErr || endErr || !reason.trim()) {
       showAlert(
         'Please fix the form',
-        validation.summary ?? 'Enter valid dates in YYYY-MM-DD format before submitting.'
+        [startErr, endErr, !reason.trim() ? 'Reason is required' : undefined].filter(Boolean).join('\n')
       );
       return;
     }
@@ -159,19 +168,6 @@ export default function LeaveRequestModal() {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
-        {(showErrors && !formValidation.valid && formValidation.summary) || startError || endError ? (
-          <View style={[styles.validationBanner, { backgroundColor: colors.dangerLight, borderColor: colors.danger }]}>
-            <Text style={[styles.validationTitle, { color: colors.danger }]}>
-              {formValidation.valid ? 'Check the highlighted fields' : 'Fix these issues before submitting:'}
-            </Text>
-            <Text style={[styles.validationText, { color: colors.danger }]}>
-              {[startError, endError, reasonError].filter(Boolean).join('\n') ||
-                formValidation.summary ||
-                'Enter valid YYYY-MM-DD dates.'}
-            </Text>
-          </View>
-        ) : null}
-
         <Text style={[styles.label, { color: colors.textSecondary }]}>Leave Type</Text>
         <View style={styles.typeRow}>
           {LEAVE_TYPES.map((t) => (
@@ -185,42 +181,58 @@ export default function LeaveRequestModal() {
           ))}
         </View>
 
-        <DateInputField
-          label="Start Date (YYYY-MM-DD)"
+        <Text style={[styles.label, { color: colors.textSecondary }]}>Start Date (YYYY-MM-DD)</Text>
+        <TextInput
+          style={[
+            styles.input,
+            {
+              color: colors.text,
+              borderColor: startError ? colors.danger : colors.border,
+              borderWidth: startError ? 2 : 1,
+              backgroundColor: startError ? 'rgba(220, 38, 38, 0.06)' : colors.card,
+            },
+          ]}
           value={startDate}
-          onChange={handleStartDateChange}
-          onBlur={() => markTouched('start')}
-          error={startError}
-          textColor={colors.text}
-          mutedColor={colors.textSecondary}
-          borderColor={colors.border}
-          cardColor={colors.card}
-          dangerColor={colors.danger}
-          primaryColor={colors.primary}
+          onChangeText={handleStartDateChange}
+          onBlur={() => setTouched((prev) => ({ ...prev, start: true }))}
+          placeholder="2026-07-01"
+          placeholderTextColor={colors.textMuted}
+          keyboardType="number-pad"
+          maxLength={10}
+          autoCorrect={false}
+          autoCapitalize="none"
         />
+        {startError ? <Text style={[styles.error, { color: colors.danger }]}>{startError}</Text> : null}
 
-        <DateInputField
-          label="End Date (YYYY-MM-DD)"
+        <Text style={[styles.label, { color: colors.textSecondary }]}>End Date (YYYY-MM-DD)</Text>
+        <TextInput
+          style={[
+            styles.input,
+            {
+              color: colors.text,
+              borderColor: endError ? colors.danger : colors.border,
+              borderWidth: endError ? 2 : 1,
+              backgroundColor: endError ? 'rgba(220, 38, 38, 0.06)' : colors.card,
+            },
+          ]}
           value={endDate}
-          onChange={handleEndDateChange}
-          onBlur={() => markTouched('end')}
-          error={endError}
-          textColor={colors.text}
-          mutedColor={colors.textSecondary}
-          borderColor={colors.border}
-          cardColor={colors.card}
-          dangerColor={colors.danger}
-          primaryColor={colors.primary}
+          onChangeText={handleEndDateChange}
+          onBlur={() => setTouched((prev) => ({ ...prev, end: true }))}
+          placeholder="2026-07-05"
+          placeholderTextColor={colors.textMuted}
+          keyboardType="number-pad"
+          maxLength={10}
+          autoCorrect={false}
+          autoCapitalize="none"
         />
+        {endError ? <Text style={[styles.error, { color: colors.danger }]}>{endError}</Text> : null}
 
-        {datesValid && leaveDays > 0 ? (
+        {datesValid ? (
           <Text style={[styles.hint, { color: colors.primary }]}>
             {leaveDays} day{leaveDays === 1 ? '' : 's'} requested
           </Text>
         ) : (
-          <Text style={[styles.hint, { color: colors.textMuted }]}>
-            Only numbers allowed. Example: 2026-07-01
-          </Text>
+          <Text style={[styles.hint, { color: colors.textMuted }]}>Enter valid dates as YYYY-MM-DD</Text>
         )}
 
         <Text style={[styles.label, { color: colors.textSecondary }]}>Reason</Text>
@@ -232,12 +244,12 @@ export default function LeaveRequestModal() {
               color: colors.text,
               borderColor: reasonError ? colors.danger : colors.border,
               borderWidth: reasonError ? 2 : 1,
-              backgroundColor: reasonError ? 'rgba(220, 38, 38, 0.06)' : colors.card,
+              backgroundColor: colors.card,
             },
           ]}
           value={reason}
           onChangeText={setReason}
-          onBlur={() => markTouched('reason')}
+          onBlur={() => setTouched((prev) => ({ ...prev, reason: true }))}
           placeholder="Describe the reason for your leave..."
           placeholderTextColor={colors.textMuted}
           multiline
@@ -271,7 +283,6 @@ const styles = StyleSheet.create({
   typeRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   typeBtn: { flexGrow: 1, minWidth: '45%', paddingVertical: 10 },
   input: {
-    borderWidth: 1,
     borderRadius: 12,
     paddingHorizontal: 14,
     paddingVertical: 12,
@@ -281,13 +292,5 @@ const styles = StyleSheet.create({
   error: { fontSize: 12, fontWeight: '700', marginTop: 6 },
   hint: { fontSize: 12, marginTop: 8, fontWeight: '500' },
   submitHint: { fontSize: 12, marginTop: 16, fontWeight: '500' },
-  validationBanner: {
-    borderWidth: 1,
-    borderRadius: 12,
-    padding: 14,
-    marginBottom: 8,
-  },
-  validationTitle: { fontSize: 13, fontWeight: '800', marginBottom: 6 },
-  validationText: { fontSize: 13, fontWeight: '600', lineHeight: 20 },
   submit: { marginTop: 16, marginBottom: 10 },
 });
