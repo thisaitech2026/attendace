@@ -2,7 +2,7 @@ import { ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { Card } from '@/components/ui/Card';
 import { ScreenHeader } from '@/components/ui/ScreenHeader';
-import { StatusBadge } from '@/components/ui/StatusBadge';
+import { StatusOptionChip, StatusSymbolBadge } from '@/components/ui/StatusSymbolBadge';
 import { useApp } from '@/contexts/AppContext';
 import Colors from '@/constants/Colors';
 import { formatCurrency } from '@/services/employeeService';
@@ -14,13 +14,18 @@ export default function SalaryScreen() {
   const colors = Colors[scheme];
 
   const latest = salarySlips[0];
-  const ytdNet = salarySlips
-    .filter((s) => s.status === 'paid')
-    .reduce((sum, s) => sum + s.netPay, 0);
+  const paidSlips = salarySlips.filter((s) => s.status === 'paid');
+  const pendingSlips = salarySlips.filter((s) => s.status === 'pending');
+  const ytdNet = paidSlips.reduce((sum, s) => sum + s.netPay, 0);
 
   return (
     <ScrollView style={[styles.container, { backgroundColor: colors.background }]} contentContainerStyle={styles.content}>
       <ScreenHeader title="Salary & Payslips" subtitle="Compensation details" />
+
+      <View style={styles.statusRow}>
+        <StatusOptionChip status="paid" count={paidSlips.length} active />
+        <StatusOptionChip status="pending" count={pendingSlips.length} />
+      </View>
 
       <Card style={[styles.heroCard, { backgroundColor: colors.primary }]}>
         <Text style={styles.heroLabel}>Latest Net Pay</Text>
@@ -28,6 +33,11 @@ export default function SalaryScreen() {
         <Text style={styles.heroPeriod}>
           {latest ? `${latest.month} ${latest.year}` : 'No payslips'}
         </Text>
+        {latest ? (
+          <View style={styles.heroBadge}>
+            <StatusSymbolBadge status={latest.status} compact />
+          </View>
+        ) : null}
         <View style={styles.heroStats}>
           <View style={styles.heroStat}>
             <Text style={styles.heroStatLabel}>YTD Net</Text>
@@ -47,7 +57,7 @@ export default function SalaryScreen() {
             <Text style={[styles.slipMonth, { color: colors.text }]}>
               {slip.month} {slip.year}
             </Text>
-            <StatusBadge label={slip.status} tone={slip.status === 'paid' ? 'success' : 'warning'} />
+            <StatusSymbolBadge status={slip.status} compact />
           </View>
 
           <View style={styles.slipRow}>
@@ -79,10 +89,12 @@ export default function SalaryScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   content: { padding: 20, paddingBottom: 40 },
+  statusRow: { flexDirection: 'row', gap: 10, marginBottom: 16 },
   heroCard: { marginBottom: 24, borderRadius: 20, padding: 24 },
   heroLabel: { color: 'rgba(255,255,255,0.8)', fontSize: 13, fontWeight: '500' },
   heroAmount: { color: '#FFF', fontSize: 36, fontWeight: '800', marginVertical: 8 },
   heroPeriod: { color: 'rgba(255,255,255,0.8)', fontSize: 14 },
+  heroBadge: { marginTop: 8, alignSelf: 'flex-start' },
   heroStats: { flexDirection: 'row', marginTop: 20, gap: 24 },
   heroStat: { flex: 1 },
   heroStatLabel: { color: 'rgba(255,255,255,0.7)', fontSize: 11 },

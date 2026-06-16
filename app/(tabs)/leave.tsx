@@ -5,16 +5,17 @@ import { Link } from 'expo-router';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { ScreenHeader } from '@/components/ui/ScreenHeader';
-import { StatusBadge } from '@/components/ui/StatusBadge';
+import { StatusOptionChip, StatusSymbolBadge } from '@/components/ui/StatusSymbolBadge';
 import { useApp } from '@/contexts/AppContext';
 import Colors from '@/constants/Colors';
 import { LEAVE_TYPE_LABELS } from '@/constants/config';
 import { useColorScheme } from '@/components/useColorScheme';
 
-const statusTone = {
-  approved: 'success',
-  pending: 'warning',
-  rejected: 'danger',
+
+const statusMap = {
+  approved: 'approved',
+  pending: 'pending',
+  rejected: 'rejected',
 } as const;
 
 export default function LeaveScreen() {
@@ -22,9 +23,17 @@ export default function LeaveScreen() {
   const scheme = useColorScheme() ?? 'light';
   const colors = Colors[scheme];
 
+  const approvedCount = leaveRequests.filter((r) => r.status === 'approved').length;
+  const pendingCount = leaveRequests.filter((r) => r.status === 'pending').length;
+
   return (
     <ScrollView style={[styles.container, { backgroundColor: colors.background }]} contentContainerStyle={styles.content}>
       <ScreenHeader title="Leave Management" subtitle="Balances and requests" />
+
+      <View style={styles.statusRow}>
+        <StatusOptionChip status="approved" count={approvedCount} active />
+        <StatusOptionChip status="pending" count={pendingCount} />
+      </View>
 
       <Link href="/leave-request" asChild>
         <Button title="+ Request Leave" style={styles.requestBtn} />
@@ -70,7 +79,7 @@ export default function LeaveScreen() {
               <Text style={[styles.requestType, { color: colors.text }]}>
                 {LEAVE_TYPE_LABELS[request.type]}
               </Text>
-              <StatusBadge label={request.status} tone={statusTone[request.status]} />
+              <StatusSymbolBadge status={statusMap[request.status]} compact />
             </View>
             <Text style={[styles.requestDates, { color: colors.textSecondary }]}>
               {format(parseISO(request.startDate), 'MMM d')} – {format(parseISO(request.endDate), 'MMM d, yyyy')}
@@ -90,6 +99,7 @@ export default function LeaveScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   content: { padding: 20, paddingBottom: 40 },
+  statusRow: { flexDirection: 'row', gap: 10, marginBottom: 16 },
   requestBtn: { marginBottom: 20 },
   sectionTitle: { fontSize: 18, fontWeight: '700', marginBottom: 12 },
   balanceGrid: { gap: 12, marginBottom: 24 },

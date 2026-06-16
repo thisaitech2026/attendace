@@ -10,13 +10,14 @@ import { ProfileHeader } from '@/components/ui/ProfileHeader';
 import { QuickAction, SectionHeader } from '@/components/ui/QuickAction';
 import { StatCard } from '@/components/ui/StatCard';
 import { StatusBadge } from '@/components/ui/StatusBadge';
+import { StatusOptionChip } from '@/components/ui/StatusSymbolBadge';
 import { Button } from '@/components/ui/Button';
 import { useApp } from '@/contexts/AppContext';
 import Colors from '@/constants/Colors';
 import { useColorScheme } from '@/components/useColorScheme';
 
 export default function DashboardScreen() {
-  const { employee, attendance, leaveBalances, leaveRequests } = useApp();
+  const { employee, attendance, leaveBalances, leaveRequests, salarySlips } = useApp();
   const scheme = useColorScheme() ?? 'light';
   const colors = Colors[scheme];
   const insets = useSafeAreaInsets();
@@ -24,6 +25,8 @@ export default function DashboardScreen() {
   const today = attendance[0];
   const annualLeave = leaveBalances.find((b) => b.type === 'annual');
   const pendingLeaves = leaveRequests.filter((r) => r.status === 'pending').length;
+  const paidSlips = salarySlips.filter((s) => s.status === 'paid').length;
+  const pendingSlips = salarySlips.filter((s) => s.status === 'pending').length;
 
   const punchStatus = today?.punchIn ? (today.punchOut ? 'Done' : 'Active') : 'Away';
   const punchTone = today?.punchIn ? (today.punchOut ? 'success' : 'primary') : 'warning';
@@ -70,6 +73,12 @@ export default function DashboardScreen() {
           actionKey="goals"
           color={colors.warning}
         />
+      </View>
+
+      <SectionHeader title="Payment status" />
+      <View style={styles.paymentRow}>
+        <StatusOptionChip status="paid" count={paidSlips} active />
+        <StatusOptionChip status="pending" count={pendingSlips} />
       </View>
 
       <Card noPadding style={styles.heroCard}>
@@ -167,9 +176,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 12,
     paddingHorizontal: 8,
-    marginBottom: 18,
+    marginBottom: 14,
     borderRadius: 16,
     borderWidth: 1,
+  },
+  paymentRow: {
+    flexDirection: 'row',
+    gap: 10,
+    marginBottom: 16,
   },
   historyCard: { marginBottom: 10, paddingVertical: 14, paddingHorizontal: 14 },
   historyRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
