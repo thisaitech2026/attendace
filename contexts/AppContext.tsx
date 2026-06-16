@@ -72,8 +72,8 @@ interface AppContextValue {
   login: (email: string, password: string, role: UserRole) => Promise<void>;
   logout: () => Promise<void>;
   refreshData: () => Promise<void>;
-  doPunchIn: (method: PunchMethod, wifiSsid?: string | null) => Promise<void>;
-  doPunchOut: (method: PunchMethod) => Promise<void>;
+  doPunchIn: (method: PunchMethod, wifiSsid?: string | null) => Promise<AttendanceRecord | null>;
+  doPunchOut: (method: PunchMethod) => Promise<AttendanceRecord | null>;
   requestLeave: (type: LeaveType, startDate: string, endDate: string, reason: string) => Promise<void>;
   sendMessage: (text: string, category?: ChatCategory) => Promise<void>;
   createHire: (input: NewHireInput) => Promise<Employee>;
@@ -202,18 +202,20 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const doPunchIn = useCallback(
     async (method: PunchMethod, wifiSsid: string | null = null) => {
-      if (!employeeId) return;
-      await punchIn(employeeId, method, wifiSsid);
+      if (!employeeId) return null;
+      const record = await punchIn(employeeId, method, wifiSsid);
       await refreshData();
+      return record;
     },
     [employeeId, refreshData]
   );
 
   const doPunchOut = useCallback(
     async (method: PunchMethod) => {
-      if (!employeeId) return;
-      await punchOut(employeeId, method);
+      if (!employeeId) return null;
+      const record = await punchOut(employeeId, method);
       await refreshData();
+      return record;
     },
     [employeeId, refreshData]
   );

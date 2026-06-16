@@ -1,6 +1,6 @@
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { format, parseISO } from 'date-fns';
-import { Link } from 'expo-router';
+import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { SymbolView } from 'expo-symbols';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -16,6 +16,7 @@ import Colors from '@/constants/Colors';
 import { useColorScheme } from '@/components/useColorScheme';
 
 export default function DashboardScreen() {
+  const router = useRouter();
   const { employee, attendance, leaveBalances, leaveRequests } = useApp();
   const scheme = useColorScheme() ?? 'light';
   const colors = Colors[scheme];
@@ -95,13 +96,12 @@ export default function DashboardScreen() {
             <StatusBadge label={punchStatus} tone={punchTone} light />
           </View>
           {!today?.punchOut && (
-            <Link href="/(tabs)/attendance" asChild>
-              <Button
-                title={today?.punchIn ? 'Punch Out' : 'Punch In Now'}
-                style={styles.heroBtn}
-                variant="light"
-              />
-            </Link>
+            <Button
+              title={today?.punchIn ? 'View Punch Details' : 'Punch In Now'}
+              style={styles.heroBtn}
+              variant="light"
+              onPress={() => router.push('/punch' as never)}
+            />
           )}
         </LinearGradient>
       </Card>

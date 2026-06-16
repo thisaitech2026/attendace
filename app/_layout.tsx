@@ -28,7 +28,8 @@ function AuthGate({ children }: { children: React.ReactNode }) {
     const root = segments[0];
     const inAuth = root === 'login';
     const inAdmin = root === 'admin';
-    const inEmployee = root === '(tabs)' || root === 'profile' || root === 'leave-request';
+    const employeeRoutes = ['(tabs)', 'profile', 'leave-request', 'punch'];
+    const inEmployee = employeeRoutes.includes(root as string);
 
     if (!isAuthenticated && !inAuth) {
       router.replace('/login');
@@ -106,6 +107,7 @@ function RootLayoutNav() {
           <Stack.Screen name="admin" options={{ headerShown: false }} />
           <Stack.Screen name="profile" options={{ title: 'My Profile', headerBackTitle: 'Back' }} />
           <Stack.Screen name="leave-request" options={{ presentation: 'modal', title: 'Request Leave' }} />
+          <Stack.Screen name="punch" options={{ presentation: 'modal', title: 'Punch Attendance' }} />
         </Stack>
       </AuthGate>
     </ThemeProvider>
