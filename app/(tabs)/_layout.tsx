@@ -1,34 +1,9 @@
-import { SymbolView } from 'expo-symbols';
 import { Tabs } from 'expo-router';
-import { Platform, StyleSheet, View, type ColorValue } from 'react-native';
+import { Platform, StyleSheet } from 'react-native';
 
+import { TabBarPicture } from '@/components/ui/TabBarPicture';
 import Colors from '@/constants/Colors';
 import { useColorScheme } from '@/components/useColorScheme';
-
-type TabIconName = {
-  ios: React.ComponentProps<typeof SymbolView>['name'] extends infer N
-    ? N extends { ios?: infer I }
-      ? I
-      : N
-    : never;
-  android: string;
-  web: string;
-};
-
-function TabIcon({ name, color, focused }: { name: TabIconName; color: ColorValue; focused: boolean }) {
-  const scheme = useColorScheme() ?? 'light';
-  const colors = Colors[scheme];
-
-  return (
-    <View style={[styles.iconWrap, focused && { backgroundColor: colors.primaryLight }]}>
-      <SymbolView
-        name={name as React.ComponentProps<typeof SymbolView>['name']}
-        tintColor={color as string}
-        size={22}
-      />
-    </View>
-  );
-}
 
 export default function TabLayout() {
   const colorScheme = useColorScheme() ?? 'light';
@@ -44,14 +19,14 @@ export default function TabLayout() {
           backgroundColor: colors.tabBar,
           borderTopColor: colors.borderLight,
           borderTopWidth: 1,
-          paddingTop: 8,
-          paddingBottom: Platform.OS === 'ios' ? 24 : 12,
-          height: Platform.OS === 'ios' ? 88 : 72,
-          elevation: 12,
+          paddingTop: 6,
+          paddingBottom: Platform.OS === 'ios' ? 22 : 10,
+          height: Platform.OS === 'ios' ? 92 : 76,
+          elevation: 16,
           shadowColor: colors.shadow,
           shadowOffset: { width: 0, height: -4 },
           shadowOpacity: 1,
-          shadowRadius: 12,
+          shadowRadius: 14,
         },
         headerShown: false,
       }}
@@ -60,45 +35,35 @@ export default function TabLayout() {
         name="index"
         options={{
           title: 'Home',
-          tabBarIcon: ({ color, focused }) => (
-            <TabIcon name={{ ios: 'house.fill', android: 'home', web: 'home' }} color={color} focused={focused} />
-          ),
+          tabBarIcon: ({ color, focused }) => <TabBarPicture tabKey="home" color={color} focused={focused} />,
         }}
       />
       <Tabs.Screen
         name="attendance"
         options={{
           title: 'Time',
-          tabBarIcon: ({ color, focused }) => (
-            <TabIcon name={{ ios: 'clock.fill', android: 'schedule', web: 'schedule' }} color={color} focused={focused} />
-          ),
+          tabBarIcon: ({ color, focused }) => <TabBarPicture tabKey="time" color={color} focused={focused} />,
         }}
       />
       <Tabs.Screen
         name="leave"
         options={{
           title: 'Leave',
-          tabBarIcon: ({ color, focused }) => (
-            <TabIcon name={{ ios: 'calendar', android: 'event', web: 'event' }} color={color} focused={focused} />
-          ),
+          tabBarIcon: ({ color, focused }) => <TabBarPicture tabKey="leave" color={color} focused={focused} />,
         }}
       />
       <Tabs.Screen
         name="performance"
         options={{
           title: 'Goals',
-          tabBarIcon: ({ color, focused }) => (
-            <TabIcon name={{ ios: 'chart.bar.fill', android: 'bar_chart', web: 'bar_chart' }} color={color} focused={focused} />
-          ),
+          tabBarIcon: ({ color, focused }) => <TabBarPicture tabKey="goals" color={color} focused={focused} />,
         }}
       />
       <Tabs.Screen
         name="salary"
         options={{
           title: 'Pay',
-          tabBarIcon: ({ color, focused }) => (
-            <TabIcon name={{ ios: 'dollarsign.circle.fill', android: 'payments', web: 'payments' }} color={color} focused={focused} />
-          ),
+          tabBarIcon: ({ color, focused }) => <TabBarPicture tabKey="pay" color={color} focused={focused} />,
         }}
       />
     </Tabs>
@@ -106,16 +71,10 @@ export default function TabLayout() {
 }
 
 const styles = StyleSheet.create({
-  iconWrap: {
-    width: 44,
-    height: 30,
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
   tabLabel: {
-    fontSize: 11,
-    fontWeight: '600',
-    marginTop: 2,
+    fontSize: 10,
+    fontWeight: '700',
+    marginTop: 4,
+    letterSpacing: 0.2,
   },
 });

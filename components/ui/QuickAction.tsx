@@ -3,19 +3,8 @@ import { SymbolView } from 'expo-symbols';
 import { Link } from 'expo-router';
 
 import Colors from '@/constants/Colors';
+import { QUICK_ACTION_PICTURES, type QuickActionKey } from '@/constants/tabPictures';
 import { useColorScheme } from '@/components/useColorScheme';
-
-export type QuickActionKey = 'leave' | 'time' | 'pay' | 'goals';
-
-const ACTION_ART: Record<
-  QuickActionKey,
-  { emoji: string; icon: { ios: string; android: string; web: string } }
-> = {
-  leave: { emoji: '📅', icon: { ios: 'calendar.badge.plus', android: 'event_available', web: 'event_available' } },
-  time: { emoji: '⏱️', icon: { ios: 'clock.fill', android: 'schedule', web: 'schedule' } },
-  pay: { emoji: '💰', icon: { ios: 'banknote.fill', android: 'payments', web: 'payments' } },
-  goals: { emoji: '🎯', icon: { ios: 'chart.line.uptrend.xyaxis', android: 'trending_up', web: 'trending_up' } },
-};
 
 interface QuickActionProps {
   href: string;
@@ -27,7 +16,7 @@ interface QuickActionProps {
 }
 
 export function QuickAction({ href, label, actionKey, color, bgColor, accentBg }: QuickActionProps) {
-  const art = ACTION_ART[actionKey];
+  const art = QUICK_ACTION_PICTURES[actionKey];
 
   return (
     <Link href={href as never} asChild>
