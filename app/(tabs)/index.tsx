@@ -1,24 +1,21 @@
-import { useState } from 'react';
 import { Alert, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { format, parseISO } from 'date-fns';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import { Link } from 'expo-router';
 import { SymbolView } from 'expo-symbols';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Card } from '@/components/ui/Card';
-import { PunchDetailModal } from '@/components/punch/PunchDetailModal';
 import { ProfileHeader } from '@/components/ui/ProfileHeader';
 import { QuickAction, SectionHeader } from '@/components/ui/QuickAction';
 import { StatCard } from '@/components/ui/StatCard';
 import { StatusBadge } from '@/components/ui/StatusBadge';
-import { Button } from '@/components/ui/Button';
 import { useApp } from '@/contexts/AppContext';
 import Colors from '@/constants/Colors';
 import { useColorScheme } from '@/components/useColorScheme';
 
 export default function DashboardScreen() {
-  const [showPunchDetails, setShowPunchDetails] = useState(false);
   const { employee, attendance, leaveBalances, leaveRequests, logout } = useApp();
   const scheme = useColorScheme() ?? 'light';
   const colors = Colors[scheme];
@@ -51,7 +48,6 @@ export default function DashboardScreen() {
   };
 
   return (
-    <>
     <ScrollView
       style={[styles.container, { backgroundColor: colors.background }]}
       contentContainerStyle={[styles.content, { paddingTop: insets.top + 12 }]}
@@ -121,8 +117,9 @@ export default function DashboardScreen() {
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           style={styles.gradient}
+          pointerEvents="box-none"
         >
-          <View style={styles.heroTop}>
+          <View style={styles.heroTop} pointerEvents="box-none">
             <View>
               <Text style={styles.heroLabel}>Today's attendance</Text>
               <Text style={styles.heroStatus}>{punchStatus}</Text>
@@ -137,12 +134,21 @@ export default function DashboardScreen() {
             </View>
             <StatusBadge label={punchStatus} tone={punchTone} light />
           </View>
-          <Button
-            title={punchButtonTitle}
-            style={styles.heroBtn}
-            variant="light"
-            onPress={() => setShowPunchDetails(true)}
-          />
+          <Link href={'/punch' as never} asChild>
+            <Pressable
+              style={({ pressed }) => [
+                styles.heroBtn,
+                {
+                  opacity: pressed ? 0.88 : 1,
+                  transform: [{ scale: pressed ? 0.98 : 1 }],
+                },
+              ]}
+              accessibilityRole="button"
+              accessibilityLabel={punchButtonTitle}
+            >
+              <Text style={[styles.heroBtnText, { color: colors.primary }]}>{punchButtonTitle}</Text>
+            </Pressable>
+          </Link>
         </LinearGradient>
       </Card>
 
@@ -187,9 +193,6 @@ export default function DashboardScreen() {
         </Card>
       ))}
     </ScrollView>
-
-    <PunchDetailModal visible={showPunchDetails} onClose={() => setShowPunchDetails(false)} />
-    </>
   );
 }
 
@@ -219,7 +222,17 @@ const styles = StyleSheet.create({
   heroLabel: { color: 'rgba(255,255,255,0.75)', fontSize: 12, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.8 },
   heroStatus: { color: '#FFF', fontSize: 28, fontWeight: '800', marginTop: 6, letterSpacing: -0.5 },
   heroTime: { color: 'rgba(255,255,255,0.85)', fontSize: 13, marginTop: 6, fontWeight: '500' },
-  heroBtn: { marginTop: 18 },
+  heroBtn: {
+    marginTop: 18,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 14,
+    paddingVertical: 15,
+    paddingHorizontal: 22,
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 2,
+  },
+  heroBtnText: { fontSize: 15, fontWeight: '700', letterSpacing: 0.2 },
   stats: { flexDirection: 'row', gap: 12, marginBottom: 24 },
   actions: {
     flexDirection: 'row',
