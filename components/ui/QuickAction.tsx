@@ -59,18 +59,19 @@ export function SectionHeader({ title, action }: SectionHeaderProps) {
 
 const styles = StyleSheet.create({
   wrap: {
-    width: '23%',
     alignItems: 'center',
-    paddingVertical: 6,
+    paddingVertical: 2,
+    paddingHorizontal: 4,
+    minWidth: 58,
   },
-  emoji: { fontSize: 22, lineHeight: 26, marginBottom: 4 },
-  label: { fontSize: 11, fontWeight: '700', textAlign: 'center' },
+  emoji: { fontSize: 22, lineHeight: 24, marginBottom: 2 },
+  label: { fontSize: 10, fontWeight: '700', textAlign: 'center' },
   row: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 10,
-    marginTop: 4,
+    marginBottom: 6,
+    marginTop: 2,
   },
   title: { fontSize: 17, fontWeight: '800', letterSpacing: -0.3 },
   action: { fontSize: 13, fontWeight: '600' },
