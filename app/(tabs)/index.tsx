@@ -45,7 +45,7 @@ export default function DashboardScreen() {
       ) : null}
 
       <SectionHeader title="Quick access" />
-      <View style={styles.actions}>
+      <View style={[styles.actions, { backgroundColor: colors.card, borderColor: colors.borderLight }]}>
         <QuickAction
           href="/(tabs)/leave"
           label="Leave"
@@ -163,11 +163,13 @@ const styles = StyleSheet.create({
   stats: { flexDirection: 'row', gap: 12, marginBottom: 24 },
   actions: {
     flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'flex-start',
-    gap: 6,
-    marginBottom: 14,
-    alignSelf: 'center',
+    justifyContent: 'space-evenly',
+    alignItems: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 8,
+    marginBottom: 18,
+    borderRadius: 16,
+    borderWidth: 1,
   },
   historyCard: { marginBottom: 10, paddingVertical: 14, paddingHorizontal: 14 },
   historyRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
