@@ -18,20 +18,34 @@ export const unstable_settings = {
 SplashScreen.preventAutoHideAsync();
 
 function AuthGate({ children }: { children: React.ReactNode }) {
-  const { isAuthenticated, isLoading } = useApp();
+  const { isAuthenticated, isLoading, isAdmin } = useApp();
   const segments = useSegments();
   const router = useRouter();
   const scheme = useColorScheme() ?? 'light';
 
   useEffect(() => {
     if (isLoading) return;
-    const inAuth = segments[0] === 'login';
+    const root = segments[0];
+    const inAuth = root === 'login';
+    const inAdmin = root === 'admin';
+    const inEmployee = root === '(tabs)' || root === 'profile' || root === 'leave-request';
+
     if (!isAuthenticated && !inAuth) {
       router.replace('/login');
-    } else if (isAuthenticated && inAuth) {
+      return;
+    }
+    if (isAuthenticated && inAuth) {
+      router.replace(isAdmin ? '/admin' : '/(tabs)');
+      return;
+    }
+    if (isAuthenticated && isAdmin && inEmployee) {
+      router.replace('/admin');
+      return;
+    }
+    if (isAuthenticated && !isAdmin && inAdmin) {
       router.replace('/(tabs)');
     }
-  }, [isAuthenticated, isLoading, segments, router]);
+  }, [isAuthenticated, isLoading, isAdmin, segments, router]);
 
   if (isLoading) {
     return (
@@ -89,6 +103,7 @@ function RootLayoutNav() {
         <Stack>
           <Stack.Screen name="login" options={{ headerShown: false }} />
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          <Stack.Screen name="admin" options={{ headerShown: false }} />
           <Stack.Screen name="profile" options={{ title: 'My Profile', headerBackTitle: 'Back' }} />
           <Stack.Screen name="leave-request" options={{ presentation: 'modal', title: 'Request Leave' }} />
         </Stack>

@@ -1,9 +1,24 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 
-import { MOCK_USERS } from '@/constants/config';
+import { DEMO_LOGINS } from '@/constants/config';
+import {
+  enrichLeaveRequest,
+  getAdminStats,
+  getAllLeaveRequests,
+  getPendingApprovals,
+  reviewLeaveRequest,
+} from '@/services/adminService';
 import { loadChatMessages, sendChatMessage } from '@/services/chatService';
 import {
+  assignSupervisor,
+  createNewHire,
   findEmployeeByEmail,
+  getEmployeeDisplayName,
+  getSupervisorOptions,
+  loadEmployees,
+  loadUsers,
+} from '@/services/employeeRegistry';
+import {
   getLeaveBalances,
   getLeaveRequests,
   getSalarySlips,
@@ -20,36 +35,52 @@ import type {
   LeaveBalance,
   LeaveRequest,
   LeaveType,
+  NewHireInput,
   PunchMethod,
   SalarySlip,
+  UserRole,
 } from '@/types/employee';
 
 interface Session {
-  employeeId: string;
+  role: UserRole;
   email: string;
+  employeeId?: string;
+  name: string;
+}
+
+export interface EnrichedLeaveRequest extends LeaveRequest {
+  employeeName: string;
+  department: string;
+  supervisor: string;
 }
 
 interface AppContextValue {
   isLoading: boolean;
   isAuthenticated: boolean;
+  role: UserRole | null;
+  isAdmin: boolean;
   employee: Employee | null;
+  adminName: string | null;
   attendance: AttendanceRecord[];
   leaveBalances: LeaveBalance[];
   leaveRequests: LeaveRequest[];
   salarySlips: SalarySlip[];
   chatMessages: ChatMessage[];
-  login: (email: string, password: string) => Promise<void>;
+  allEmployees: Employee[];
+  pendingApprovals: EnrichedLeaveRequest[];
+  adminStats: { totalEmployees: number; pendingApprovals: number; departments: number };
+  login: (email: string, password: string, role: UserRole) => Promise<void>;
   logout: () => Promise<void>;
   refreshData: () => Promise<void>;
   doPunchIn: (method: PunchMethod, wifiSsid?: string | null) => Promise<void>;
   doPunchOut: (method: PunchMethod) => Promise<void>;
-  requestLeave: (
-    type: LeaveType,
-    startDate: string,
-    endDate: string,
-    reason: string
-  ) => Promise<void>;
+  requestLeave: (type: LeaveType, startDate: string, endDate: string, reason: string) => Promise<void>;
   sendMessage: (text: string, category?: ChatCategory) => Promise<void>;
+  createHire: (input: NewHireInput) => Promise<Employee>;
+  updateSupervisor: (employeeId: string, supervisorId: string) => Promise<void>;
+  approveLeave: (requestId: string) => Promise<void>;
+  rejectLeave: (requestId: string) => Promise<void>;
+  getSupervisors: () => Promise<Employee[]>;
 }
 
 const AppContext = createContext<AppContextValue | null>(null);
@@ -60,38 +91,57 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [employee, setEmployee] = useState<Employee | null>(null);
   const [attendance, setAttendance] = useState<AttendanceRecord[]>([]);
   const [leaveRequests, setLeaveRequests] = useState<LeaveRequest[]>([]);
+  const [leaveBalances, setLeaveBalances] = useState<LeaveBalance[]>([]);
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
+  const [allEmployees, setAllEmployees] = useState<Employee[]>([]);
+  const [pendingApprovals, setPendingApprovals] = useState<EnrichedLeaveRequest[]>([]);
+  const [adminStats, setAdminStats] = useState({ totalEmployees: 0, pendingApprovals: 0, departments: 0 });
 
   const employeeId = employee?.employeeId ?? '';
-
-  const leaveBalances = useMemo(
-    () => (employeeId ? getLeaveBalances(employeeId) : []),
-    [employeeId]
-  );
+  const role = session?.role ?? null;
+  const isAdmin = role === 'admin';
   const salarySlips = useMemo(
     () => (employeeId ? getSalarySlips(employeeId) : []),
     [employeeId]
   );
 
   const refreshData = useCallback(async () => {
-    const [att, leaves, messages] = await Promise.all([
-      employeeId ? loadAttendance(employeeId) : Promise.resolve([]),
-      employeeId ? getLeaveRequests(employeeId) : Promise.resolve([]),
-      loadChatMessages(),
-    ]);
-    setAttendance(att);
-    setLeaveRequests(leaves);
+    const messages = await loadChatMessages();
     setChatMessages(messages);
-  }, [employeeId]);
+
+    if (session?.role === 'admin') {
+      const [employees, pending, stats] = await Promise.all([
+        loadEmployees(),
+        getPendingApprovals(),
+        getAdminStats(),
+      ]);
+      const enriched = await Promise.all(pending.map((r) => enrichLeaveRequest(r)));
+      setAllEmployees(employees);
+      setPendingApprovals(enriched);
+      setAdminStats(stats);
+      return;
+    }
+
+    if (employeeId) {
+      const [att, leaves, balances] = await Promise.all([
+        loadAttendance(employeeId),
+        getLeaveRequests(employeeId),
+        getLeaveBalances(employeeId),
+      ]);
+      setAttendance(att);
+      setLeaveRequests(leaves);
+      setLeaveBalances(balances);
+    }
+  }, [employeeId, session?.role]);
 
   useEffect(() => {
     (async () => {
       const saved = await getItem<Session>(storageKeys.SESSION);
       if (saved) {
-        const emp = findEmployeeByEmail(saved.email);
-        if (emp) {
-          setSession(saved);
-          setEmployee(emp);
+        setSession(saved);
+        if (saved.role === 'employee' && saved.email) {
+          const emp = await findEmployeeByEmail(saved.email);
+          setEmployee(emp ?? null);
         }
       }
       const messages = await loadChatMessages();
@@ -101,23 +151,38 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   useEffect(() => {
-    if (employeeId) {
+    if (session) {
       refreshData();
     }
-  }, [employeeId, refreshData]);
+  }, [session, employeeId, refreshData]);
 
-  const login = useCallback(async (email: string, password: string) => {
-    const user = MOCK_USERS.find(
-      (u) => u.email.toLowerCase() === email.toLowerCase() && u.password === password
+  const login = useCallback(async (email: string, password: string, loginRole: UserRole) => {
+    const users = await loadUsers();
+    const user = users.find(
+      (u) => u.email.toLowerCase() === email.toLowerCase() && u.password === password && u.role === loginRole
     );
     if (!user) {
-      throw new Error('Invalid email or password');
+      throw new Error(`Invalid ${loginRole} credentials`);
     }
-    const emp = findEmployeeByEmail(email);
+
+    if (user.role === 'admin') {
+      const newSession: Session = { role: 'admin', email: user.email, name: user.name };
+      await setItem(storageKeys.SESSION, newSession);
+      setSession(newSession);
+      setEmployee(null);
+      return;
+    }
+
+    const emp = await findEmployeeByEmail(user.email);
     if (!emp) {
       throw new Error('Employee record not found');
     }
-    const newSession = { employeeId: user.employeeId, email: user.email };
+    const newSession: Session = {
+      role: 'employee',
+      email: user.email,
+      employeeId: user.employeeId,
+      name: user.name,
+    };
     await setItem(storageKeys.SESSION, newSession);
     setSession(newSession);
     setEmployee(emp);
@@ -129,6 +194,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setEmployee(null);
     setAttendance([]);
     setLeaveRequests([]);
+    setLeaveBalances([]);
+    setAllEmployees([]);
+    setPendingApprovals([]);
+    setAdminStats({ totalEmployees: 0, pendingApprovals: 0, departments: 0 });
   }, []);
 
   const doPunchIn = useCallback(
@@ -160,29 +229,71 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const sendMessage = useCallback(
     async (text: string, category: ChatCategory = 'general') => {
-      if (!employee) return;
-      const message = await sendChatMessage(
-        employee.employeeId,
-        `${employee.firstName} ${employee.lastName}`,
-        employee.department,
-        text,
-        category
-      );
-      setChatMessages((prev) => [...prev, message]);
+      if (!session) return;
+      if (employee) {
+        const message = await sendChatMessage(
+          employee.employeeId,
+          getEmployeeDisplayName(employee),
+          employee.department,
+          text,
+          category
+        );
+        setChatMessages((prev) => [...prev, message]);
+        return;
+      }
+      if (isAdmin) {
+        const message = await sendChatMessage('ADMIN', session.name, 'Human Resources', text, category);
+        setChatMessages((prev) => [...prev, message]);
+      }
     },
-    [employee]
+    [employee, session, isAdmin]
   );
+
+  const createHire = useCallback(async (input: NewHireInput) => {
+    const created = await createNewHire(input);
+    await refreshData();
+    return created;
+  }, [refreshData]);
+
+  const updateSupervisor = useCallback(async (empId: string, supervisorId: string) => {
+    await assignSupervisor(empId, supervisorId);
+    await refreshData();
+  }, [refreshData]);
+
+  const approveLeave = useCallback(
+    async (requestId: string) => {
+      await reviewLeaveRequest(requestId, 'approved', session?.name ?? 'HR Admin');
+      await refreshData();
+    },
+    [session?.name, refreshData]
+  );
+
+  const rejectLeave = useCallback(
+    async (requestId: string) => {
+      await reviewLeaveRequest(requestId, 'rejected', session?.name ?? 'HR Admin');
+      await refreshData();
+    },
+    [session?.name, refreshData]
+  );
+
+  const getSupervisors = useCallback(() => getSupervisorOptions(), []);
 
   const value = useMemo<AppContextValue>(
     () => ({
       isLoading,
       isAuthenticated: !!session,
+      role,
+      isAdmin,
       employee,
+      adminName: isAdmin ? session?.name ?? null : null,
       attendance,
       leaveBalances,
       leaveRequests,
       salarySlips,
       chatMessages,
+      allEmployees,
+      pendingApprovals,
+      adminStats,
       login,
       logout,
       refreshData,
@@ -190,16 +301,26 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       doPunchOut,
       requestLeave,
       sendMessage,
+      createHire,
+      updateSupervisor,
+      approveLeave,
+      rejectLeave,
+      getSupervisors,
     }),
     [
       isLoading,
       session,
+      role,
+      isAdmin,
       employee,
       attendance,
       leaveBalances,
       leaveRequests,
       salarySlips,
       chatMessages,
+      allEmployees,
+      pendingApprovals,
+      adminStats,
       login,
       logout,
       refreshData,
@@ -207,6 +328,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       doPunchOut,
       requestLeave,
       sendMessage,
+      createHire,
+      updateSupervisor,
+      approveLeave,
+      rejectLeave,
+      getSupervisors,
     ]
   );
 
@@ -218,3 +344,5 @@ export function useApp() {
   if (!ctx) throw new Error('useApp must be used within AppProvider');
   return ctx;
 }
+
+export { DEMO_LOGINS };

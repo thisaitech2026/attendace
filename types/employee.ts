@@ -50,6 +50,7 @@ export interface LeaveRequest {
   status: LeaveStatus;
   submittedAt: string;
   reviewedAt?: string;
+  reviewedBy?: string;
 }
 
 export interface PerformanceReview {
@@ -80,4 +81,26 @@ export interface SalarySlip {
 export interface UserCredentials {
   email: string;
   password: string;
+}
+
+export type UserRole = 'employee' | 'admin';
+
+export interface AppUser extends UserCredentials {
+  role: UserRole;
+  employeeId?: string;
+  name: string;
+}
+
+export interface NewHireInput {
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  department: string;
+  position: string;
+  supervisorId: string;
+  address: string;
+  emergencyContact: string;
+  joinDate: string;
+  tempPassword: string;
 }

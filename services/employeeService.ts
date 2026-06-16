@@ -1,18 +1,14 @@
 import { format, parseISO, differenceInMinutes } from 'date-fns';
 
+import { MOCK_LEAVE_REQUESTS, MOCK_PERFORMANCE, MOCK_SALARY, createTodayAttendance, getInitialAttendance } from '@/data/mockData';
 import {
-  MOCK_EMPLOYEES,
-  MOCK_LEAVE_BALANCES,
-  MOCK_LEAVE_REQUESTS,
-  MOCK_PERFORMANCE,
-  MOCK_SALARY,
-  createTodayAttendance,
-  getInitialAttendance,
-} from '@/data/mockData';
+  findEmployeeByEmail,
+  findEmployeeById,
+  getLeaveBalances as getBalances,
+} from '@/services/employeeRegistry';
 import { getItem, setItem, storageKeys } from '@/services/storage';
 import type {
   AttendanceRecord,
-  Employee,
   LeaveBalance,
   LeaveRequest,
   LeaveType,
@@ -21,12 +17,10 @@ import type {
   SalarySlip,
 } from '@/types/employee';
 
-export function findEmployeeById(employeeId: string): Employee | undefined {
-  return MOCK_EMPLOYEES.find((e) => e.employeeId === employeeId);
-}
+export { findEmployeeByEmail, findEmployeeById } from '@/services/employeeRegistry';
 
-export function findEmployeeByEmail(email: string): Employee | undefined {
-  return MOCK_EMPLOYEES.find((e) => e.email.toLowerCase() === email.toLowerCase());
+export async function getLeaveBalances(employeeId: string): Promise<LeaveBalance[]> {
+  return getBalances(employeeId);
 }
 
 export async function loadAttendance(employeeId: string): Promise<AttendanceRecord[]> {
@@ -79,10 +73,7 @@ export async function punchIn(
   return updated;
 }
 
-export async function punchOut(
-  employeeId: string,
-  method: PunchMethod
-): Promise<AttendanceRecord> {
+export async function punchOut(employeeId: string, method: PunchMethod): Promise<AttendanceRecord> {
   const records = await loadAttendance(employeeId);
   const today = records[0];
   if (!today.punchIn) {
@@ -101,10 +92,6 @@ export async function punchOut(
   };
   await saveAttendance([updated]);
   return updated;
-}
-
-export function getLeaveBalances(employeeId: string): LeaveBalance[] {
-  return MOCK_LEAVE_BALANCES[employeeId] ?? [];
 }
 
 export async function getLeaveRequests(employeeId: string): Promise<LeaveRequest[]> {
