@@ -15,13 +15,14 @@ export default function TabLayout() {
         tabBarActiveTintColor: colors.primary,
         tabBarInactiveTintColor: colors.tabIconDefault,
         tabBarLabelStyle: styles.tabLabel,
+        tabBarIconStyle: styles.tabIcon,
         tabBarStyle: {
           backgroundColor: colors.tabBar,
           borderTopColor: colors.borderLight,
           borderTopWidth: 1,
-          paddingTop: 6,
-          paddingBottom: Platform.OS === 'ios' ? 22 : 10,
-          height: Platform.OS === 'ios' ? 92 : 76,
+          paddingTop: 8,
+          paddingBottom: Platform.OS === 'ios' ? 24 : 12,
+          height: Platform.OS === 'ios' ? 104 : 88,
           elevation: 16,
           shadowColor: colors.shadow,
           shadowOffset: { width: 0, height: -4 },
@@ -71,10 +72,13 @@ export default function TabLayout() {
 }
 
 const styles = StyleSheet.create({
+  tabIcon: {
+    marginBottom: 0,
+  },
   tabLabel: {
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: '700',
-    marginTop: 4,
+    marginTop: 2,
     letterSpacing: 0.2,
   },
 });
