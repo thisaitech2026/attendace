@@ -1,11 +1,12 @@
+import { useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { format, parseISO } from 'date-fns';
-import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { SymbolView } from 'expo-symbols';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Card } from '@/components/ui/Card';
+import { PunchDetailModal } from '@/components/punch/PunchDetailModal';
 import { ProfileHeader } from '@/components/ui/ProfileHeader';
 import { QuickAction, SectionHeader } from '@/components/ui/QuickAction';
 import { StatCard } from '@/components/ui/StatCard';
@@ -16,7 +17,7 @@ import Colors from '@/constants/Colors';
 import { useColorScheme } from '@/components/useColorScheme';
 
 export default function DashboardScreen() {
-  const router = useRouter();
+  const [showPunchDetails, setShowPunchDetails] = useState(false);
   const { employee, attendance, leaveBalances, leaveRequests } = useApp();
   const scheme = useColorScheme() ?? 'light';
   const colors = Colors[scheme];
@@ -29,7 +30,14 @@ export default function DashboardScreen() {
   const punchStatus = today?.punchIn ? (today.punchOut ? 'Done' : 'Active') : 'Away';
   const punchTone = today?.punchIn ? (today.punchOut ? 'success' : 'primary') : 'warning';
 
+  const punchButtonTitle = today?.punchOut
+    ? 'View Punch Details'
+    : today?.punchIn
+      ? 'View Punch Details'
+      : 'Punch In Now';
+
   return (
+    <>
     <ScrollView
       style={[styles.container, { backgroundColor: colors.background }]}
       contentContainerStyle={[styles.content, { paddingTop: insets.top + 12 }]}
@@ -95,14 +103,12 @@ export default function DashboardScreen() {
             </View>
             <StatusBadge label={punchStatus} tone={punchTone} light />
           </View>
-          {!today?.punchOut && (
-            <Button
-              title={today?.punchIn ? 'View Punch Details' : 'Punch In Now'}
-              style={styles.heroBtn}
-              variant="light"
-              onPress={() => router.push('/punch' as never)}
-            />
-          )}
+          <Button
+            title={punchButtonTitle}
+            style={styles.heroBtn}
+            variant="light"
+            onPress={() => setShowPunchDetails(true)}
+          />
         </LinearGradient>
       </Card>
 
@@ -147,6 +153,9 @@ export default function DashboardScreen() {
         </Card>
       ))}
     </ScrollView>
+
+    <PunchDetailModal visible={showPunchDetails} onClose={() => setShowPunchDetails(false)} />
+    </>
   );
 }
 
