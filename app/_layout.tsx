@@ -1,56 +1,97 @@
 import { useFonts } from 'expo-font';
-import { DarkTheme, DefaultTheme, Stack, ThemeProvider } from 'expo-router';
+import { DarkTheme, DefaultTheme, Stack, ThemeProvider, useRouter, useSegments } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
+import { ActivityIndicator, View } from 'react-native';
 import 'react-native-reanimated';
 
 import { useColorScheme } from '@/components/useColorScheme';
+import { AppProvider, useApp } from '@/contexts/AppContext';
+import Colors from '@/constants/Colors';
 
-export {
-  // Catch any errors thrown by the Layout component.
-  ErrorBoundary,
-} from 'expo-router';
+export { ErrorBoundary } from 'expo-router';
 
 export const unstable_settings = {
-  // Ensure that reloading on `/modal` keeps a back button present.
   initialRouteName: '(tabs)',
 };
 
-// Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
+
+function AuthGate({ children }: { children: React.ReactNode }) {
+  const { isAuthenticated, isLoading } = useApp();
+  const segments = useSegments();
+  const router = useRouter();
+  const scheme = useColorScheme() ?? 'light';
+
+  useEffect(() => {
+    if (isLoading) return;
+    const inAuth = segments[0] === 'login';
+    if (!isAuthenticated && !inAuth) {
+      router.replace('/login');
+    } else if (isAuthenticated && inAuth) {
+      router.replace('/(tabs)');
+    }
+  }, [isAuthenticated, isLoading, segments, router]);
+
+  if (isLoading) {
+    return (
+      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: Colors[scheme].background }}>
+        <ActivityIndicator size="large" color={Colors[scheme].primary} />
+      </View>
+    );
+  }
+
+  return <>{children}</>;
+}
 
 export default function RootLayout() {
   const [loaded, error] = useFonts({
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
   });
 
-  // Expo Router uses Error Boundaries to catch errors in the navigation tree.
   useEffect(() => {
     if (error) throw error;
   }, [error]);
 
   useEffect(() => {
-    if (loaded) {
-      SplashScreen.hideAsync();
-    }
+    if (loaded) SplashScreen.hideAsync();
   }, [loaded]);
 
-  if (!loaded) {
-    return null;
-  }
+  if (!loaded) return null;
 
-  return <RootLayoutNav />;
+  return (
+    <AppProvider>
+      <RootLayoutNav />
+    </AppProvider>
+  );
 }
 
 function RootLayoutNav() {
   const colorScheme = useColorScheme();
+  const colors = Colors[colorScheme ?? 'light'];
+
+  const theme = colorScheme === 'dark' ? DarkTheme : DefaultTheme;
+  const customTheme = {
+    ...theme,
+    colors: {
+      ...theme.colors,
+      primary: colors.primary,
+      background: colors.background,
+      card: colors.card,
+      text: colors.text,
+      border: colors.border,
+    },
+  };
 
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
-      </Stack>
+    <ThemeProvider value={customTheme}>
+      <AuthGate>
+        <Stack>
+          <Stack.Screen name="login" options={{ headerShown: false }} />
+          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          <Stack.Screen name="leave-request" options={{ presentation: 'modal', title: 'Request Leave' }} />
+        </Stack>
+      </AuthGate>
     </ThemeProvider>
   );
 }

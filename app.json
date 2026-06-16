@@ -1,14 +1,18 @@
 {
   "expo": {
-    "name": "employee-hub",
-    "slug": "employee-hub",
+    "name": "WorkPulse",
+    "slug": "workpulse",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "employeehub",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "WorkPulse needs your location to verify you are connected to the office WiFi network for attendance punch-in.",
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "WorkPulse needs your location to verify office WiFi for attendance."
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -17,6 +21,12 @@
         "backgroundImage": "./assets/images/android-icon-background.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
+      "permissions": [
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_WIFI_STATE",
+        "ACCESS_NETWORK_STATE"
+      ],
       "predictiveBackGestureEnabled": false
     },
     "web": {
@@ -32,6 +42,12 @@
           "image": "./assets/images/splash-icon.png",
           "resizeMode": "contain",
           "backgroundColor": "#ffffff"
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Allow WorkPulse to access your location to verify office WiFi for attendance punch-in."
         }
       ]
     ],
