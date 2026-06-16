@@ -12,7 +12,7 @@ import {
 import { useRouter } from 'expo-router';
 
 import { Button } from '@/components/ui/Button';
-import { DatePickerField } from '@/components/ui/DatePickerField';
+import { DateInputField } from '@/components/ui/DateInputField';
 import { useApp } from '@/contexts/AppContext';
 import Colors from '@/constants/Colors';
 import { LEAVE_TYPE_LABELS } from '@/constants/config';
@@ -20,7 +20,8 @@ import type { LeaveType } from '@/types/employee';
 import { useColorScheme } from '@/components/useColorScheme';
 import {
   calculateLeaveDays,
-  getTodayString,
+  getDateInputError,
+  shouldShowDateFieldError,
   validateLeaveForm,
 } from '@/utils/leaveValidation';
 
@@ -59,16 +60,41 @@ export default function LeaveRequestModal() {
     return calculateLeaveDays(startDate, endDate);
   }, [formValidation.valid, startDate, endDate]);
 
-  const showFieldError = (field: 'start' | 'end' | 'reason'): string | undefined =>
-    (showErrors || touched[field]) ? formValidation.errors[field] : undefined;
+  const startError = useMemo(() => {
+    if (!shouldShowDateFieldError(startDate, touched.start, showErrors)) return undefined;
+    return getDateInputError(startDate, {
+      required: true,
+      fieldLabel: 'Start date',
+      rejectPast: true,
+    });
+  }, [startDate, touched.start, showErrors]);
 
-  const startError = showFieldError('start');
-  const endError = showFieldError('end');
-  const reasonError = showFieldError('reason');
+  const endError = useMemo(() => {
+    if (!shouldShowDateFieldError(endDate, touched.end, showErrors)) return undefined;
+    const fieldError = getDateInputError(endDate, {
+      required: true,
+      fieldLabel: 'End date',
+      minDate: startDate.length === 10 ? startDate : undefined,
+    });
+    if (fieldError) return fieldError;
+    if (startDate.length === 10 && endDate.length === 10 && formValidation.errors.end) {
+      return formValidation.errors.end;
+    }
+    return undefined;
+  }, [endDate, touched.end, showErrors, startDate, formValidation.errors.end]);
+
+  const reasonError = (showErrors || touched.reason) && !reason.trim() ? 'Reason is required' : undefined;
   const submitDisabled = submitting || !formValidation.valid;
 
   const markTouched = (field: 'start' | 'end' | 'reason') => {
     setTouched((prev) => ({ ...prev, [field]: true }));
+  };
+
+  const handleStartDateChange = (next: string) => {
+    setStartDate(next);
+    if (endDate && next.length === 10 && endDate < next) {
+      setEndDate('');
+    }
   };
 
   const handleSubmit = async () => {
@@ -78,7 +104,7 @@ export default function LeaveRequestModal() {
     if (!formValidation.valid) {
       showAlert(
         'Please fix the form',
-        formValidation.summary ?? 'Complete all required fields with valid dates before submitting.'
+        formValidation.summary ?? 'Enter valid dates in YYYY-MM-DD format before submitting.'
       );
       return;
     }
@@ -120,17 +146,11 @@ export default function LeaveRequestModal() {
           ))}
         </View>
 
-        <DatePickerField
+        <DateInputField
           label="Start Date"
           value={startDate}
-          onChange={(next) => {
-            setStartDate(next);
-            if (endDate && next > endDate) {
-              setEndDate('');
-            }
-          }}
+          onChange={handleStartDateChange}
           onBlur={() => markTouched('start')}
-          minimumDate={getTodayString()}
           error={startError}
           textColor={colors.text}
           mutedColor={colors.textSecondary}
@@ -140,12 +160,11 @@ export default function LeaveRequestModal() {
           primaryColor={colors.primary}
         />
 
-        <DatePickerField
+        <DateInputField
           label="End Date"
           value={endDate}
           onChange={setEndDate}
           onBlur={() => markTouched('end')}
-          minimumDate={startDate || undefined}
           error={endError}
           textColor={colors.text}
           mutedColor={colors.textSecondary}
@@ -160,9 +179,7 @@ export default function LeaveRequestModal() {
             {leaveDays} day{leaveDays === 1 ? '' : 's'} requested
           </Text>
         ) : (
-          <Text style={[styles.hint, { color: colors.textMuted }]}>
-            Select dates from the calendar. Past dates are not allowed.
-          </Text>
+          <Text style={[styles.hint, { color: colors.textMuted }]}>Enter dates as YYYY-MM-DD (example: 2026-07-01)</Text>
         )}
 
         <Text style={[styles.label, { color: colors.textSecondary }]}>Reason</Text>
@@ -173,6 +190,7 @@ export default function LeaveRequestModal() {
             {
               color: colors.text,
               borderColor: reasonError ? colors.danger : colors.border,
+              borderWidth: reasonError ? 2 : 1,
               backgroundColor: colors.card,
             },
           ]}
@@ -188,7 +206,7 @@ export default function LeaveRequestModal() {
 
         {!formValidation.valid ? (
           <Text style={[styles.submitHint, { color: colors.textMuted }]}>
-            Submit will be enabled once all fields are valid.
+            Submit is disabled until both dates are valid YYYY-MM-DD values and reason is filled.
           </Text>
         ) : null}
 
@@ -219,7 +237,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   textArea: { minHeight: 100, textAlignVertical: 'top' },
-  error: { fontSize: 12, fontWeight: '600', marginTop: 6 },
+  error: { fontSize: 12, fontWeight: '700', marginTop: 6 },
   hint: { fontSize: 12, marginTop: 8, fontWeight: '500' },
   submitHint: { fontSize: 12, marginTop: 16, fontWeight: '500' },
   validationBanner: {

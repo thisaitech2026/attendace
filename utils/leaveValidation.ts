@@ -14,6 +14,9 @@ export interface LeaveFormValidation {
   summary: string | null;
 }
 
+const INVALID_DATE_MSG = 'Enter a valid date (YYYY-MM-DD)';
+const FORMAT_MSG = 'Use format YYYY-MM-DD';
+
 export function formatDateInput(text: string): string {
   const digits = text.replace(/\D/g, '').slice(0, 8);
   if (digits.length <= 4) return digits;
@@ -40,30 +43,67 @@ export function parseLeaveDate(value: string): Date | null {
   return date;
 }
 
+export function getDateInputError(
+  value: string,
+  options: {
+    required?: boolean;
+    minDate?: string;
+    rejectPast?: boolean;
+    fieldLabel?: string;
+  } = {}
+): string | undefined {
+  const trimmed = value.trim();
+  const label = options.fieldLabel ?? 'Date';
+
+  if (!trimmed) {
+    return options.required ? `${label} is required` : undefined;
+  }
+
+  if (trimmed.length < 10) {
+    return FORMAT_MSG;
+  }
+
+  if (!parseLeaveDate(trimmed)) {
+    return INVALID_DATE_MSG;
+  }
+
+  const date = parseLeaveDate(trimmed)!;
+  const today = startOfDay(new Date());
+
+  if (options.rejectPast && isBefore(date, today)) {
+    return 'Date cannot be in the past';
+  }
+
+  if (options.minDate) {
+    const min = parseLeaveDate(options.minDate);
+    if (min && isBefore(date, min)) {
+      return `Date cannot be before ${options.minDate}`;
+    }
+  }
+
+  return undefined;
+}
+
 export function validateLeaveDateRange(
   startDate: string,
   endDate: string,
   options: { rejectPastStart?: boolean } = { rejectPastStart: true }
 ): LeaveFormValidation {
   const errors: LeaveDateErrors = {};
-  const today = startOfDay(new Date());
 
-  if (!startDate.trim()) {
-    errors.start = 'Start date is required';
-  } else if (!parseLeaveDate(startDate)) {
-    errors.start = 'Select a valid start date';
-  } else if (options.rejectPastStart) {
-    const start = parseLeaveDate(startDate)!;
-    if (isBefore(start, today)) {
-      errors.start = 'Start date cannot be in the past';
-    }
-  }
+  const startError = getDateInputError(startDate, {
+    required: true,
+    fieldLabel: 'Start date',
+    rejectPast: options.rejectPastStart,
+  });
+  if (startError) errors.start = startError;
 
-  if (!endDate.trim()) {
-    errors.end = 'End date is required';
-  } else if (!parseLeaveDate(endDate)) {
-    errors.end = 'Select a valid end date';
-  }
+  const endError = getDateInputError(endDate, {
+    required: true,
+    fieldLabel: 'End date',
+    minDate: parseLeaveDate(startDate) ? startDate : undefined,
+  });
+  if (endError) errors.end = endError;
 
   if (!errors.start && !errors.end) {
     const start = parseLeaveDate(startDate)!;
@@ -111,4 +151,8 @@ export function calculateLeaveDays(startDate: string, endDate: string): number {
   const end = parseLeaveDate(endDate);
   if (!start || !end) return 0;
   return Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+}
+
+export function shouldShowDateFieldError(value: string, touched: boolean, showAllErrors: boolean): boolean {
+  return showAllErrors || touched || value.length >= 10;
 }
