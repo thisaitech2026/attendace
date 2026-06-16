@@ -2,6 +2,7 @@ import { StyleSheet, Text, View } from 'react-native';
 import { SymbolView } from 'expo-symbols';
 
 import Colors from '@/constants/Colors';
+import { PAID_SYMBOL, PENDING_WRONG_SYMBOL } from '@/constants/statusSymbols';
 import { useColorScheme } from '@/components/useColorScheme';
 
 interface StatCardProps {
@@ -10,15 +11,26 @@ interface StatCardProps {
   subtitle?: string;
   accent?: string;
   icon?: { ios: string; android: string; web: string };
+  statusSymbol?: 'paid' | 'pending';
 }
 
-export function StatCard({ label, value, subtitle, accent, icon }: StatCardProps) {
+export function StatCard({ label, value, subtitle, accent, icon, statusSymbol }: StatCardProps) {
   const scheme = useColorScheme() ?? 'light';
   const colors = Colors[scheme];
 
+  const symbol = statusSymbol === 'paid' ? PAID_SYMBOL : statusSymbol === 'pending' ? PENDING_WRONG_SYMBOL : null;
+  const symbolBg =
+    statusSymbol === 'paid' ? colors.success : statusSymbol === 'pending' ? colors.warning : accent ?? colors.primary;
+
   return (
     <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.borderLight, shadowColor: colors.shadow }]}>
-      {icon ? (
+      {symbol ? (
+        <View style={[styles.iconWrap, { backgroundColor: statusSymbol === 'paid' ? colors.successLight : colors.warningLight }]}>
+          <View style={[styles.symbolCircle, { backgroundColor: symbolBg }]}>
+            <Text style={styles.symbolText}>{symbol}</Text>
+          </View>
+        </View>
+      ) : icon ? (
         <View style={[styles.iconWrap, { backgroundColor: colors.primaryLight }]}>
           <SymbolView
             name={icon as React.ComponentProps<typeof SymbolView>['name']}
@@ -54,6 +66,14 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginBottom: 8,
   },
+  symbolCircle: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  symbolText: { color: '#FFF', fontSize: 12, fontWeight: '800' },
   label: { fontSize: 11, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.6 },
   value: { fontSize: 24, fontWeight: '800', marginTop: 4, letterSpacing: -0.5 },
   subtitle: { fontSize: 12, marginTop: 4, fontWeight: '500' },

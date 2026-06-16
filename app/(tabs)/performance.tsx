@@ -5,6 +5,7 @@ import { Card } from '@/components/ui/Card';
 import { ScreenHeader } from '@/components/ui/ScreenHeader';
 import { useApp } from '@/contexts/AppContext';
 import Colors from '@/constants/Colors';
+import { PAID_SYMBOL, PENDING_WRONG_SYMBOL } from '@/constants/statusSymbols';
 import { useColorScheme } from '@/components/useColorScheme';
 
 function RatingStars({ rating }: { rating: number }) {
@@ -56,7 +57,9 @@ export default function PerformanceScreen() {
           <Text style={[styles.subheading, { color: colors.text }]}>Goals</Text>
           {review.goals.map((goal, i) => (
             <View key={i} style={styles.goalRow}>
-              <Text style={styles.goalIcon}>{goal.completed ? '✅' : '⏳'}</Text>
+              <Text style={[styles.goalIcon, !goal.completed && { color: colors.warning }]}>
+                {goal.completed ? PAID_SYMBOL : PENDING_WRONG_SYMBOL}
+              </Text>
               <Text
                 style={[
                   styles.goalText,

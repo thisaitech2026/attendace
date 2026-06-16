@@ -1,16 +1,8 @@
 import { StyleSheet, Text, View } from 'react-native';
 
 import Colors from '@/constants/Colors';
+import { STATUS_SYMBOLS, type SymbolStatus } from '@/constants/statusSymbols';
 import { useColorScheme } from '@/components/useColorScheme';
-
-export type SymbolStatus = 'paid' | 'pending' | 'approved' | 'rejected';
-
-const STATUS_CONFIG: Record<SymbolStatus, { label: string; symbol: string; tone: 'success' | 'warning' | 'danger' }> = {
-  paid: { label: 'Paid', symbol: '✓', tone: 'success' },
-  approved: { label: 'Approved', symbol: '✓', tone: 'success' },
-  pending: { label: 'Pending', symbol: '✗', tone: 'warning' },
-  rejected: { label: 'Rejected', symbol: '✗', tone: 'danger' },
-};
 
 interface StatusSymbolBadgeProps {
   status: SymbolStatus;
@@ -21,7 +13,7 @@ interface StatusSymbolBadgeProps {
 export function StatusSymbolBadge({ status, compact = false, showLabel = true }: StatusSymbolBadgeProps) {
   const scheme = useColorScheme() ?? 'light';
   const colors = Colors[scheme];
-  const config = STATUS_CONFIG[status];
+  const config = STATUS_SYMBOLS[status];
 
   const toneColors = {
     success: { bg: colors.successLight, text: colors.success, symbolBg: colors.success },
@@ -52,7 +44,7 @@ interface StatusOptionChipProps {
 export function StatusOptionChip({ status, count, active = false }: StatusOptionChipProps) {
   const scheme = useColorScheme() ?? 'light';
   const colors = Colors[scheme];
-  const config = STATUS_CONFIG[status];
+  const config = STATUS_SYMBOLS[status];
   const toneColors = {
     paid: { bg: colors.successLight, text: colors.success, symbolBg: colors.success, border: colors.success },
     approved: { bg: colors.successLight, text: colors.success, symbolBg: colors.success, border: colors.success },
@@ -99,8 +91,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   symbolCircleCompact: { width: 16, height: 16, borderRadius: 8 },
-  symbol: { color: '#FFF', fontSize: 11, fontWeight: '800', lineHeight: 13 },
-  symbolCompact: { fontSize: 10, lineHeight: 12 },
+  symbol: { color: '#FFF', fontSize: 12, fontWeight: '800', lineHeight: 14 },
+  symbolCompact: { fontSize: 11, lineHeight: 13 },
   label: { fontSize: 11, fontWeight: '700', textTransform: 'capitalize' },
   labelCompact: { fontSize: 10 },
   chip: {
@@ -120,7 +112,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  chipSymbolText: { color: '#FFF', fontSize: 11, fontWeight: '800' },
+  chipSymbolText: { color: '#FFF', fontSize: 12, fontWeight: '800' },
   chipLabel: { fontSize: 13, fontWeight: '700', flex: 1 },
   chipCount: { fontSize: 16, fontWeight: '800' },
 });
+
+export type { SymbolStatus };

@@ -81,6 +81,12 @@ export default function DashboardScreen() {
         <StatusOptionChip status="pending" count={pendingSlips} />
       </View>
 
+      <SectionHeader title="Leave status" />
+      <View style={styles.paymentRow}>
+        <StatusOptionChip status="approved" count={leaveRequests.filter((r) => r.status === 'approved').length} active />
+        <StatusOptionChip status="pending" count={pendingLeaves} />
+      </View>
+
       <Card noPadding style={styles.heroCard}>
         <LinearGradient
           colors={[colors.gradientStart, colors.gradientEnd]}
@@ -128,7 +134,7 @@ export default function DashboardScreen() {
           value={String(pendingLeaves)}
           subtitle="leave requests"
           accent={colors.warning}
-          icon={{ ios: 'clock.badge', android: 'pending', web: 'pending' }}
+          statusSymbol="pending"
         />
       </View>
 
