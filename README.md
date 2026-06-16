@@ -37,10 +37,41 @@ Then scan the QR code with Expo Go, or press `a` for Android / `i` for iOS simul
 
 ### Demo Login
 
+**Employee**
+
 | Email | Password |
 |-------|----------|
 | `john.doe@company.com` | `password123` |
 | `jane.smith@company.com` | `password123` |
+
+**Admin / HR**
+
+| Email | Password |
+|-------|----------|
+| `hr.admin@company.com` | `admin123` |
+
+## Android APK
+
+A release APK is available at [`releases/WorkPulse-v1.0.0.apk`](releases/WorkPulse-v1.0.0.apk) (arm64-v8a).
+
+Install on Android by enabling "Install unknown apps" for your file manager, then open the APK.
+
+### Build APK locally
+
+Requirements: Java 21, Android SDK (API 36), NDK 27.1.12297006.
+
+```bash
+npm install
+npm run build:apk
+```
+
+The output is copied to `releases/WorkPulse-v1.0.0.apk`.
+
+For cloud builds with EAS:
+
+```bash
+npx eas-cli build --platform android --profile preview
+```
 
 ## WiFi Punch-In
 
@@ -83,6 +114,7 @@ constants/            # App config & theme
 | `npm run android` | Run on Android |
 | `npm run ios` | Run on iOS |
 | `npm run web` | Run in browser |
+| `npm run build:apk` | Build Android release APK |
 
 ## License
 
