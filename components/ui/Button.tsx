@@ -17,6 +17,7 @@ export function Button({
   loading,
   disabled,
   style,
+  onPress,
   ...props
 }: ButtonProps) {
   const scheme = useColorScheme() ?? 'light';
@@ -59,11 +60,16 @@ export function Button({
           borderColor: variant === 'outline' ? colors.border : colors.primary,
           opacity: isDisabled ? 0.5 : pressed ? 0.88 : 1,
           transform: [{ scale: pressed && !isDisabled ? 0.98 : 1 }],
+          pointerEvents: isDisabled ? 'none' : 'auto',
         },
         variant === 'outline' && styles.outline,
         typeof style === 'function' ? style({ pressed, hovered: false }) : style,
       ]}
       disabled={isDisabled}
+      onPress={(event) => {
+        if (isDisabled) return;
+        onPress?.(event);
+      }}
       {...props}
     >
       <Text style={[styles.text, size === 'sm' && styles.textSm, size === 'lg' && styles.textLg, { color: textColor }]}>

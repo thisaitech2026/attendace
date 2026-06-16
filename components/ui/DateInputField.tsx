@@ -18,6 +18,10 @@ interface DateInputFieldProps {
   primaryColor: string;
 }
 
+function sanitizeDateInput(text: string): string {
+  return formatDateInput(text);
+}
+
 export function DateInputField({
   value,
   onChange,
@@ -34,28 +38,65 @@ export function DateInputField({
 }: DateInputFieldProps) {
   const hasError = Boolean(error);
 
+  const fieldStyle = [
+    styles.fieldWrap,
+    {
+      borderColor: hasError ? dangerColor : borderColor,
+      backgroundColor: hasError ? 'rgba(220, 38, 38, 0.06)' : cardColor,
+      borderWidth: hasError ? 2 : 1,
+    },
+  ];
+
+  if (Platform.OS === 'web') {
+    return (
+      <View>
+        <Text style={[styles.label, { color: mutedColor }]}>{label}</Text>
+        <View style={fieldStyle}>
+          <Ionicons name="calendar-outline" size={20} color={hasError ? dangerColor : primaryColor} />
+          <input
+            type="text"
+            inputMode="numeric"
+            aria-label={label}
+            aria-invalid={hasError}
+            value={value}
+            maxLength={10}
+            placeholder={placeholder}
+            onChange={(event) => {
+              onChange(sanitizeDateInput(event.target.value));
+            }}
+            onBlur={onBlur}
+            style={{
+              flex: 1,
+              width: '100%',
+              border: 'none',
+              outline: hasError ? `2px solid ${dangerColor}` : 'none',
+              background: 'transparent',
+              color: textColor,
+              fontSize: 16,
+              fontWeight: 500,
+              fontFamily: 'inherit',
+              padding: '12px 0',
+            }}
+          />
+        </View>
+        {hasError ? <Text style={[styles.error, { color: dangerColor }]}>{error}</Text> : null}
+      </View>
+    );
+  }
+
   return (
     <View>
       <Text style={[styles.label, { color: mutedColor }]}>{label}</Text>
-      <View
-        style={[
-          styles.fieldWrap,
-          {
-            borderColor: hasError ? dangerColor : borderColor,
-            backgroundColor: cardColor,
-            borderWidth: hasError ? 2 : 1,
-          },
-        ]}
-      >
+      <View style={fieldStyle}>
         <Ionicons name="calendar-outline" size={20} color={hasError ? dangerColor : primaryColor} />
         <TextInput
           style={[styles.input, { color: textColor }]}
           value={value}
-          onChangeText={(text) => onChange(formatDateInput(text))}
+          onChangeText={(text) => onChange(sanitizeDateInput(text))}
           onBlur={onBlur}
           placeholder={placeholder}
           placeholderTextColor={mutedColor}
-          keyboardType={Platform.OS === 'ios' ? 'numbers-and-punctuation' : 'number-pad'}
+          keyboardType="number-pad"
           maxLength={10}
           autoCorrect={false}
           autoCapitalize="none"

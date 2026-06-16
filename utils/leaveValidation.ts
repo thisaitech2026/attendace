@@ -14,8 +14,8 @@ export interface LeaveFormValidation {
   summary: string | null;
 }
 
-const INVALID_DATE_MSG = 'Enter a valid date (YYYY-MM-DD)';
-const FORMAT_MSG = 'Use format YYYY-MM-DD';
+export const INVALID_DATE_MSG = 'Enter a valid date (YYYY-MM-DD)';
+export const FORMAT_MSG = 'Use format YYYY-MM-DD';
 
 export function formatDateInput(text: string): string {
   const digits = text.replace(/\D/g, '').slice(0, 8);
@@ -32,9 +32,18 @@ export function getTodayString(): string {
   return formatLeaveDate(startOfDay(new Date()));
 }
 
+function isValidCalendarDate(year: number, month: number, day: number): boolean {
+  if (month < 1 || month > 12 || day < 1 || day > 31) return false;
+  const date = new Date(year, month - 1, day);
+  return date.getFullYear() === year && date.getMonth() === month - 1 && date.getDate() === day;
+}
+
 export function parseLeaveDate(value: string): Date | null {
   const trimmed = value.trim();
   if (!DATE_PATTERN.test(trimmed)) return null;
+
+  const [year, month, day] = trimmed.split('-').map(Number);
+  if (!isValidCalendarDate(year, month, day)) return null;
 
   const date = startOfDay(parseISO(trimmed));
   if (!isValid(date)) return null;
@@ -153,6 +162,10 @@ export function calculateLeaveDays(startDate: string, endDate: string): number {
   return Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
 }
 
-export function shouldShowDateFieldError(value: string, touched: boolean, showAllErrors: boolean): boolean {
-  return showAllErrors || touched || value.length >= 10;
+export function isLeaveDateValueComplete(value: string): boolean {
+  return value.trim().length === 10;
+}
+
+export function shouldValidateDateField(value: string, touched: boolean, showAllErrors: boolean): boolean {
+  return showAllErrors || touched || value.length > 0;
 }
