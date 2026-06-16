@@ -5,14 +5,29 @@ import { useColorScheme } from '@/components/useColorScheme';
 
 interface CardProps extends ViewProps {
   children: React.ReactNode;
+  elevated?: boolean;
+  noPadding?: boolean;
 }
 
-export function Card({ children, style, ...props }: CardProps) {
+export function Card({ children, style, elevated = true, noPadding = false, ...props }: CardProps) {
   const scheme = useColorScheme() ?? 'light';
   const colors = Colors[scheme];
 
   return (
-    <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }, style]} {...props}>
+    <View
+      style={[
+        styles.card,
+        {
+          backgroundColor: colors.card,
+          borderColor: colors.borderLight,
+          shadowColor: colors.shadow,
+        },
+        elevated && styles.elevated,
+        noPadding && styles.noPadding,
+        style,
+      ]}
+      {...props}
+    >
       {children}
     </View>
   );
@@ -20,13 +35,18 @@ export function Card({ children, style, ...props }: CardProps) {
 
 const styles = StyleSheet.create({
   card: {
-    borderRadius: 16,
-    padding: 16,
+    borderRadius: 20,
+    padding: 18,
     borderWidth: 1,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
-    elevation: 2,
+  },
+  elevated: {
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 1,
+    shadowRadius: 16,
+    elevation: 4,
+  },
+  noPadding: {
+    padding: 0,
+    overflow: 'hidden',
   },
 });

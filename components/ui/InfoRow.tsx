@@ -6,32 +6,23 @@ import { useColorScheme } from '@/components/useColorScheme';
 interface InfoRowProps {
   label: string;
   value: string;
+  last?: boolean;
 }
 
-export function InfoRow({ label, value }: InfoRowProps) {
+export function InfoRow({ label, value, last = false }: InfoRowProps) {
   const scheme = useColorScheme() ?? 'light';
   const colors = Colors[scheme];
 
   return (
-    <View style={[styles.row, { borderBottomColor: colors.border }]}>
-      <Text style={[styles.label, { color: colors.textSecondary }]}>{label}</Text>
+    <View style={[styles.row, !last && { borderBottomColor: colors.borderLight, borderBottomWidth: StyleSheet.hairlineWidth }]}>
+      <Text style={[styles.label, { color: colors.textMuted }]}>{label}</Text>
       <Text style={[styles.value, { color: colors.text }]}>{value}</Text>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  row: {
-    paddingVertical: 12,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-  },
-  label: {
-    fontSize: 12,
-    marginBottom: 4,
-    fontWeight: '500',
-  },
-  value: {
-    fontSize: 15,
-    fontWeight: '500',
-  },
+  row: { paddingVertical: 13 },
+  label: { fontSize: 11, marginBottom: 4, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.5 },
+  value: { fontSize: 15, fontWeight: '600', lineHeight: 22 },
 });

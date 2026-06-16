@@ -1,6 +1,6 @@
 import { SymbolView } from 'expo-symbols';
 import { Tabs } from 'expo-router';
-import { Platform, type ColorValue } from 'react-native';
+import { Platform, StyleSheet, View, type ColorValue } from 'react-native';
 
 import Colors from '@/constants/Colors';
 import { useColorScheme } from '@/components/useColorScheme';
@@ -15,8 +15,19 @@ type TabIconName = {
   web: string;
 };
 
-function TabIcon({ name, color }: { name: TabIconName; color: ColorValue }) {
-  return <SymbolView name={name as React.ComponentProps<typeof SymbolView>['name']} tintColor={color as string} size={24} />;
+function TabIcon({ name, color, focused }: { name: TabIconName; color: ColorValue; focused: boolean }) {
+  const scheme = useColorScheme() ?? 'light';
+  const colors = Colors[scheme];
+
+  return (
+    <View style={[styles.iconWrap, focused && { backgroundColor: colors.primaryLight }]}>
+      <SymbolView
+        name={name as React.ComponentProps<typeof SymbolView>['name']}
+        tintColor={color as string}
+        size={22}
+      />
+    </View>
+  );
 }
 
 export default function TabLayout() {
@@ -28,32 +39,38 @@ export default function TabLayout() {
       screenOptions={{
         tabBarActiveTintColor: colors.primary,
         tabBarInactiveTintColor: colors.tabIconDefault,
+        tabBarLabelStyle: styles.tabLabel,
         tabBarStyle: {
-          backgroundColor: colors.card,
-          borderTopColor: colors.border,
-          paddingBottom: Platform.OS === 'ios' ? 0 : 4,
-          height: Platform.OS === 'ios' ? 88 : 64,
+          backgroundColor: colors.tabBar,
+          borderTopColor: colors.borderLight,
+          borderTopWidth: 1,
+          paddingTop: 8,
+          paddingBottom: Platform.OS === 'ios' ? 24 : 12,
+          height: Platform.OS === 'ios' ? 88 : 72,
+          elevation: 12,
+          shadowColor: colors.shadow,
+          shadowOffset: { width: 0, height: -4 },
+          shadowOpacity: 1,
+          shadowRadius: 12,
         },
-        headerStyle: { backgroundColor: colors.background },
-        headerTintColor: colors.text,
-        headerShadowVisible: false,
+        headerShown: false,
       }}
     >
       <Tabs.Screen
         name="index"
         options={{
           title: 'Home',
-          tabBarIcon: ({ color }) => (
-            <TabIcon name={{ ios: 'house.fill', android: 'home', web: 'home' }} color={color} />
+          tabBarIcon: ({ color, focused }) => (
+            <TabIcon name={{ ios: 'house.fill', android: 'home', web: 'home' }} color={color} focused={focused} />
           ),
         }}
       />
       <Tabs.Screen
         name="attendance"
         options={{
-          title: 'Attendance',
-          tabBarIcon: ({ color }) => (
-            <TabIcon name={{ ios: 'clock.fill', android: 'schedule', web: 'schedule' }} color={color} />
+          title: 'Time',
+          tabBarIcon: ({ color, focused }) => (
+            <TabIcon name={{ ios: 'clock.fill', android: 'schedule', web: 'schedule' }} color={color} focused={focused} />
           ),
         }}
       />
@@ -61,38 +78,44 @@ export default function TabLayout() {
         name="leave"
         options={{
           title: 'Leave',
-          tabBarIcon: ({ color }) => (
-            <TabIcon name={{ ios: 'calendar', android: 'event', web: 'event' }} color={color} />
+          tabBarIcon: ({ color, focused }) => (
+            <TabIcon name={{ ios: 'calendar', android: 'event', web: 'event' }} color={color} focused={focused} />
           ),
         }}
       />
       <Tabs.Screen
         name="performance"
         options={{
-          title: 'Performance',
-          tabBarIcon: ({ color }) => (
-            <TabIcon name={{ ios: 'chart.bar.fill', android: 'bar_chart', web: 'bar_chart' }} color={color} />
+          title: 'Goals',
+          tabBarIcon: ({ color, focused }) => (
+            <TabIcon name={{ ios: 'chart.bar.fill', android: 'bar_chart', web: 'bar_chart' }} color={color} focused={focused} />
           ),
         }}
       />
       <Tabs.Screen
         name="salary"
         options={{
-          title: 'Salary',
-          tabBarIcon: ({ color }) => (
-            <TabIcon name={{ ios: 'dollarsign.circle.fill', android: 'payments', web: 'payments' }} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="profile"
-        options={{
-          title: 'Profile',
-          tabBarIcon: ({ color }) => (
-            <TabIcon name={{ ios: 'person.fill', android: 'person', web: 'person' }} color={color} />
+          title: 'Pay',
+          tabBarIcon: ({ color, focused }) => (
+            <TabIcon name={{ ios: 'dollarsign.circle.fill', android: 'payments', web: 'payments' }} color={color} focused={focused} />
           ),
         }}
       />
     </Tabs>
   );
 }
+
+const styles = StyleSheet.create({
+  iconWrap: {
+    width: 44,
+    height: 30,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  tabLabel: {
+    fontSize: 11,
+    fontWeight: '600',
+    marginTop: 2,
+  },
+});

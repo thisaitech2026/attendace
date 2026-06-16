@@ -89,6 +89,7 @@ function RootLayoutNav() {
         <Stack>
           <Stack.Screen name="login" options={{ headerShown: false }} />
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          <Stack.Screen name="profile" options={{ title: 'My Profile', headerBackTitle: 'Back' }} />
           <Stack.Screen name="leave-request" options={{ presentation: 'modal', title: 'Request Leave' }} />
         </Stack>
       </AuthGate>
