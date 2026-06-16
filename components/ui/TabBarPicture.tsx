@@ -6,7 +6,7 @@ import Colors from '@/constants/Colors';
 import { TAB_PICTURES, type TabPictureKey } from '@/constants/tabPictures';
 import { useColorScheme } from '@/components/useColorScheme';
 
-const ICON_SIZE = 54;
+const ICON_SIZE = 66;
 
 interface TabBarPictureProps {
   tabKey: TabPictureKey;
@@ -74,12 +74,12 @@ const styles = StyleSheet.create({
     borderColor: 'transparent',
   },
   emojiFocused: {
-    fontSize: 28,
-    lineHeight: 32,
+    fontSize: 34,
+    lineHeight: 38,
   },
   emojiInactive: {
-    fontSize: 26,
-    lineHeight: 30,
+    fontSize: 32,
+    lineHeight: 36,
     opacity: 0.55,
   },
 });
