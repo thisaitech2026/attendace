@@ -7,6 +7,7 @@ import {
   getLeaveBalances as getBalances,
 } from '@/services/employeeRegistry';
 import { getItem, setItem, storageKeys } from '@/services/storage';
+import { calculateLeaveDays, validateLeaveDateRange } from '@/utils/leaveValidation';
 import type {
   AttendanceRecord,
   LeaveBalance,
@@ -107,9 +108,17 @@ export async function submitLeaveRequest(
   endDate: string,
   reason: string
 ): Promise<LeaveRequest> {
-  const start = parseISO(startDate);
-  const end = parseISO(endDate);
-  const days = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+  const trimmedReason = reason.trim();
+  if (!trimmedReason) {
+    throw new Error('Please enter a reason for your leave.');
+  }
+
+  const validation = validateLeaveDateRange(startDate, endDate);
+  if (!validation.valid) {
+    throw new Error(validation.errors.end ?? validation.errors.start ?? 'Please enter valid dates.');
+  }
+
+  const days = calculateLeaveDays(startDate, endDate);
   const request: LeaveRequest = {
     id: `lr-${Date.now()}`,
     employeeId,
@@ -117,7 +126,7 @@ export async function submitLeaveRequest(
     startDate,
     endDate,
     days,
-    reason,
+    reason: trimmedReason,
     status: 'pending',
     submittedAt: new Date().toISOString(),
   };

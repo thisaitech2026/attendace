@@ -220,7 +220,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const requestLeave = useCallback(
     async (type: LeaveType, startDate: string, endDate: string, reason: string) => {
-      if (!employeeId) return;
+      if (!employeeId) {
+        throw new Error('You must be logged in as an employee to submit leave.');
+      }
       await submitLeaveRequest(employeeId, type, startDate, endDate, reason);
       await refreshData();
     },
