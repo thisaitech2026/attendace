@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Alert, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { format, parseISO } from 'date-fns';
+import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { SymbolView } from 'expo-symbols';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -18,7 +19,7 @@ import { useColorScheme } from '@/components/useColorScheme';
 
 export default function DashboardScreen() {
   const [showPunchDetails, setShowPunchDetails] = useState(false);
-  const { employee, attendance, leaveBalances, leaveRequests } = useApp();
+  const { employee, attendance, leaveBalances, leaveRequests, logout } = useApp();
   const scheme = useColorScheme() ?? 'light';
   const colors = Colors[scheme];
   const insets = useSafeAreaInsets();
@@ -36,6 +37,19 @@ export default function DashboardScreen() {
       ? 'View Punch Details'
       : 'Punch In Now';
 
+  const handleLogout = () => {
+    if (Platform.OS === 'web') {
+      if (window.confirm('Are you sure you want to log out?')) {
+        logout();
+      }
+      return;
+    }
+    Alert.alert('Log Out', 'Are you sure you want to log out?', [
+      { text: 'Cancel', style: 'cancel' },
+      { text: 'Log Out', style: 'destructive', onPress: logout },
+    ]);
+  };
+
   return (
     <>
     <ScrollView
@@ -43,6 +57,26 @@ export default function DashboardScreen() {
       contentContainerStyle={[styles.content, { paddingTop: insets.top + 12 }]}
       showsVerticalScrollIndicator={false}
     >
+      <View style={styles.topBar}>
+        <Text style={[styles.appTitle, { color: colors.text }]}>WorkPulse</Text>
+        <Pressable
+          onPress={handleLogout}
+          style={({ pressed }) => [
+            styles.logoutBtn,
+            {
+              backgroundColor: colors.dangerLight,
+              borderColor: colors.danger,
+              opacity: pressed ? 0.85 : 1,
+            },
+          ]}
+          accessibilityRole="button"
+          accessibilityLabel="Log out"
+        >
+          <Ionicons name="log-out-outline" size={18} color={colors.danger} />
+          <Text style={[styles.logoutText, { color: colors.danger }]}>Log out</Text>
+        </Pressable>
+      </View>
+
       {employee ? (
         <ProfileHeader
           firstName={employee.firstName}
@@ -162,6 +196,23 @@ export default function DashboardScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   content: { paddingHorizontal: 20, paddingBottom: 40 },
+  topBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 16,
+  },
+  appTitle: { fontSize: 20, fontWeight: '800', letterSpacing: -0.3 },
+  logoutBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 12,
+    borderWidth: 1,
+  },
+  logoutText: { fontSize: 13, fontWeight: '700' },
   heroCard: { marginBottom: 16 },
   gradient: { padding: 20, borderRadius: 20 },
   heroTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
