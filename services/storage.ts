@@ -4,6 +4,7 @@ const KEYS = {
   SESSION: '@workpulse/session',
   ATTENDANCE: '@workpulse/attendance',
   LEAVE_REQUESTS: '@workpulse/leave_requests',
+  CHAT_MESSAGES: '@workpulse/chat_messages',
 } as const;
 
 export async function getItem<T>(key: string): Promise<T | null> {

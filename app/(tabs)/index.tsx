@@ -65,9 +65,9 @@ export default function DashboardScreen() {
           color={colors.success}
         />
         <QuickAction
-          href="/(tabs)/performance"
-          label="Goals"
-          actionKey="goals"
+          href="/(tabs)/chat"
+          label="Chat"
+          actionKey="chat"
           color={colors.warning}
         />
       </View>

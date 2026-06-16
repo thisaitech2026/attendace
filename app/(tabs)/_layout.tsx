@@ -53,10 +53,10 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="performance"
+        name="chat"
         options={{
-          title: 'Goals',
-          tabBarIcon: ({ color, focused }) => <TabBarPicture tabKey="goals" color={color} focused={focused} />,
+          title: 'Chat',
+          tabBarIcon: ({ color, focused }) => <TabBarPicture tabKey="chat" color={color} focused={focused} />,
         }}
       />
       <Tabs.Screen

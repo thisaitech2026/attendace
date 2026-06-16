@@ -1,11 +1,11 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 
 import { MOCK_USERS } from '@/constants/config';
+import { loadChatMessages, sendChatMessage } from '@/services/chatService';
 import {
   findEmployeeByEmail,
   getLeaveBalances,
   getLeaveRequests,
-  getPerformanceReviews,
   getSalarySlips,
   loadAttendance,
   punchIn,
@@ -13,13 +13,13 @@ import {
   submitLeaveRequest,
 } from '@/services/employeeService';
 import { getItem, removeItem, setItem, storageKeys } from '@/services/storage';
+import type { ChatCategory, ChatMessage } from '@/types/chat';
 import type {
   AttendanceRecord,
   Employee,
   LeaveBalance,
   LeaveRequest,
   LeaveType,
-  PerformanceReview,
   PunchMethod,
   SalarySlip,
 } from '@/types/employee';
@@ -36,8 +36,8 @@ interface AppContextValue {
   attendance: AttendanceRecord[];
   leaveBalances: LeaveBalance[];
   leaveRequests: LeaveRequest[];
-  performanceReviews: PerformanceReview[];
   salarySlips: SalarySlip[];
+  chatMessages: ChatMessage[];
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   refreshData: () => Promise<void>;
@@ -49,6 +49,7 @@ interface AppContextValue {
     endDate: string,
     reason: string
   ) => Promise<void>;
+  sendMessage: (text: string, category?: ChatCategory) => Promise<void>;
 }
 
 const AppContext = createContext<AppContextValue | null>(null);
@@ -59,15 +60,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [employee, setEmployee] = useState<Employee | null>(null);
   const [attendance, setAttendance] = useState<AttendanceRecord[]>([]);
   const [leaveRequests, setLeaveRequests] = useState<LeaveRequest[]>([]);
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
 
   const employeeId = employee?.employeeId ?? '';
 
   const leaveBalances = useMemo(
     () => (employeeId ? getLeaveBalances(employeeId) : []),
-    [employeeId]
-  );
-  const performanceReviews = useMemo(
-    () => (employeeId ? getPerformanceReviews(employeeId) : []),
     [employeeId]
   );
   const salarySlips = useMemo(
@@ -76,13 +74,14 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   );
 
   const refreshData = useCallback(async () => {
-    if (!employeeId) return;
-    const [att, leaves] = await Promise.all([
-      loadAttendance(employeeId),
-      getLeaveRequests(employeeId),
+    const [att, leaves, messages] = await Promise.all([
+      employeeId ? loadAttendance(employeeId) : Promise.resolve([]),
+      employeeId ? getLeaveRequests(employeeId) : Promise.resolve([]),
+      loadChatMessages(),
     ]);
     setAttendance(att);
     setLeaveRequests(leaves);
+    setChatMessages(messages);
   }, [employeeId]);
 
   useEffect(() => {
@@ -95,6 +94,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           setEmployee(emp);
         }
       }
+      const messages = await loadChatMessages();
+      setChatMessages(messages);
       setIsLoading(false);
     })();
   }, []);
@@ -157,6 +158,21 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     [employeeId, refreshData]
   );
 
+  const sendMessage = useCallback(
+    async (text: string, category: ChatCategory = 'general') => {
+      if (!employee) return;
+      const message = await sendChatMessage(
+        employee.employeeId,
+        `${employee.firstName} ${employee.lastName}`,
+        employee.department,
+        text,
+        category
+      );
+      setChatMessages((prev) => [...prev, message]);
+    },
+    [employee]
+  );
+
   const value = useMemo<AppContextValue>(
     () => ({
       isLoading,
@@ -165,14 +181,15 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       attendance,
       leaveBalances,
       leaveRequests,
-      performanceReviews,
       salarySlips,
+      chatMessages,
       login,
       logout,
       refreshData,
       doPunchIn,
       doPunchOut,
       requestLeave,
+      sendMessage,
     }),
     [
       isLoading,
@@ -181,14 +198,15 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       attendance,
       leaveBalances,
       leaveRequests,
-      performanceReviews,
       salarySlips,
+      chatMessages,
       login,
       logout,
       refreshData,
       doPunchIn,
       doPunchOut,
       requestLeave,
+      sendMessage,
     ]
   );
 
