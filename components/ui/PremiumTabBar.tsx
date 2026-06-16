@@ -1,12 +1,12 @@
 import { Tabs } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import type { ComponentProps } from 'react';
 import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { SymbolView } from 'expo-symbols';
 
 import Colors from '@/constants/Colors';
-import { TAB_PICTURES, type TabPictureKey } from '@/constants/tabPictures';
+import { TAB_NAV_ICONS, type TabPictureKey } from '@/constants/tabPictures';
 import { useColorScheme } from '@/components/useColorScheme';
 
 const ROUTE_TO_TAB: Record<string, TabPictureKey> = {
@@ -17,10 +17,8 @@ const ROUTE_TO_TAB: Record<string, TabPictureKey> = {
   salary: 'pay',
 };
 
-const ACTIVE_SIZE = 58;
-const INACTIVE_SIZE = 50;
 type PremiumTabBarProps = Parameters<NonNullable<ComponentProps<typeof Tabs>['tabBar']>>[0];
-type SymbolName = ComponentProps<typeof SymbolView>['name'];
+type IoniconName = ComponentProps<typeof Ionicons>['name'];
 
 export function PremiumTabBar({ state, descriptors, navigation }: PremiumTabBarProps) {
   const scheme = useColorScheme() ?? 'light';
@@ -34,27 +32,27 @@ export function PremiumTabBar({ state, descriptors, navigation }: PremiumTabBarP
       style={[
         styles.outer,
         {
-          paddingBottom: bottomInset + 10,
+          paddingBottom: bottomInset + 8,
           backgroundColor: colors.background,
         },
       ]}
     >
       <View
         style={[
-          styles.pill,
+          styles.bar,
           {
-            backgroundColor: colors.tabBar,
-            borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(15,23,42,0.06)',
-            shadowColor: colors.shadow,
+            backgroundColor: isDark ? 'rgba(17, 24, 39, 0.96)' : 'rgba(255, 255, 255, 0.96)',
+            borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(15,23,42,0.08)',
+            shadowColor: isDark ? '#000' : colors.shadow,
           },
         ]}
       >
         {state.routes.map((route, index) => {
           const focused = state.index === index;
           const tabKey = ROUTE_TO_TAB[route.name] ?? 'home';
-          const art = TAB_PICTURES[tabKey];
-          const label = descriptors[route.key].options.title ?? art.label;
-          const iconName = art.icon as SymbolName;
+          const icons = TAB_NAV_ICONS[tabKey];
+          const label = descriptors[route.key].options.title ?? icons.label;
+          const iconName = (focused ? icons.active : icons.inactive) as IoniconName;
 
           const onPress = () => {
             const event = navigation.emit({
@@ -79,47 +77,38 @@ export function PremiumTabBar({ state, descriptors, navigation }: PremiumTabBarP
               accessibilityLabel={label}
               onPress={onPress}
               onLongPress={onLongPress}
-              style={({ pressed }) => [styles.tab, { opacity: pressed ? 0.88 : 1 }]}
+              style={({ pressed }) => [styles.tab, { transform: [{ scale: pressed ? 0.94 : 1 }] }]}
             >
-              {focused ? (
-                <View style={[styles.activeShadow, { shadowColor: colors.primary }]}>
-                  <LinearGradient
-                    colors={[colors.gradientStart, colors.gradientEnd]}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 1 }}
-                    style={[styles.iconCircle, { width: ACTIVE_SIZE, height: ACTIVE_SIZE, borderRadius: ACTIVE_SIZE / 2 }]}
-                  >
-                    <SymbolView name={iconName} tintColor="#FFFFFF" size={26} />
-                  </LinearGradient>
-                </View>
-              ) : (
-                <View
-                  style={[
-                    styles.iconCircle,
-                    styles.inactiveCircle,
-                    {
-                      width: INACTIVE_SIZE,
-                      height: INACTIVE_SIZE,
-                      borderRadius: INACTIVE_SIZE / 2,
-                      backgroundColor: isDark ? 'rgba(255,255,255,0.07)' : 'rgba(15,23,42,0.05)',
-                      borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(15,23,42,0.07)',
-                    },
-                  ]}
-                >
-                  <SymbolView name={iconName} tintColor={colors.tabIconDefault} size={24} />
-                </View>
-              )}
+              <View style={styles.iconSlot}>
+                {focused ? (
+                  <View style={[styles.activeGlow, { shadowColor: colors.primary }]}>
+                    <LinearGradient
+                      colors={[colors.gradientStart, colors.gradientEnd]}
+                      start={{ x: 0, y: 0 }}
+                      end={{ x: 1, y: 1 }}
+                      style={styles.activeChip}
+                    >
+                      <Ionicons name={iconName} size={22} color="#FFFFFF" />
+                    </LinearGradient>
+                  </View>
+                ) : (
+                  <View style={styles.inactiveIconWrap}>
+                    <Ionicons name={iconName} size={25} color={colors.tabIconDefault} />
+                  </View>
+                )}
+              </View>
               <Text
                 style={[
                   styles.label,
                   focused
-                    ? { color: colors.primary, fontWeight: '800' }
-                    : { color: colors.tabIconDefault, fontWeight: '600' },
+                    ? { color: colors.primary, fontWeight: '700' }
+                    : { color: colors.tabIconDefault, fontWeight: '500' },
                 ]}
                 numberOfLines={1}
               >
                 {label}
               </Text>
+              {focused ? <View style={[styles.activeDot, { backgroundColor: colors.primary }]} /> : <View style={styles.dotSpacer} />}
             </Pressable>
           );
         })}
@@ -130,44 +119,68 @@ export function PremiumTabBar({ state, descriptors, navigation }: PremiumTabBarP
 
 const styles = StyleSheet.create({
   outer: {
-    paddingHorizontal: 14,
-    paddingTop: 6,
+    paddingHorizontal: 16,
+    paddingTop: 4,
   },
-  pill: {
+  bar: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderRadius: 32,
+    borderRadius: 28,
     borderWidth: 1,
-    paddingVertical: 12,
-    paddingHorizontal: 6,
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.14,
-    shadowRadius: 24,
-    elevation: 20,
+    paddingTop: 10,
+    paddingBottom: 8,
+    paddingHorizontal: 4,
+    shadowOffset: { width: 0, height: 12 },
+    shadowOpacity: 0.12,
+    shadowRadius: 28,
+    elevation: 24,
   },
   tab: {
     flex: 1,
     alignItems: 'center',
-    justifyContent: 'center',
-    minHeight: 86,
-    gap: 6,
+    justifyContent: 'flex-start',
+    minHeight: 64,
+    gap: 4,
   },
-  iconCircle: {
+  iconSlot: {
+    height: 44,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  inactiveCircle: {
-    borderWidth: 1,
+  activeGlow: {
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.32,
+    shadowRadius: 10,
+    elevation: 8,
   },
-  activeShadow: {
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.35,
-    shadowRadius: 12,
-    elevation: 10,
+  activeChip: {
+    width: 52,
+    height: 44,
+    borderRadius: 22,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  inactiveIconWrap: {
+    width: 52,
+    height: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   label: {
-    fontSize: 11,
-    letterSpacing: 0.15,
+    fontSize: 10,
+    letterSpacing: 0.2,
     textAlign: 'center',
+  },
+  activeDot: {
+    width: 4,
+    height: 4,
+    borderRadius: 2,
+    marginTop: 1,
+  },
+  dotSpacer: {
+    width: 4,
+    height: 4,
+    marginTop: 1,
+    opacity: 0,
   },
 });

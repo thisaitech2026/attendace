@@ -1,5 +1,19 @@
 export type TabPictureKey = 'home' | 'time' | 'leave' | 'chat' | 'pay';
 
+type TabNavIconSet = {
+  active: string;
+  inactive: string;
+  label: string;
+};
+
+export const TAB_NAV_ICONS: Record<TabPictureKey, TabNavIconSet> = {
+  home: { active: 'home', inactive: 'home-outline', label: 'Home' },
+  time: { active: 'time', inactive: 'time-outline', label: 'Time' },
+  leave: { active: 'calendar', inactive: 'calendar-outline', label: 'Leave' },
+  chat: { active: 'chatbubbles', inactive: 'chatbubbles-outline', label: 'Chat' },
+  pay: { active: 'wallet', inactive: 'wallet-outline', label: 'Pay' },
+};
+
 export const TAB_PICTURES: Record<
   TabPictureKey,
   { emoji: string; icon: { ios: string; android: string; web: string }; label: string }
