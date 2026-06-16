@@ -51,32 +51,24 @@ export default function DashboardScreen() {
           label="Leave"
           actionKey="leave"
           color={colors.primary}
-          bgColor={colors.card}
-          accentBg={colors.primaryLight}
         />
         <QuickAction
           href="/(tabs)/attendance"
           label="Time"
           actionKey="time"
           color={colors.accent}
-          bgColor={colors.card}
-          accentBg={colors.accentLight}
         />
         <QuickAction
           href="/(tabs)/salary"
           label="Pay"
           actionKey="pay"
           color={colors.success}
-          bgColor={colors.card}
-          accentBg={colors.successLight}
         />
         <QuickAction
           href="/(tabs)/performance"
           label="Goals"
           actionKey="goals"
           color={colors.warning}
-          bgColor={colors.card}
-          accentBg={colors.warningLight}
         />
       </View>
 
@@ -136,7 +128,7 @@ export default function DashboardScreen() {
         <Card key={record.id} style={styles.historyCard}>
           <View style={styles.historyRow}>
             <View style={[styles.dateIcon, { backgroundColor: colors.primaryLight }]}>
-              <SymbolView name={{ ios: 'calendar', android: 'event', web: 'event' }} tintColor={colors.primary} size={16} />
+              <SymbolView name={{ ios: 'calendar', android: 'event', web: 'event' }} tintColor={colors.primary} size={14} />
             </View>
             <View style={styles.historyBody}>
               <Text style={[styles.historyDate, { color: colors.text }]}>
@@ -172,12 +164,12 @@ const styles = StyleSheet.create({
   actions: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 28,
-    paddingHorizontal: 4,
+    marginBottom: 20,
+    paddingHorizontal: 8,
   },
   historyCard: { marginBottom: 10, paddingVertical: 14, paddingHorizontal: 14 },
   historyRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  dateIcon: { width: 38, height: 38, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
+  dateIcon: { width: 32, height: 32, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
   historyBody: { flex: 1 },
   historyDate: { fontSize: 15, fontWeight: '700' },
   historyDetail: { fontSize: 12, marginTop: 3, fontWeight: '500' },

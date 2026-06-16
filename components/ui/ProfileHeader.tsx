@@ -36,7 +36,7 @@ export function ProfileHeader({ firstName, lastName, position, department, emplo
           </View>
         </View>
         <View style={[styles.chevron, { backgroundColor: colors.background }]}>
-          <SymbolView name={{ ios: 'chevron.right', android: 'chevron_right', web: 'chevron_right' }} tintColor={colors.textMuted} size={16} />
+          <SymbolView name={{ ios: 'chevron.right', android: 'chevron_right', web: 'chevron_right' }} tintColor={colors.textMuted} size={14} />
         </View>
       </Pressable>
     </Link>
@@ -59,23 +59,23 @@ const styles = StyleSheet.create({
   },
   left: { flexDirection: 'row', alignItems: 'center', flex: 1 },
   avatar: {
-    width: 54,
-    height: 54,
-    borderRadius: 18,
+    width: 46,
+    height: 46,
+    borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 2,
-    marginRight: 14,
+    marginRight: 12,
   },
-  initials: { fontSize: 20, fontWeight: '800' },
+  initials: { fontSize: 17, fontWeight: '800' },
   info: { flex: 1 },
   greeting: { fontSize: 13, fontWeight: '500', textTransform: 'capitalize' },
   name: { fontSize: 22, fontWeight: '800', letterSpacing: -0.5, marginTop: 2 },
   meta: { fontSize: 13, marginTop: 3, fontWeight: '500' },
   chevron: {
-    width: 32,
-    height: 32,
-    borderRadius: 10,
+    width: 28,
+    height: 28,
+    borderRadius: 8,
     alignItems: 'center',
     justifyContent: 'center',
     marginLeft: 8,

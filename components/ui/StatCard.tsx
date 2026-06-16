@@ -23,7 +23,7 @@ export function StatCard({ label, value, subtitle, accent, icon }: StatCardProps
           <SymbolView
             name={icon as React.ComponentProps<typeof SymbolView>['name']}
             tintColor={accent ?? colors.primary}
-            size={18}
+            size={15}
           />
         </View>
       ) : null}
@@ -47,12 +47,12 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   iconWrap: {
-    width: 36,
-    height: 36,
-    borderRadius: 12,
+    width: 30,
+    height: 30,
+    borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 10,
+    marginBottom: 8,
   },
   label: { fontSize: 11, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.6 },
   value: { fontSize: 24, fontWeight: '800', marginTop: 4, letterSpacing: -0.5 },

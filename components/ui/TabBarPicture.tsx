@@ -28,12 +28,12 @@ export function TabBarPicture({ tabKey, focused }: TabBarPictureProps) {
 const styles = StyleSheet.create({
   wrap: { alignItems: 'center', justifyContent: 'center' },
   iconArea: {
-    width: 40,
-    height: 32,
-    borderRadius: 12,
+    width: 36,
+    height: 28,
+    borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  emoji: { fontSize: 24, lineHeight: 28 },
+  emoji: { fontSize: 20, lineHeight: 24 },
   emojiInactive: { opacity: 0.5 },
 });
