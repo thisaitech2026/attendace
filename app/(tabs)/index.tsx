@@ -44,6 +44,42 @@ export default function DashboardScreen() {
         />
       ) : null}
 
+      <SectionHeader title="Quick access" />
+      <View style={styles.actions}>
+        <QuickAction
+          href="/(tabs)/leave"
+          label="Leave"
+          actionKey="leave"
+          color={colors.primary}
+          bgColor={colors.card}
+          accentBg={colors.primaryLight}
+        />
+        <QuickAction
+          href="/(tabs)/attendance"
+          label="Time"
+          actionKey="time"
+          color={colors.accent}
+          bgColor={colors.card}
+          accentBg={colors.accentLight}
+        />
+        <QuickAction
+          href="/(tabs)/salary"
+          label="Pay"
+          actionKey="pay"
+          color={colors.success}
+          bgColor={colors.card}
+          accentBg={colors.successLight}
+        />
+        <QuickAction
+          href="/(tabs)/performance"
+          label="Goals"
+          actionKey="goals"
+          color={colors.warning}
+          bgColor={colors.card}
+          accentBg={colors.warningLight}
+        />
+      </View>
+
       <Card noPadding style={styles.heroCard}>
         <LinearGradient
           colors={[colors.gradientStart, colors.gradientEnd]}
@@ -92,38 +128,6 @@ export default function DashboardScreen() {
           subtitle="leave requests"
           accent={colors.warning}
           icon={{ ios: 'clock.badge', android: 'pending', web: 'pending' }}
-        />
-      </View>
-
-      <SectionHeader title="Quick actions" />
-      <View style={styles.actions}>
-        <QuickAction
-          href="/(tabs)/leave"
-          label="Leave"
-          icon={{ ios: 'calendar.badge.plus', android: 'event_available', web: 'event_available' }}
-          color={colors.primary}
-          bgColor={colors.primaryLight}
-        />
-        <QuickAction
-          href="/(tabs)/attendance"
-          label="Time"
-          icon={{ ios: 'clock.fill', android: 'schedule', web: 'schedule' }}
-          color={colors.accent}
-          bgColor={colors.accentLight}
-        />
-        <QuickAction
-          href="/(tabs)/salary"
-          label="Pay"
-          icon={{ ios: 'banknote.fill', android: 'payments', web: 'payments' }}
-          color={colors.success}
-          bgColor={colors.successLight}
-        />
-        <QuickAction
-          href="/(tabs)/performance"
-          label="Goals"
-          icon={{ ios: 'chart.line.uptrend.xyaxis', android: 'trending_up', web: 'trending_up' }}
-          color={colors.warning}
-          bgColor={colors.warningLight}
         />
       </View>
 
