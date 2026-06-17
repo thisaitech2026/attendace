@@ -28,16 +28,14 @@ export default function SalaryScreen() {
       </View>
 
       <Card style={[styles.heroCard, { backgroundColor: colors.primary }]}>
+        <View style={styles.heroTop}>
+          {latest ? <StatusSymbolBadge status={latest.status} compact /> : null}
+        </View>
         <Text style={styles.heroLabel}>Latest Net Pay</Text>
         <Text style={styles.heroAmount}>{latest ? formatCurrency(latest.netPay) : '—'}</Text>
         <Text style={styles.heroPeriod}>
           {latest ? `${latest.month} ${latest.year}` : 'No payslips'}
         </Text>
-        {latest ? (
-          <View style={styles.heroBadge}>
-            <StatusSymbolBadge status={latest.status} compact />
-          </View>
-        ) : null}
         <View style={styles.heroStats}>
           <View style={styles.heroStat}>
             <Text style={styles.heroStatLabel}>Total Salary</Text>
@@ -98,15 +96,15 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
   content: { padding: 20, paddingBottom: 40 },
   statusRow: { flexDirection: 'row', gap: 10, marginBottom: 16 },
-  heroCard: { marginBottom: 24, borderRadius: 20, padding: 24 },
-  heroLabel: { color: 'rgba(255,255,255,0.8)', fontSize: 13, fontWeight: '500' },
-  heroAmount: { color: '#FFF', fontSize: 36, fontWeight: '800', marginVertical: 8 },
-  heroPeriod: { color: 'rgba(255,255,255,0.8)', fontSize: 14 },
-  heroBadge: { marginTop: 8, alignSelf: 'flex-start' },
-  heroStats: { flexDirection: 'row', marginTop: 20, gap: 10 },
+  heroCard: { marginBottom: 16, borderRadius: 16, padding: 16 },
+  heroTop: { marginBottom: 8, alignSelf: 'flex-start' },
+  heroLabel: { color: 'rgba(255,255,255,0.8)', fontSize: 11, fontWeight: '500' },
+  heroAmount: { color: '#FFF', fontSize: 28, fontWeight: '800', marginTop: 4, marginBottom: 2 },
+  heroPeriod: { color: 'rgba(255,255,255,0.8)', fontSize: 12 },
+  heroStats: { flexDirection: 'row', marginTop: 12, gap: 8 },
   heroStat: { flex: 1 },
-  heroStatLabel: { color: 'rgba(255,255,255,0.7)', fontSize: 10, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.3 },
-  heroStatValue: { color: '#FFF', fontSize: 13, fontWeight: '800', marginTop: 4 },
+  heroStatLabel: { color: 'rgba(255,255,255,0.7)', fontSize: 9, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.3 },
+  heroStatValue: { color: '#FFF', fontSize: 12, fontWeight: '800', marginTop: 2 },
   heroStatPositive: { color: '#BBF7D0' },
   heroStatNegative: { color: '#FECACA' },
   sectionTitle: { fontSize: 18, fontWeight: '700', marginBottom: 12 },
