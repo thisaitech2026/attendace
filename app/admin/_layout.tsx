@@ -1,10 +1,25 @@
 import { Tabs, Redirect } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
 import { Platform, Pressable, StyleSheet, Text } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useApp } from '@/contexts/AppContext';
 import Colors from '@/constants/Colors';
 import { useColorScheme } from '@/components/useColorScheme';
+
+type IoniconName = keyof typeof Ionicons.glyphMap;
+
+const ADMIN_TAB_ICONS: Record<string, { active: IoniconName; inactive: IoniconName }> = {
+  index: { active: 'grid', inactive: 'grid-outline' },
+  employees: { active: 'people', inactive: 'people-outline' },
+  approvals: { active: 'checkmark-done-circle', inactive: 'checkmark-done-circle-outline' },
+  'new-hire': { active: 'person-add', inactive: 'person-add-outline' },
+};
+
+function AdminTabIcon({ routeName, color, focused }: { routeName: string; color: string; focused: boolean }) {
+  const icons = ADMIN_TAB_ICONS[routeName] ?? ADMIN_TAB_ICONS.index;
+  return <Ionicons name={focused ? icons.active : icons.inactive} size={22} color={color} />;
+}
 
 export default function AdminLayout() {
   const { isAuthenticated, isAdmin, logout, adminName } = useApp();
@@ -41,9 +56,34 @@ export default function AdminLayout() {
           headerShown: false,
         }}
       >
-        <Tabs.Screen name="index" options={{ title: 'Dashboard' }} />
-        <Tabs.Screen name="employees" options={{ title: 'Employees' }} />
-        <Tabs.Screen name="approvals" options={{ title: 'Approvals' }} />
+        <Tabs.Screen
+          name="index"
+          options={{
+            title: 'Dashboard',
+            tabBarIcon: ({ color, focused }) => <AdminTabIcon routeName="index" color={color} focused={focused} />,
+          }}
+        />
+        <Tabs.Screen
+          name="employees"
+          options={{
+            title: 'Employees',
+            tabBarIcon: ({ color, focused }) => <AdminTabIcon routeName="employees" color={color} focused={focused} />,
+          }}
+        />
+        <Tabs.Screen
+          name="approvals"
+          options={{
+            title: 'Approvals',
+            tabBarIcon: ({ color, focused }) => <AdminTabIcon routeName="approvals" color={color} focused={focused} />,
+          }}
+        />
+        <Tabs.Screen
+          name="new-hire"
+          options={{
+            title: 'New Hire',
+            tabBarIcon: ({ color, focused }) => <AdminTabIcon routeName="new-hire" color={color} focused={focused} />,
+          }}
+        />
       </Tabs>
     </>
   );
