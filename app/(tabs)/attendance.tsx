@@ -1,12 +1,9 @@
 import { useCallback, useState } from 'react';
 import { RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { format, parseISO } from 'date-fns';
-import { SymbolView } from 'expo-symbols';
 
 import { Card } from '@/components/ui/Card';
 import { ScreenHeader } from '@/components/ui/ScreenHeader';
-import { SectionHeader } from '@/components/ui/QuickAction';
-import { StatusBadge } from '@/components/ui/StatusBadge';
 import { useApp } from '@/contexts/AppContext';
 import Colors from '@/constants/Colors';
 import { useColorScheme } from '@/components/useColorScheme';
@@ -31,26 +28,26 @@ export default function AttendanceScreen() {
     >
       <ScreenHeader title="Attendance" />
 
-      <SectionHeader title="Recent activity" />
+      <Text style={[styles.sectionTitle, { color: colors.text }]}>History</Text>
       {attendance.map((record) => (
         <Card key={record.id} style={styles.historyCard}>
-          <View style={styles.historyRow}>
-            <View style={[styles.dateIcon, { backgroundColor: colors.primaryLight }]}>
-              <SymbolView name={{ ios: 'calendar', android: 'event', web: 'event' }} tintColor={colors.primary} size={14} />
-            </View>
-            <View style={styles.historyBody}>
-              <Text style={[styles.historyDate, { color: colors.text }]}>
-                {format(parseISO(record.date), 'EEE, MMM d')}
-              </Text>
-              <Text style={[styles.historyDetail, { color: colors.textSecondary }]}>
-                {record.punchIn ? `${record.punchIn.slice(0, 5)} – ${record.punchOut?.slice(0, 5) ?? '—'}` : 'No punch recorded'}
-                {record.hoursWorked > 0 ? ` · ${record.hoursWorked}h` : ''}
+          <Text style={[styles.historyDate, { color: colors.text }]}>
+            {format(parseISO(record.date), 'MMM d, yyyy')}
+          </Text>
+          <View style={styles.punchRow}>
+            <View style={styles.punchBlock}>
+              <Text style={[styles.punchLabel, { color: colors.textSecondary }]}>Punch In</Text>
+              <Text style={[styles.punchTime, { color: colors.text }]}>
+                {record.punchIn?.slice(0, 5) ?? '—'}
               </Text>
             </View>
-            <StatusBadge
-              label={record.status}
-              tone={record.status === 'present' ? 'success' : record.status === 'late' ? 'warning' : 'neutral'}
-            />
+            <Text style={[styles.punchArrow, { color: colors.textMuted }]}>→</Text>
+            <View style={styles.punchBlock}>
+              <Text style={[styles.punchLabel, { color: colors.textSecondary }]}>Punch Out</Text>
+              <Text style={[styles.punchTime, { color: colors.text }]}>
+                {record.punchOut?.slice(0, 5) ?? '—'}
+              </Text>
+            </View>
           </View>
         </Card>
       ))}
@@ -61,10 +58,12 @@ export default function AttendanceScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   content: { padding: 20, paddingBottom: 40 },
-  historyCard: { marginBottom: 10, paddingVertical: 14, paddingHorizontal: 14 },
-  historyRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  dateIcon: { width: 32, height: 32, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
-  historyBody: { flex: 1 },
-  historyDate: { fontSize: 15, fontWeight: '700' },
-  historyDetail: { fontSize: 12, marginTop: 3, fontWeight: '500' },
+  sectionTitle: { fontSize: 18, fontWeight: '700', marginBottom: 12 },
+  historyCard: { marginBottom: 10 },
+  historyDate: { fontSize: 15, fontWeight: '600', marginBottom: 12 },
+  punchRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  punchBlock: { flex: 1 },
+  punchLabel: { fontSize: 12, fontWeight: '500', marginBottom: 4 },
+  punchTime: { fontSize: 20, fontWeight: '700' },
+  punchArrow: { fontSize: 18, fontWeight: '600', marginHorizontal: 12 },
 });
