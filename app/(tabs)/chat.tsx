@@ -141,14 +141,14 @@ export default function ChatScreen() {
             style={[
               styles.sendBtn,
               {
-                backgroundColor: text.trim() ? colors.successLight : colors.borderLight,
+                backgroundColor: text.trim() ? colors.success : colors.borderLight,
                 borderColor: text.trim() ? colors.success : colors.borderLight,
               },
             ]}
             onPress={() => handleSend()}
             disabled={!text.trim() || sending}
           >
-            <Text style={[styles.sendText, { color: text.trim() ? colors.success : colors.textMuted }]}>Send</Text>
+            <Text style={[styles.sendText, { color: text.trim() ? '#FFFFFF' : colors.textMuted }]}>Send</Text>
           </Pressable>
         </View>
       </View>
