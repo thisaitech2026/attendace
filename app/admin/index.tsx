@@ -43,13 +43,16 @@ export default function AdminDashboard() {
           />
         </View>
         <View style={styles.statsBottom}>
-          <StatCard
-            label="Approvals"
-            value={String(adminStats.pendingApprovals)}
-            accent={colors.warning}
-            compact
-            statusSymbol="pending"
-          />
+          <View style={styles.statCell}>
+            <StatCard
+              label="Approvals"
+              value={String(adminStats.pendingApprovals)}
+              accent={colors.warning}
+              compact
+              statusSymbol="pending"
+            />
+          </View>
+          <View style={styles.statCell} />
         </View>
       </View>
 
@@ -93,7 +96,9 @@ const styles = StyleSheet.create({
   content: { padding: 20 },
   title: { fontSize: 28, fontWeight: '800', letterSpacing: -0.5 },
   subtitle: { fontSize: 14, marginTop: 4, marginBottom: 20, fontWeight: '500' },
-  stats: { flexDirection: 'row', gap: 8, marginBottom: 20 },
+  stats: { gap: 10, marginBottom: 20 },
+  statsTop: { flexDirection: 'row', gap: 12 },
+  statsBottom: { flexDirection: 'row' },
   actions: { gap: 10, marginBottom: 24 },
   actionBtn: { width: '100%' },
   section: { fontSize: 18, fontWeight: '800', marginBottom: 12 },
