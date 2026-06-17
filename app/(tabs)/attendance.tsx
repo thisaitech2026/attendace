@@ -105,10 +105,7 @@ export default function AttendanceScreen() {
       contentContainerStyle={styles.content}
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
     >
-      <ScreenHeader
-        title="Attendance"
-        subtitle="Punch in/out with office WiFi verification"
-      />
+        <ScreenHeader title="Attendance" />
 
       <Card style={[styles.wifiCard, { borderColor: wifiValid ? colors.success : colors.border }]}>
         <View style={styles.wifiHeader}>
