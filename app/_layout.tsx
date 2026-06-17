@@ -8,6 +8,7 @@ import 'react-native-reanimated';
 import { useColorScheme } from '@/components/useColorScheme';
 import { AppProvider, useApp } from '@/contexts/AppContext';
 import Colors from '@/constants/Colors';
+import '@/services/firebase';
 
 export { ErrorBoundary } from 'expo-router';
 

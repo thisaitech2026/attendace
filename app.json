@@ -15,7 +15,7 @@
       }
     },
     "android": {
-      "package": "com.workpulse.app",
+      "package": "com.thisaitech.hris",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
