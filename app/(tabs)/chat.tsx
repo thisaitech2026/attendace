@@ -1,9 +1,12 @@
 import { useCallback, useRef, useState } from 'react';
 import {
   FlatList,
+  KeyboardAvoidingView,
+  Platform,
   Pressable,
   StyleSheet,
   Text,
+  TextInput,
   View,
 } from 'react-native';
 import { format, parseISO } from 'date-fns';
@@ -20,7 +23,6 @@ const QUICK_MESSAGES: { label: string; text: string; category: ChatCategory }[] 
   { label: 'Sick leave', text: 'I will be on sick leave today. Not feeling well.', category: 'sick-leave' },
   { label: 'Running late', text: 'Running a bit late today. Will be in shortly.', category: 'update' },
   { label: 'Leave update', text: 'Submitted a leave request — please review when you can.', category: 'leave' },
-  { label: 'Team update', text: 'Quick team update:', category: 'update' },
 ];
 
 const CATEGORY_COLORS: Record<ChatCategory, string> = {
@@ -37,20 +39,23 @@ export default function ChatScreen() {
   const insets = useSafeAreaInsets();
   const listRef = useRef<FlatList>(null);
 
+  const [text, setText] = useState('');
   const [sending, setSending] = useState(false);
 
   const handleSend = useCallback(
-    async (messageText: string, messageCategory: ChatCategory) => {
-      if (!messageText.trim() || sending) return;
+    async (messageText?: string, messageCategory: ChatCategory = 'general') => {
+      const body = (messageText ?? text).trim();
+      if (!body || sending) return;
       setSending(true);
       try {
-        await sendMessage(messageText.trim(), messageCategory);
+        await sendMessage(body, messageCategory);
+        setText('');
         setTimeout(() => listRef.current?.scrollToEnd({ animated: true }), 100);
       } finally {
         setSending(false);
       }
     },
-    [sending, sendMessage]
+    [text, sending, sendMessage]
   );
 
   const renderMessage = ({ item }: { item: (typeof chatMessages)[0] }) => {
@@ -87,7 +92,11 @@ export default function ChatScreen() {
   };
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
+    <KeyboardAvoidingView
+      style={[styles.container, { backgroundColor: colors.background }]}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 88 : 0}
+    >
       <View style={[styles.headerWrap, { paddingTop: insets.top + 8 }]}>
         <ScreenHeader title="Team Chat" subtitle="Share updates, sick leave & messages" inset={false} />
         <Text style={[styles.memberCount, { color: colors.textSecondary }]}>Everyone on your team can see messages here</Text>
@@ -116,8 +125,27 @@ export default function ChatScreen() {
             </Pressable>
           ))}
         </View>
+
+        <View style={styles.inputRow}>
+          <TextInput
+            style={[styles.input, { color: colors.text, backgroundColor: colors.background, borderColor: colors.borderLight }]}
+            value={text}
+            onChangeText={setText}
+            placeholder="Type a message to your team..."
+            placeholderTextColor={colors.textMuted}
+            multiline
+            maxLength={500}
+          />
+          <Pressable
+            style={[styles.sendBtn, { backgroundColor: text.trim() ? colors.primary : colors.borderLight }]}
+            onPress={() => handleSend()}
+            disabled={!text.trim() || sending}
+          >
+            <Text style={styles.sendText}>Send</Text>
+          </Pressable>
+        </View>
       </View>
-    </View>
+    </KeyboardAvoidingView>
   );
 }
 
@@ -142,7 +170,20 @@ const styles = StyleSheet.create({
   messageText: { fontSize: 15, lineHeight: 21, fontWeight: '500' },
   time: { fontSize: 10, marginTop: 6, alignSelf: 'flex-end', fontWeight: '500' },
   composer: { borderTopWidth: 1, paddingTop: 10, paddingHorizontal: 12 },
-  quickRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
+  quickRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: 8 },
   quickChip: { paddingHorizontal: 10, paddingVertical: 6, borderRadius: 14, borderWidth: 1 },
   quickText: { fontSize: 11, fontWeight: '600' },
+  inputRow: { flexDirection: 'row', alignItems: 'flex-end', gap: 8 },
+  input: {
+    flex: 1,
+    borderWidth: 1,
+    borderRadius: 16,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    fontSize: 15,
+    maxHeight: 100,
+    fontWeight: '500',
+  },
+  sendBtn: { paddingHorizontal: 16, paddingVertical: 12, borderRadius: 14 },
+  sendText: { color: '#FFF', fontSize: 14, fontWeight: '700' },
 });
