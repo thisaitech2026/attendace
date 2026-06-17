@@ -8,7 +8,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Card } from '@/components/ui/Card';
 import { ProfileHeader } from '@/components/ui/ProfileHeader';
-import { QuickAction, SectionHeader } from '@/components/ui/QuickAction';
+import { SectionHeader } from '@/components/ui/QuickAction';
 import { StatCard } from '@/components/ui/StatCard';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { useApp } from '@/contexts/AppContext';
@@ -82,34 +82,6 @@ export default function DashboardScreen() {
           employeeId={employee.employeeId}
         />
       ) : null}
-
-      <SectionHeader title="Quick access" />
-      <View style={[styles.actions, { backgroundColor: colors.card, borderColor: colors.borderLight }]}>
-        <QuickAction
-          href="/(tabs)/leave"
-          label="Leave"
-          actionKey="leave"
-          color={colors.primary}
-        />
-        <QuickAction
-          href="/(tabs)/attendance"
-          label="Time"
-          actionKey="time"
-          color={colors.accent}
-        />
-        <QuickAction
-          href="/(tabs)/salary"
-          label="Pay"
-          actionKey="pay"
-          color={colors.success}
-        />
-        <QuickAction
-          href="/(tabs)/chat"
-          label="Chat"
-          actionKey="chat"
-          color={colors.warning}
-        />
-      </View>
 
       <Card noPadding style={styles.heroCard}>
         <LinearGradient
@@ -234,16 +206,6 @@ const styles = StyleSheet.create({
   },
   heroBtnText: { fontSize: 15, fontWeight: '700', letterSpacing: 0.2 },
   stats: { flexDirection: 'row', gap: 12, marginBottom: 24 },
-  actions: {
-    flexDirection: 'row',
-    justifyContent: 'space-evenly',
-    alignItems: 'center',
-    paddingVertical: 12,
-    paddingHorizontal: 8,
-    marginBottom: 14,
-    borderRadius: 16,
-    borderWidth: 1,
-  },
   historyCard: { marginBottom: 10, paddingVertical: 14, paddingHorizontal: 14 },
   historyRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   dateIcon: { width: 32, height: 32, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
