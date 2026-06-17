@@ -27,6 +27,7 @@ import {
   punchOut,
   submitLeaveRequest,
 } from '@/services/employeeService';
+import { ensureFirestoreSeed } from '@/services/firestoreRepository';
 import { getItem, removeItem, setItem, storageKeys } from '@/services/storage';
 import type { ChatCategory, ChatMessage } from '@/types/chat';
 import type {
@@ -92,6 +93,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [attendance, setAttendance] = useState<AttendanceRecord[]>([]);
   const [leaveRequests, setLeaveRequests] = useState<LeaveRequest[]>([]);
   const [leaveBalances, setLeaveBalances] = useState<LeaveBalance[]>([]);
+  const [salarySlips, setSalarySlips] = useState<SalarySlip[]>([]);
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [allEmployees, setAllEmployees] = useState<Employee[]>([]);
   const [pendingApprovals, setPendingApprovals] = useState<EnrichedLeaveRequest[]>([]);
@@ -100,10 +102,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const employeeId = employee?.employeeId ?? '';
   const role = session?.role ?? null;
   const isAdmin = role === 'admin';
-  const salarySlips = useMemo(
-    () => (employeeId ? getSalarySlips(employeeId) : []),
-    [employeeId]
-  );
 
   const refreshData = useCallback(async () => {
     const messages = await loadChatMessages();
@@ -123,30 +121,36 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     }
 
     if (employeeId) {
-      const [att, leaves, balances] = await Promise.all([
+      const [att, leaves, balances, slips] = await Promise.all([
         loadAttendance(employeeId),
         getLeaveRequests(employeeId),
         getLeaveBalances(employeeId),
+        getSalarySlips(employeeId),
       ]);
       setAttendance(att);
       setLeaveRequests(leaves);
       setLeaveBalances(balances);
+      setSalarySlips(slips);
     }
   }, [employeeId, session?.role]);
 
   useEffect(() => {
     (async () => {
-      const saved = await getItem<Session>(storageKeys.SESSION);
-      if (saved) {
-        setSession(saved);
-        if (saved.role === 'employee' && saved.email) {
-          const emp = await findEmployeeByEmail(saved.email);
-          setEmployee(emp ?? null);
+      try {
+        await ensureFirestoreSeed();
+        const saved = await getItem<Session>(storageKeys.SESSION);
+        if (saved) {
+          setSession(saved);
+          if (saved.role === 'employee' && saved.email) {
+            const emp = await findEmployeeByEmail(saved.email);
+            setEmployee(emp ?? null);
+          }
         }
+        const messages = await loadChatMessages();
+        setChatMessages(messages);
+      } finally {
+        setIsLoading(false);
       }
-      const messages = await loadChatMessages();
-      setChatMessages(messages);
-      setIsLoading(false);
     })();
   }, []);
 
@@ -195,6 +199,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setAttendance([]);
     setLeaveRequests([]);
     setLeaveBalances([]);
+    setSalarySlips([]);
     setAllEmployees([]);
     setPendingApprovals([]);
     setAdminStats({ totalEmployees: 0, pendingApprovals: 0, departments: 0 });

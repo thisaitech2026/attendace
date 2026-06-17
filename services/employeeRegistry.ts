@@ -1,24 +1,27 @@
-import { INITIAL_USERS } from '@/constants/config';
-import { MOCK_EMPLOYEES, MOCK_LEAVE_BALANCES } from '@/data/mockData';
-import { getItem, setItem, storageKeys } from '@/services/storage';
+import {
+  loadEmployees as loadEmployeesFromFirestore,
+  loadLeaveBalancesMap,
+  loadUsers as loadUsersFromFirestore,
+  saveEmployees as saveEmployeesToFirestore,
+  saveLeaveBalancesMap,
+  saveUsers as saveUsersToFirestore,
+} from '@/services/firestoreRepository';
 import type { AppUser, Employee, LeaveBalance, NewHireInput } from '@/types/employee';
 
 export async function loadEmployees(): Promise<Employee[]> {
-  const stored = await getItem<Employee[]>(storageKeys.EMPLOYEES);
-  return stored ?? MOCK_EMPLOYEES;
+  return loadEmployeesFromFirestore();
 }
 
 export async function saveEmployees(employees: Employee[]): Promise<void> {
-  await setItem(storageKeys.EMPLOYEES, employees);
+  await saveEmployeesToFirestore(employees);
 }
 
 export async function loadUsers(): Promise<AppUser[]> {
-  const stored = await getItem<AppUser[]>(storageKeys.USERS);
-  return stored ?? INITIAL_USERS;
+  return loadUsersFromFirestore();
 }
 
 export async function saveUsers(users: AppUser[]): Promise<void> {
-  await setItem(storageKeys.USERS, users);
+  await saveUsersToFirestore(users);
 }
 
 export async function findEmployeeByEmail(email: string): Promise<Employee | undefined> {
@@ -33,15 +36,6 @@ export async function findEmployeeById(employeeId: string): Promise<Employee | u
 
 export function getEmployeeDisplayName(employee: Employee): string {
   return `${employee.firstName} ${employee.lastName}`;
-}
-
-export async function loadLeaveBalancesMap(): Promise<Record<string, LeaveBalance[]>> {
-  const stored = await getItem<Record<string, LeaveBalance[]>>(storageKeys.LEAVE_BALANCES);
-  return stored ?? MOCK_LEAVE_BALANCES;
-}
-
-async function saveLeaveBalancesMap(map: Record<string, LeaveBalance[]>): Promise<void> {
-  await setItem(storageKeys.LEAVE_BALANCES, map);
 }
 
 export async function getLeaveBalances(employeeId: string): Promise<LeaveBalance[]> {
@@ -117,6 +111,5 @@ export async function assignSupervisor(employeeId: string, supervisorId: string)
 }
 
 export async function getSupervisorOptions(): Promise<Employee[]> {
-  const employees = await loadEmployees();
-  return employees;
+  return loadEmployees();
 }

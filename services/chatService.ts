@@ -1,10 +1,8 @@
-import { INITIAL_TEAM_MESSAGES } from '@/data/mockChat';
-import { getItem, setItem, storageKeys } from '@/services/storage';
+import { loadChatMessages as loadMessages, saveChatMessage as saveMessage } from '@/services/firestoreRepository';
 import type { ChatCategory, ChatMessage } from '@/types/chat';
 
 export async function loadChatMessages(): Promise<ChatMessage[]> {
-  const stored = await getItem<ChatMessage[]>(storageKeys.CHAT_MESSAGES);
-  return stored ?? INITIAL_TEAM_MESSAGES;
+  return loadMessages();
 }
 
 export async function sendChatMessage(
@@ -14,7 +12,6 @@ export async function sendChatMessage(
   text: string,
   category: ChatCategory = 'general'
 ): Promise<ChatMessage> {
-  const messages = await loadChatMessages();
   const message: ChatMessage = {
     id: `msg-${Date.now()}`,
     employeeId,
@@ -24,6 +21,6 @@ export async function sendChatMessage(
     category,
     createdAt: new Date().toISOString(),
   };
-  await setItem(storageKeys.CHAT_MESSAGES, [...messages, message]);
+  await saveMessage(message);
   return message;
 }

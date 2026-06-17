@@ -1,12 +1,9 @@
-import { getItem, setItem, storageKeys } from '@/services/storage';
 import { findEmployeeById, loadEmployees } from '@/services/employeeRegistry';
-import { MOCK_LEAVE_REQUESTS } from '@/data/mockData';
+import { loadLeaveRequests, saveLeaveRequests } from '@/services/firestoreRepository';
 import type { LeaveRequest, LeaveStatus } from '@/types/employee';
 
 export async function getAllLeaveRequests(): Promise<LeaveRequest[]> {
-  const stored = await getItem<LeaveRequest[]>(storageKeys.LEAVE_REQUESTS);
-  const all = stored ?? MOCK_LEAVE_REQUESTS;
-  return all.sort((a, b) => b.submittedAt.localeCompare(a.submittedAt));
+  return loadLeaveRequests();
 }
 
 export async function getPendingApprovals(): Promise<LeaveRequest[]> {
@@ -33,10 +30,7 @@ export async function reviewLeaveRequest(
     reviewedAt: new Date().toISOString(),
     reviewedBy,
   };
-  await setItem(
-    storageKeys.LEAVE_REQUESTS,
-    all.map((r) => (r.id === requestId ? updated : r))
-  );
+  await saveLeaveRequests([updated]);
   return updated;
 }
 

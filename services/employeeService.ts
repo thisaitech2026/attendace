@@ -1,12 +1,15 @@
 import { format, parseISO, differenceInMinutes } from 'date-fns';
 
-import { MOCK_LEAVE_REQUESTS, MOCK_PERFORMANCE, MOCK_SALARY, createTodayAttendance, getInitialAttendance } from '@/data/mockData';
+import { createTodayAttendance } from '@/data/mockData';
+import { getLeaveBalances as getBalances } from '@/services/employeeRegistry';
 import {
-  findEmployeeByEmail,
-  findEmployeeById,
-  getLeaveBalances as getBalances,
-} from '@/services/employeeRegistry';
-import { getItem, setItem, storageKeys } from '@/services/storage';
+  loadAttendanceForEmployee,
+  loadLeaveRequests,
+  loadPerformanceReviews,
+  loadSalarySlips,
+  saveAttendanceRecords,
+  saveLeaveRequests,
+} from '@/services/firestoreRepository';
 import { calculateLeaveDays, validateLeaveDateRange } from '@/utils/leaveValidation';
 import type {
   AttendanceRecord,
@@ -25,22 +28,15 @@ export async function getLeaveBalances(employeeId: string): Promise<LeaveBalance
 }
 
 export async function loadAttendance(employeeId: string): Promise<AttendanceRecord[]> {
-  const stored = await getItem<AttendanceRecord[]>(storageKeys.ATTENDANCE);
-  const records = stored ?? getInitialAttendance();
-  const employeeRecords = records.filter((r) => r.employeeId === employeeId);
+  const employeeRecords = await loadAttendanceForEmployee(employeeId);
   const today = new Date().toISOString().split('T')[0];
   const hasToday = employeeRecords.some((r) => r.date === today);
   if (!hasToday) {
-    employeeRecords.unshift(createTodayAttendance(employeeId));
+    const todayRecord = createTodayAttendance(employeeId);
+    await saveAttendanceRecords([todayRecord]);
+    employeeRecords.unshift(todayRecord);
   }
   return employeeRecords.sort((a, b) => b.date.localeCompare(a.date));
-}
-
-async function saveAttendance(records: AttendanceRecord[]): Promise<void> {
-  const stored = (await getItem<AttendanceRecord[]>(storageKeys.ATTENDANCE)) ?? getInitialAttendance();
-  const map = new Map(stored.map((r) => [r.id, r]));
-  records.forEach((r) => map.set(r.id, r));
-  await setItem(storageKeys.ATTENDANCE, Array.from(map.values()));
 }
 
 function nowTime(): string {
@@ -70,7 +66,7 @@ export async function punchIn(
     wifiSsid,
     status: method === 'wifi' ? 'present' : 'late',
   };
-  await saveAttendance([updated]);
+  await saveAttendanceRecords([updated]);
   return updated;
 }
 
@@ -83,22 +79,20 @@ export async function punchOut(employeeId: string, method: PunchMethod): Promise
   if (today.punchOut) {
     throw new Error('Already punched out today');
   }
-  const punchOut = nowTime();
+  const punchOutTime = nowTime();
   const updated: AttendanceRecord = {
     ...today,
-    punchOut,
+    punchOut: punchOutTime,
     punchOutMethod: method,
-    hoursWorked: calcHours(today.punchIn, punchOut),
+    hoursWorked: calcHours(today.punchIn, punchOutTime),
     status: 'present',
   };
-  await saveAttendance([updated]);
+  await saveAttendanceRecords([updated]);
   return updated;
 }
 
 export async function getLeaveRequests(employeeId: string): Promise<LeaveRequest[]> {
-  const stored = await getItem<LeaveRequest[]>(storageKeys.LEAVE_REQUESTS);
-  const all = stored ?? MOCK_LEAVE_REQUESTS;
-  return all.filter((r) => r.employeeId === employeeId);
+  return loadLeaveRequests(employeeId);
 }
 
 export async function submitLeaveRequest(
@@ -130,17 +124,16 @@ export async function submitLeaveRequest(
     status: 'pending',
     submittedAt: new Date().toISOString(),
   };
-  const stored = (await getItem<LeaveRequest[]>(storageKeys.LEAVE_REQUESTS)) ?? MOCK_LEAVE_REQUESTS;
-  await setItem(storageKeys.LEAVE_REQUESTS, [request, ...stored]);
+  await saveLeaveRequests([request]);
   return request;
 }
 
-export function getPerformanceReviews(employeeId: string): PerformanceReview[] {
-  return MOCK_PERFORMANCE.filter((r) => r.employeeId === employeeId);
+export async function getPerformanceReviews(employeeId: string): Promise<PerformanceReview[]> {
+  return loadPerformanceReviews(employeeId);
 }
 
-export function getSalarySlips(employeeId: string): SalarySlip[] {
-  return MOCK_SALARY.filter((s) => s.employeeId === employeeId);
+export async function getSalarySlips(employeeId: string): Promise<SalarySlip[]> {
+  return loadSalarySlips(employeeId);
 }
 
 export function formatCurrency(amount: number): string {
