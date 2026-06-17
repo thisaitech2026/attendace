@@ -1,6 +1,22 @@
-import { findEmployeeById, loadEmployees } from '@/services/employeeRegistry';
+import { findEmployeeById, getEmployeeDisplayName, loadEmployees } from '@/services/employeeRegistry';
 import { loadLeaveRequests, saveLeaveRequests } from '@/services/firestoreRepository';
-import type { LeaveRequest, LeaveStatus } from '@/types/employee';
+import type { Employee, LeaveRequest, LeaveStatus } from '@/types/employee';
+
+function countSupervisors(employees: Employee[]): number {
+  const withDirectReports = employees.filter((employee) =>
+    employees.some(
+      (other) =>
+        other.employeeId !== employee.employeeId &&
+        other.manager === getEmployeeDisplayName(employee)
+    )
+  ).length;
+
+  if (withDirectReports > 0) {
+    return withDirectReports;
+  }
+
+  return employees.filter((employee) => /manager|supervisor|lead/i.test(employee.position)).length;
+}
 
 export async function getAllLeaveRequests(): Promise<LeaveRequest[]> {
   return loadLeaveRequests();
@@ -38,6 +54,7 @@ export async function getAdminStats() {
   const [employees, pending] = await Promise.all([loadEmployees(), getPendingApprovals()]);
   return {
     totalEmployees: employees.length,
+    totalSupervisors: countSupervisors(employees),
     pendingApprovals: pending.length,
     departments: [...new Set(employees.map((e) => e.department))].length,
   };

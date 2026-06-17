@@ -69,7 +69,7 @@ interface AppContextValue {
   chatMessages: ChatMessage[];
   allEmployees: Employee[];
   pendingApprovals: EnrichedLeaveRequest[];
-  adminStats: { totalEmployees: number; pendingApprovals: number; departments: number };
+  adminStats: { totalEmployees: number; totalSupervisors: number; pendingApprovals: number; departments: number };
   login: (email: string, password: string, role: UserRole) => Promise<void>;
   logout: () => Promise<void>;
   refreshData: () => Promise<void>;
@@ -97,7 +97,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [allEmployees, setAllEmployees] = useState<Employee[]>([]);
   const [pendingApprovals, setPendingApprovals] = useState<EnrichedLeaveRequest[]>([]);
-  const [adminStats, setAdminStats] = useState({ totalEmployees: 0, pendingApprovals: 0, departments: 0 });
+  const [adminStats, setAdminStats] = useState({ totalEmployees: 0, totalSupervisors: 0, pendingApprovals: 0, departments: 0 });
 
   const employeeId = employee?.employeeId ?? '';
   const role = session?.role ?? null;
@@ -202,7 +202,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setSalarySlips([]);
     setAllEmployees([]);
     setPendingApprovals([]);
-    setAdminStats({ totalEmployees: 0, pendingApprovals: 0, departments: 0 });
+    setAdminStats({ totalEmployees: 0, totalSupervisors: 0, pendingApprovals: 0, departments: 0 });
   }, []);
 
   const doPunchIn = useCallback(

@@ -12,9 +12,10 @@ interface StatCardProps {
   accent?: string;
   icon?: { ios: string; android: string; web: string };
   statusSymbol?: 'paid' | 'pending';
+  compact?: boolean;
 }
 
-export function StatCard({ label, value, subtitle, accent, icon, statusSymbol }: StatCardProps) {
+export function StatCard({ label, value, subtitle, accent, icon, statusSymbol, compact = false }: StatCardProps) {
   const scheme = useColorScheme() ?? 'light';
   const colors = Colors[scheme];
 
@@ -40,7 +41,13 @@ export function StatCard({ label, value, subtitle, accent, icon, statusSymbol }:
   ) : null;
 
   return (
-    <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.borderLight, shadowColor: colors.shadow }]}>
+    <View
+      style={[
+        styles.card,
+        compact && styles.cardCompact,
+        { backgroundColor: colors.card, borderColor: colors.borderLight, shadowColor: colors.shadow },
+      ]}
+    >
       {hasHeaderIcon ? (
         <View style={styles.headerRow}>
           {iconNode}
@@ -51,7 +58,7 @@ export function StatCard({ label, value, subtitle, accent, icon, statusSymbol }:
       ) : (
         <Text style={[styles.label, { color: colors.textMuted }]}>{label}</Text>
       )}
-      <Text style={[styles.value, { color: accent ?? colors.text }]}>{value}</Text>
+      <Text style={[styles.value, compact && styles.valueCompact, { color: accent ?? colors.text }]}>{value}</Text>
       {subtitle ? <Text style={[styles.subtitle, { color: colors.textSecondary }]}>{subtitle}</Text> : null}
     </View>
   );
@@ -68,6 +75,11 @@ const styles = StyleSheet.create({
     shadowOpacity: 1,
     shadowRadius: 12,
     elevation: 3,
+  },
+  cardCompact: {
+    minWidth: 0,
+    padding: 12,
+    borderRadius: 14,
   },
   headerRow: {
     flexDirection: 'row',
@@ -94,5 +106,6 @@ const styles = StyleSheet.create({
   label: { fontSize: 11, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.6, marginBottom: 8 },
   labelInline: { flex: 1, marginBottom: 0, lineHeight: 14 },
   value: { fontSize: 24, fontWeight: '800', letterSpacing: -0.5 },
+  valueCompact: { fontSize: 22 },
   subtitle: { fontSize: 12, marginTop: 4, fontWeight: '500' },
 });
