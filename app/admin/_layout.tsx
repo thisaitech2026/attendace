@@ -1,6 +1,6 @@
 import { Tabs, Redirect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { Platform, Pressable, StyleSheet, Text } from 'react-native';
+import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useApp } from '@/contexts/AppContext';
@@ -16,9 +16,39 @@ const ADMIN_TAB_ICONS: Record<string, { active: IoniconName; inactive: IoniconNa
   'new-hire': { active: 'person-add', inactive: 'person-add-outline' },
 };
 
-function AdminTabIcon({ routeName, color, focused }: { routeName: string; color: string; focused: boolean }) {
+const ADMIN_TAB_COLORS: Record<string, { active: string; inactive: string; bg: string }> = {
+  index: { active: '#4F46E5', inactive: '#6366F1', bg: '#EEF2FF' },
+  employees: { active: '#0891B2', inactive: '#0891B2', bg: '#ECFEFF' },
+  approvals: { active: '#059669', inactive: '#059669', bg: '#ECFDF5' },
+  'new-hire': { active: '#DB2777', inactive: '#DB2777', bg: '#FDF2F8' },
+};
+
+function AdminTabIcon({ routeName, focused }: { routeName: string; focused: boolean }) {
   const icons = ADMIN_TAB_ICONS[routeName] ?? ADMIN_TAB_ICONS.index;
-  return <Ionicons name={focused ? icons.active : icons.inactive} size={22} color={color} />;
+  const palette = ADMIN_TAB_COLORS[routeName] ?? ADMIN_TAB_COLORS.index;
+
+  return (
+    <View style={[styles.iconWrap, { backgroundColor: focused ? `${palette.active}22` : palette.bg }]}>
+      <Ionicons
+        name={focused ? icons.active : icons.inactive}
+        size={20}
+        color={focused ? palette.active : palette.inactive}
+      />
+    </View>
+  );
+}
+
+function adminTabOptions(routeName: string, title: string) {
+  const palette = ADMIN_TAB_COLORS[routeName] ?? ADMIN_TAB_COLORS.index;
+
+  return {
+    title,
+    tabBarActiveTintColor: palette.active,
+    tabBarInactiveTintColor: palette.inactive,
+    tabBarIcon: ({ focused }: { focused: boolean }) => (
+      <AdminTabIcon routeName={routeName} focused={focused} />
+    ),
+  };
 }
 
 export default function AdminLayout() {
@@ -45,8 +75,6 @@ export default function AdminLayout() {
       </Pressable>
       <Tabs
         screenOptions={{
-          tabBarActiveTintColor: colors.primary,
-          tabBarInactiveTintColor: colors.tabIconDefault,
           tabBarStyle: {
             backgroundColor: colors.tabBar,
             borderTopColor: colors.borderLight,
@@ -56,34 +84,10 @@ export default function AdminLayout() {
           headerShown: false,
         }}
       >
-        <Tabs.Screen
-          name="index"
-          options={{
-            title: 'Dashboard',
-            tabBarIcon: ({ color, focused }) => <AdminTabIcon routeName="index" color={color} focused={focused} />,
-          }}
-        />
-        <Tabs.Screen
-          name="employees"
-          options={{
-            title: 'Employees',
-            tabBarIcon: ({ color, focused }) => <AdminTabIcon routeName="employees" color={color} focused={focused} />,
-          }}
-        />
-        <Tabs.Screen
-          name="approvals"
-          options={{
-            title: 'Approvals',
-            tabBarIcon: ({ color, focused }) => <AdminTabIcon routeName="approvals" color={color} focused={focused} />,
-          }}
-        />
-        <Tabs.Screen
-          name="new-hire"
-          options={{
-            title: 'New Hire',
-            tabBarIcon: ({ color, focused }) => <AdminTabIcon routeName="new-hire" color={color} focused={focused} />,
-          }}
-        />
+        <Tabs.Screen name="index" options={adminTabOptions('index', 'Dashboard')} />
+        <Tabs.Screen name="employees" options={adminTabOptions('employees', 'Employees')} />
+        <Tabs.Screen name="approvals" options={adminTabOptions('approvals', 'Approvals')} />
+        <Tabs.Screen name="new-hire" options={adminTabOptions('new-hire', 'New Hire')} />
       </Tabs>
     </>
   );
@@ -100,4 +104,11 @@ const styles = StyleSheet.create({
   },
   topTitle: { fontSize: 16, fontWeight: '800' },
   signOut: { fontSize: 13, fontWeight: '700' },
+  iconWrap: {
+    width: 32,
+    height: 28,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
 });
