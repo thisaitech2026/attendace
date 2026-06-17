@@ -1,13 +1,15 @@
 import type { AttendanceRecord, Employee } from '@/types/employee';
 import { format, parseISO } from 'date-fns';
 
+import { formatDisplayTime } from '@/utils/formatTime';
+
 export function formatPunchDetailLines(record: AttendanceRecord, employeeName?: string): string[] {
   const lines: string[] = [];
   if (employeeName) lines.push(`Employee: ${employeeName}`);
   lines.push(`Date: ${format(parseISO(record.date), 'EEEE, MMMM d, yyyy')}`);
 
   if (record.punchIn) {
-    lines.push(`Punch In: ${record.punchIn.slice(0, 8)}`);
+    lines.push(`Punch In: ${formatDisplayTime(record.punchIn)}`);
     lines.push(`Method: ${record.punchInMethod === 'wifi' ? 'Office WiFi' : 'Manual'}`);
     if (record.wifiSsid) lines.push(`Network: ${record.wifiSsid}`);
   } else {
@@ -15,7 +17,7 @@ export function formatPunchDetailLines(record: AttendanceRecord, employeeName?: 
   }
 
   if (record.punchOut) {
-    lines.push(`Punch Out: ${record.punchOut.slice(0, 8)}`);
+    lines.push(`Punch Out: ${formatDisplayTime(record.punchOut)}`);
     lines.push(`Out Method: ${record.punchOutMethod === 'wifi' ? 'Office WiFi' : 'Manual'}`);
     lines.push(`Hours Worked: ${record.hoursWorked}h`);
   } else if (record.punchIn) {

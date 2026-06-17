@@ -9,6 +9,7 @@ import { StatusBadge } from '@/components/ui/StatusBadge';
 import { useApp } from '@/contexts/AppContext';
 import Colors from '@/constants/Colors';
 import { getCurrentWifiInfo, verifyOfficeWifi } from '@/services/wifiService';
+import { formatDisplayTime } from '@/utils/formatTime';
 import { useColorScheme } from '@/components/useColorScheme';
 
 export default function AttendanceScreen() {
@@ -91,7 +92,7 @@ export default function AttendanceScreen() {
       const result = await verifyOfficeWifi();
       const method = result.valid ? 'wifi' : 'manual';
       await doPunchOut(method);
-      Alert.alert('Punched Out', `Recorded at ${new Date().toLocaleTimeString()}`);
+      Alert.alert('Punched Out', `Recorded at ${format(new Date(), 'h:mm a')}`);
     } catch (e) {
       Alert.alert('Error', e instanceof Error ? e.message : 'Punch out failed');
     } finally {
@@ -126,7 +127,7 @@ export default function AttendanceScreen() {
           <View style={styles.todayPunchBlock}>
             <Text style={[styles.punchLabel, { color: colors.textSecondary }]}>Punch In</Text>
             <Text style={[styles.todayPunchTime, { color: colors.text }]}>
-              {today?.punchIn?.slice(0, 5) ?? '—'}
+              {formatDisplayTime(today?.punchIn)}
             </Text>
             {today?.punchInMethod ? (
               <StatusBadge label={today.punchInMethod} tone={today.punchInMethod === 'wifi' ? 'success' : 'warning'} />
@@ -136,7 +137,7 @@ export default function AttendanceScreen() {
           <View style={styles.todayPunchBlock}>
             <Text style={[styles.punchLabel, { color: colors.textSecondary }]}>Punch Out</Text>
             <Text style={[styles.todayPunchTime, { color: colors.text }]}>
-              {today?.punchOut?.slice(0, 5) ?? '—'}
+              {formatDisplayTime(today?.punchOut)}
             </Text>
             {today?.punchOutMethod ? (
               <StatusBadge label={today.punchOutMethod} tone="primary" />
@@ -188,14 +189,14 @@ export default function AttendanceScreen() {
             <View style={styles.punchBlock}>
               <Text style={[styles.punchLabel, { color: colors.textSecondary }]}>Punch In</Text>
               <Text style={[styles.punchTime, { color: colors.text }]}>
-                {record.punchIn?.slice(0, 5) ?? '—'}
+                {formatDisplayTime(record.punchIn)}
               </Text>
             </View>
             <Text style={[styles.punchArrow, { color: colors.textMuted }]}>→</Text>
             <View style={styles.punchBlock}>
               <Text style={[styles.punchLabel, { color: colors.textSecondary }]}>Punch Out</Text>
               <Text style={[styles.punchTime, { color: colors.text }]}>
-                {record.punchOut?.slice(0, 5) ?? '—'}
+                {formatDisplayTime(record.punchOut)}
               </Text>
             </View>
           </View>

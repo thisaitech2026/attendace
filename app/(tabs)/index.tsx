@@ -15,6 +15,7 @@ import { useApp } from '@/contexts/AppContext';
 import { APP_NAME } from '@/constants/config';
 import Colors from '@/constants/Colors';
 import { verifyOfficeWifi } from '@/services/wifiService';
+import { formatDisplayTime } from '@/utils/formatTime';
 import { useColorScheme } from '@/components/useColorScheme';
 
 function showPunchAlert(title: string, message: string) {
@@ -67,7 +68,7 @@ export default function DashboardScreen() {
         if (result.valid) {
           const record = await doPunchIn('wifi', result.ssid);
           if (record) {
-            showPunchAlert('Punched In', `Recorded at ${record.punchIn?.slice(0, 5) ?? 'now'}`);
+            showPunchAlert('Punched In', `Recorded at ${formatDisplayTime(record.punchIn)}`);
           }
           return;
         }
@@ -107,7 +108,7 @@ export default function DashboardScreen() {
         if (record) {
           showPunchAlert(
             'Punched Out',
-            `Recorded at ${record.punchOut?.slice(0, 5) ?? 'now'}${record.hoursWorked ? ` · ${record.hoursWorked}h worked` : ''}`
+            `Recorded at ${formatDisplayTime(record.punchOut)}${record.hoursWorked ? ` · ${record.hoursWorked}h worked` : ''}`
           );
         }
       } catch (e) {
@@ -180,8 +181,8 @@ export default function DashboardScreen() {
               <Text style={styles.heroStatus}>{punchStatus}</Text>
               {today?.punchIn ? (
                 <Text style={styles.heroTime}>
-                  {today.punchIn.slice(0, 5)}
-                  {today.punchOut ? ` → ${today.punchOut.slice(0, 5)}` : ' · still working'}
+                  {formatDisplayTime(today.punchIn)}
+                  {today.punchOut ? ` → ${formatDisplayTime(today.punchOut)}` : ' · still working'}
                 </Text>
               ) : (
                 <Text style={styles.heroTime}>{heroHint}</Text>
@@ -236,7 +237,9 @@ export default function DashboardScreen() {
                 {format(parseISO(record.date), 'EEE, MMM d')}
               </Text>
               <Text style={[styles.historyDetail, { color: colors.textSecondary }]}>
-                {record.punchIn ? `${record.punchIn.slice(0, 5)} – ${record.punchOut?.slice(0, 5) ?? '—'}` : 'No punch recorded'}
+                {record.punchIn
+                  ? `${formatDisplayTime(record.punchIn)} – ${formatDisplayTime(record.punchOut)}`
+                  : 'No punch recorded'}
                 {record.hoursWorked > 0 ? ` · ${record.hoursWorked}h` : ''}
               </Text>
             </View>
