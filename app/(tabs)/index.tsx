@@ -9,7 +9,6 @@ import { useState } from 'react';
 import { Card } from '@/components/ui/Card';
 import { ProfileHeader } from '@/components/ui/ProfileHeader';
 import { SectionHeader } from '@/components/ui/QuickAction';
-import { StatCard } from '@/components/ui/StatCard';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { useApp } from '@/contexts/AppContext';
 import { APP_NAME } from '@/constants/config';
@@ -27,15 +26,13 @@ function showPunchAlert(title: string, message: string) {
 }
 
 export default function DashboardScreen() {
-  const { employee, attendance, leaveBalances, leaveRequests, logout, doPunchIn, doPunchOut } = useApp();
+  const { employee, attendance, logout, doPunchIn, doPunchOut } = useApp();
   const scheme = useColorScheme() ?? 'light';
   const colors = Colors[scheme];
   const insets = useSafeAreaInsets();
   const [punchLoading, setPunchLoading] = useState(false);
 
   const today = attendance[0];
-  const annualLeave = leaveBalances.find((b) => b.type === 'annual');
-  const pendingLeaves = leaveRequests.filter((r) => r.status === 'pending').length;
 
   const canPunchIn = today && !today.punchIn;
   const canPunchOut = today && today.punchIn && !today.punchOut;
@@ -209,23 +206,6 @@ export default function DashboardScreen() {
         </LinearGradient>
       </Card>
 
-      <View style={styles.stats}>
-        <StatCard
-          label="Leave left"
-          value={`${annualLeave?.remaining ?? 0}`}
-          subtitle={`${annualLeave?.used ?? 0} days used`}
-          accent={colors.primary}
-          icon={{ ios: 'beach.umbrella.fill', android: 'beach_access', web: 'beach_access' }}
-        />
-        <StatCard
-          label="Pending"
-          value={String(pendingLeaves)}
-          subtitle="leave requests"
-          accent={colors.warning}
-          statusSymbol="pending"
-        />
-      </View>
-
       <SectionHeader title="Recent activity" action={{ label: 'See all', href: '/(tabs)/attendance' }} />
       {attendance.slice(0, 4).map((record) => (
         <Card key={record.id} style={styles.historyCard}>
@@ -292,7 +272,6 @@ const styles = StyleSheet.create({
     zIndex: 2,
   },
   heroBtnText: { fontSize: 15, fontWeight: '700', letterSpacing: 0.2 },
-  stats: { flexDirection: 'row', gap: 12, marginBottom: 24 },
   historyCard: { marginBottom: 10, paddingVertical: 14, paddingHorizontal: 14 },
   historyRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   dateIcon: { width: 32, height: 32, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
