@@ -56,7 +56,7 @@ export default function SalaryScreen() {
         </Text>
         <View style={styles.heroStats}>
           <View style={[styles.heroStatBox, { backgroundColor: SALARY_STAT_COLORS.total.box }]}>
-            <Text style={[styles.heroStatLabel, { color: SALARY_STAT_COLORS.total.label }]}>Total Salary</Text>
+            <Text style={[styles.heroStatLabel, { color: SALARY_STAT_COLORS.total.label }]}>Basic Salary</Text>
             <Text style={[styles.heroStatValue, { color: SALARY_STAT_COLORS.total.value }]}>
               {latest ? formatCurrency(totalSalary) : '—'}
             </Text>
