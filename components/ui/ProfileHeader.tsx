@@ -9,11 +9,10 @@ interface ProfileHeaderProps {
   firstName: string;
   lastName: string;
   position: string;
-  department: string;
   employeeId: string;
 }
 
-export function ProfileHeader({ firstName, lastName, position, department, employeeId }: ProfileHeaderProps) {
+export function ProfileHeader({ firstName, lastName, position, employeeId }: ProfileHeaderProps) {
   const scheme = useColorScheme() ?? 'light';
   const colors = Colors[scheme];
   const initials = `${firstName[0]}${lastName[0]}`;
@@ -31,7 +30,7 @@ export function ProfileHeader({ firstName, lastName, position, department, emplo
               {firstName} {lastName}
             </Text>
             <Text style={[styles.meta, { color: colors.textSecondary }]} numberOfLines={1}>
-              {position} · {department}
+              {position}
             </Text>
           </View>
         </View>

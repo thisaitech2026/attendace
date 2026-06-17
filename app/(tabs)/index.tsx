@@ -162,7 +162,6 @@ export default function DashboardScreen() {
           firstName={employee.firstName}
           lastName={employee.lastName}
           position={employee.position}
-          department={employee.department}
           employeeId={employee.employeeId}
         />
       ) : null}
