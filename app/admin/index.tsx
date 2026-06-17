@@ -32,6 +32,7 @@ export default function AdminDashboard() {
             value={String(adminStats.totalEmployees)}
             accent="#4F46E5"
             compact
+            centered
             icon={{ ios: 'person.2.fill', android: 'groups', web: 'groups' }}
           />
           <StatCard
@@ -39,6 +40,7 @@ export default function AdminDashboard() {
             value={String(adminStats.totalSupervisors)}
             accent="#0891B2"
             compact
+            centered
             icon={{ ios: 'person.crop.circle.badge.checkmark', android: 'supervisor_account', web: 'supervisor_account' }}
           />
         </View>
@@ -49,6 +51,7 @@ export default function AdminDashboard() {
               value={String(adminStats.pendingApprovals)}
               accent={colors.warning}
               compact
+              centered
               statusSymbol="pending"
             />
           </View>
@@ -96,9 +99,10 @@ const styles = StyleSheet.create({
   content: { padding: 20 },
   title: { fontSize: 28, fontWeight: '800', letterSpacing: -0.5 },
   subtitle: { fontSize: 14, marginTop: 4, marginBottom: 20, fontWeight: '500' },
-  stats: { gap: 10, marginBottom: 20 },
-  statsTop: { flexDirection: 'row', gap: 12 },
-  statsBottom: { flexDirection: 'row' },
+  stats: { gap: 6, marginBottom: 16 },
+  statsTop: { flexDirection: 'row', gap: 8 },
+  statsBottom: { flexDirection: 'row', gap: 8 },
+  statCell: { flex: 1, minWidth: 0 },
   actions: { gap: 10, marginBottom: 24 },
   actionBtn: { width: '100%' },
   section: { fontSize: 18, fontWeight: '800', marginBottom: 12 },

@@ -13,9 +13,19 @@ interface StatCardProps {
   icon?: { ios: string; android: string; web: string };
   statusSymbol?: 'paid' | 'pending';
   compact?: boolean;
+  centered?: boolean;
 }
 
-export function StatCard({ label, value, subtitle, accent, icon, statusSymbol, compact = false }: StatCardProps) {
+export function StatCard({
+  label,
+  value,
+  subtitle,
+  accent,
+  icon,
+  statusSymbol,
+  compact = false,
+  centered = false,
+}: StatCardProps) {
   const scheme = useColorScheme() ?? 'light';
   const colors = Colors[scheme];
 
@@ -45,21 +55,44 @@ export function StatCard({ label, value, subtitle, accent, icon, statusSymbol, c
       style={[
         styles.card,
         compact && styles.cardCompact,
+        centered && styles.cardCentered,
         { backgroundColor: colors.card, borderColor: colors.borderLight, shadowColor: colors.shadow },
       ]}
     >
       {hasHeaderIcon ? (
-        <View style={styles.headerRow}>
+        <View style={[styles.headerRow, compact && styles.headerRowCompact, centered && styles.headerRowCentered]}>
           {iconNode}
-          <Text style={[styles.label, styles.labelInline, { color: colors.textMuted }]} numberOfLines={2}>
+          <Text
+            style={[
+              styles.label,
+              styles.labelInline,
+              compact && styles.labelCompact,
+              centered && styles.labelCentered,
+              { color: colors.textMuted },
+            ]}
+            numberOfLines={2}
+          >
             {label}
           </Text>
         </View>
       ) : (
-        <Text style={[styles.label, { color: colors.textMuted }]}>{label}</Text>
+        <Text style={[styles.label, compact && styles.labelCompact, centered && styles.labelCentered, { color: colors.textMuted }]}>
+          {label}
+        </Text>
       )}
-      <Text style={[styles.value, compact && styles.valueCompact, { color: accent ?? colors.text }]}>{value}</Text>
-      {subtitle ? <Text style={[styles.subtitle, { color: colors.textSecondary }]}>{subtitle}</Text> : null}
+      <Text
+        style={[
+          styles.value,
+          compact && styles.valueCompact,
+          centered && styles.valueCentered,
+          { color: accent ?? colors.text },
+        ]}
+      >
+        {value}
+      </Text>
+      {subtitle ? (
+        <Text style={[styles.subtitle, centered && styles.subtitleCentered, { color: colors.textSecondary }]}>{subtitle}</Text>
+      ) : null}
     </View>
   );
 }
@@ -78,15 +111,19 @@ const styles = StyleSheet.create({
   },
   cardCompact: {
     minWidth: 0,
-    padding: 12,
+    paddingVertical: 10,
+    paddingHorizontal: 10,
     borderRadius: 14,
   },
+  cardCentered: { alignItems: 'center' },
   headerRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
     marginBottom: 10,
   },
+  headerRowCompact: { marginBottom: 6, gap: 6 },
+  headerRowCentered: { justifyContent: 'center' },
   iconWrap: {
     width: 30,
     height: 30,
@@ -104,8 +141,12 @@ const styles = StyleSheet.create({
   },
   symbolText: { color: '#FFF', fontSize: 12, fontWeight: '800' },
   label: { fontSize: 11, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.6, marginBottom: 8 },
+  labelCompact: { marginBottom: 0, fontSize: 10, letterSpacing: 0.4 },
   labelInline: { flex: 1, marginBottom: 0, lineHeight: 14 },
+  labelCentered: { flex: 0, textAlign: 'center' },
   value: { fontSize: 24, fontWeight: '800', letterSpacing: -0.5 },
-  valueCompact: { fontSize: 22 },
+  valueCompact: { fontSize: 22, marginTop: 4 },
+  valueCentered: { textAlign: 'center', width: '100%' },
   subtitle: { fontSize: 12, marginTop: 4, fontWeight: '500' },
+  subtitleCentered: { textAlign: 'center', width: '100%' },
 });
