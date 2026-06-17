@@ -21,9 +21,6 @@ export default function AdminDashboard() {
       contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 24 }]}
     >
       <Text style={[styles.title, { color: colors.text }]}>HR Dashboard</Text>
-      <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
-        Manage employees, supervisors, and approvals
-      </Text>
 
       <View style={styles.stats}>
         <View style={styles.statsTop}>
@@ -97,8 +94,7 @@ export default function AdminDashboard() {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   content: { padding: 20 },
-  title: { fontSize: 28, fontWeight: '800', letterSpacing: -0.5 },
-  subtitle: { fontSize: 14, marginTop: 4, marginBottom: 20, fontWeight: '500' },
+  title: { fontSize: 28, fontWeight: '800', letterSpacing: -0.5, marginBottom: 16 },
   stats: { gap: 6, marginBottom: 16 },
   statsTop: { flexDirection: 'row', gap: 8 },
   statsBottom: { flexDirection: 'row', gap: 8 },
