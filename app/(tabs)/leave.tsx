@@ -62,12 +62,14 @@ function LeaveBalanceBox({
         },
       ]}
     >
-      <View style={[styles.balanceIconWrap, { backgroundColor: `${accent}18` }]}>
-        <Text style={styles.balanceEmoji}>{emoji}</Text>
+      <View style={styles.balanceHeaderRow}>
+        <View style={[styles.balanceIconWrap, { backgroundColor: `${accent}18` }]}>
+          <Text style={styles.balanceEmoji}>{emoji}</Text>
+        </View>
+        <Text style={[styles.balanceType, { color: colors.textSecondary }]} numberOfLines={2}>
+          {label}
+        </Text>
       </View>
-      <Text style={[styles.balanceType, { color: colors.textSecondary }]} numberOfLines={1}>
-        {label}
-      </Text>
       <Text style={[styles.balanceRemaining, { color: accent }]}>{remaining}</Text>
       <Text style={[styles.balanceSub, { color: colors.textMuted }]}>days left</Text>
       <View style={styles.balanceMetaRow}>
@@ -171,17 +173,23 @@ const styles = StyleSheet.create({
     shadowRadius: 10,
     elevation: 2,
   },
+  balanceHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 10,
+  },
   balanceIconWrap: {
     width: 34,
     height: 34,
     borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 8,
+    flexShrink: 0,
   },
   balanceEmoji: { fontSize: 16 },
-  balanceType: { fontSize: 11, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5 },
-  balanceRemaining: { fontSize: 30, fontWeight: '800', marginTop: 4, lineHeight: 34 },
+  balanceType: { flex: 1, fontSize: 11, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.4, lineHeight: 14 },
+  balanceRemaining: { fontSize: 30, fontWeight: '800', lineHeight: 34 },
   balanceSub: { fontSize: 11, fontWeight: '600', marginTop: 2 },
   balanceMetaRow: {
     flexDirection: 'row',
