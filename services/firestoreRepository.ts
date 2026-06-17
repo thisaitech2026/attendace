@@ -123,7 +123,7 @@ async function seedFirestoreIfNeeded(): Promise<void> {
   batch.set(metaRef, {
     seeded: true,
     seededAt: new Date().toISOString(),
-    appName: 'thisAItech',
+    appName: 'thisAI',
   });
 
   await batch.commit();

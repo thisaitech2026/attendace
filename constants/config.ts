@@ -1,6 +1,6 @@
 import type { AppUser, UserRole } from '@/types/employee';
 
-export const APP_NAME = 'thisAItech';
+export const APP_NAME = 'thisAI';
 
 /** Office WiFi SSID — employees must connect to THISAI. */
 export const OFFICE_WIFI_SSID = 'THISAI';

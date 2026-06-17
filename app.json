@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "thisAItech",
+    "name": "thisAI",
     "slug": "workpulse",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -10,8 +10,8 @@
     "ios": {
       "supportsTablet": true,
       "infoPlist": {
-        "NSLocationWhenInUseUsageDescription": "thisAItech needs your location to verify you are connected to the office WiFi network for attendance punch-in.",
-        "NSLocationAlwaysAndWhenInUseUsageDescription": "thisAItech needs your location to verify office WiFi for attendance."
+        "NSLocationWhenInUseUsageDescription": "thisAI needs your location to verify you are connected to the office WiFi network for attendance punch-in.",
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "thisAI needs your location to verify office WiFi for attendance."
       }
     },
     "android": {
@@ -48,7 +48,7 @@
       [
         "expo-location",
         {
-          "locationWhenInUsePermission": "Allow thisAItech to access your location to verify office WiFi for attendance punch-in."
+          "locationWhenInUsePermission": "Allow thisAI to access your location to verify office WiFi for attendance punch-in."
         }
       ],
       "@react-native-community/datetimepicker"
