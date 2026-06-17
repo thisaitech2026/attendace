@@ -83,6 +83,8 @@ function LeaveBalanceBox({
   );
 }
 
+const DISPLAYED_LEAVE_TYPES = new Set(['annual', 'sick']);
+
 export default function LeaveScreen() {
   const { leaveBalances, leaveRequests } = useApp();
   const scheme = useColorScheme() ?? 'light';
@@ -106,7 +108,9 @@ export default function LeaveScreen() {
 
       <Text style={[styles.sectionTitle, { color: colors.text }]}>Leave Balances</Text>
       <View style={styles.balanceGrid}>
-        {leaveBalances.map((balance) => (
+        {leaveBalances
+          .filter((balance) => DISPLAYED_LEAVE_TYPES.has(balance.type))
+          .map((balance) => (
           <LeaveBalanceBox
             key={balance.type}
             label={LEAVE_TYPE_LABELS[balance.type]}
