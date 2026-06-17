@@ -69,10 +69,10 @@ export default function AdminEmployeesScreen() {
               </Text>
             </View>
             <View style={styles.info}>
+              <Text style={[styles.name, { color: colors.text }]}>{getEmployeeDisplayName(emp)}</Text>
               <Text style={[styles.position, { color: colors.textSecondary }]}>
                 {emp.position} · {emp.department}
               </Text>
-              <Text style={[styles.name, { color: colors.text }]}>{getEmployeeDisplayName(emp)}</Text>
               <Text style={[styles.meta, { color: colors.textMuted }]}>
                 {emp.employeeId} · {emp.email}
               </Text>
@@ -105,7 +105,8 @@ const styles = StyleSheet.create({
   initials: { fontSize: 16, fontWeight: '800' },
   info: { flex: 1 },
   name: { fontSize: 16, fontWeight: '700' },
-  meta: { fontSize: 12, marginTop: 3, fontWeight: '500' },
+  position: { fontSize: 12, fontWeight: '600', marginTop: 4 },
+  meta: { fontSize: 12, marginTop: 4, fontWeight: '500' },
   supervisor: { fontSize: 12, marginTop: 6, fontWeight: '700' },
   assignBtn: { marginTop: 12, paddingVertical: 10, borderRadius: 12, borderWidth: 1, alignItems: 'center' },
   assignText: { fontSize: 13, fontWeight: '700' },
