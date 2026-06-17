@@ -18,6 +18,69 @@ const statusMap = {
   rejected: 'rejected',
 } as const;
 
+const LEAVE_ACCENT: Record<string, string> = {
+  annual: '#4F46E5',
+  sick: '#DC2626',
+  personal: '#7C3AED',
+  unpaid: '#64748B',
+};
+
+const LEAVE_EMOJI: Record<string, string> = {
+  annual: '🏖️',
+  sick: '🤒',
+  personal: '🧘',
+  unpaid: '📋',
+};
+
+function LeaveBalanceBox({
+  label,
+  remaining,
+  total,
+  used,
+  accent,
+  emoji,
+  colors,
+}: {
+  label: string;
+  remaining: number;
+  total: number;
+  used: number;
+  accent: string;
+  emoji: string;
+  colors: (typeof Colors)['light'];
+}) {
+  const usedPercent = total > 0 ? Math.min((used / total) * 100, 100) : 0;
+
+  return (
+    <View
+      style={[
+        styles.balanceBox,
+        {
+          backgroundColor: colors.card,
+          borderColor: colors.borderLight,
+          shadowColor: colors.shadow,
+        },
+      ]}
+    >
+      <View style={[styles.balanceIconWrap, { backgroundColor: `${accent}18` }]}>
+        <Text style={styles.balanceEmoji}>{emoji}</Text>
+      </View>
+      <Text style={[styles.balanceType, { color: colors.textSecondary }]} numberOfLines={1}>
+        {label}
+      </Text>
+      <Text style={[styles.balanceRemaining, { color: accent }]}>{remaining}</Text>
+      <Text style={[styles.balanceSub, { color: colors.textMuted }]}>days left</Text>
+      <View style={styles.balanceMetaRow}>
+        <Text style={[styles.balanceMeta, { color: colors.textSecondary }]}>{used} used</Text>
+        <Text style={[styles.balanceMeta, { color: colors.textSecondary }]}>{total} total</Text>
+      </View>
+      <View style={[styles.progressBg, { backgroundColor: colors.borderLight }]}>
+        <View style={[styles.progressFill, { backgroundColor: accent, width: `${usedPercent}%` }]} />
+      </View>
+    </View>
+  );
+}
+
 export default function LeaveScreen() {
   const { leaveBalances, leaveRequests } = useApp();
   const scheme = useColorScheme() ?? 'light';
@@ -42,28 +105,16 @@ export default function LeaveScreen() {
       <Text style={[styles.sectionTitle, { color: colors.text }]}>Leave Balances</Text>
       <View style={styles.balanceGrid}>
         {leaveBalances.map((balance) => (
-          <Card key={balance.type} style={styles.balanceCard}>
-            <Text style={[styles.balanceType, { color: colors.textSecondary }]}>
-              {LEAVE_TYPE_LABELS[balance.type]}
-            </Text>
-            <Text style={[styles.balanceRemaining, { color: colors.primary }]}>
-              {balance.remaining}
-            </Text>
-            <Text style={[styles.balanceSub, { color: colors.textSecondary }]}>
-              of {balance.total} days · {balance.used} used
-            </Text>
-            <View style={[styles.progressBg, { backgroundColor: colors.border }]}>
-              <View
-                style={[
-                  styles.progressFill,
-                  {
-                    backgroundColor: colors.primary,
-                    width: `${balance.total > 0 ? (balance.used / balance.total) * 100 : 0}%`,
-                  },
-                ]}
-              />
-            </View>
-          </Card>
+          <LeaveBalanceBox
+            key={balance.type}
+            label={LEAVE_TYPE_LABELS[balance.type]}
+            remaining={balance.remaining}
+            total={balance.total}
+            used={balance.used}
+            accent={LEAVE_ACCENT[balance.type] ?? colors.primary}
+            emoji={LEAVE_EMOJI[balance.type] ?? '📅'}
+            colors={colors}
+          />
         ))}
       </View>
 
@@ -102,13 +153,45 @@ const styles = StyleSheet.create({
   statusRow: { flexDirection: 'row', gap: 10, marginBottom: 16 },
   requestBtn: { marginBottom: 20 },
   sectionTitle: { fontSize: 18, fontWeight: '700', marginBottom: 12 },
-  balanceGrid: { gap: 12, marginBottom: 24 },
-  balanceCard: { marginBottom: 0 },
-  balanceType: { fontSize: 13, fontWeight: '500' },
-  balanceRemaining: { fontSize: 36, fontWeight: '800', marginVertical: 4 },
-  balanceSub: { fontSize: 12 },
-  progressBg: { height: 6, borderRadius: 3, marginTop: 12, overflow: 'hidden' },
-  progressFill: { height: '100%', borderRadius: 3 },
+  balanceGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+    marginBottom: 24,
+  },
+  balanceBox: {
+    width: '48%',
+    flexGrow: 1,
+    minWidth: 148,
+    borderRadius: 16,
+    padding: 14,
+    borderWidth: 1,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 1,
+    shadowRadius: 10,
+    elevation: 2,
+  },
+  balanceIconWrap: {
+    width: 34,
+    height: 34,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 8,
+  },
+  balanceEmoji: { fontSize: 16 },
+  balanceType: { fontSize: 11, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5 },
+  balanceRemaining: { fontSize: 30, fontWeight: '800', marginTop: 4, lineHeight: 34 },
+  balanceSub: { fontSize: 11, fontWeight: '600', marginTop: 2 },
+  balanceMetaRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 8,
+    marginBottom: 8,
+  },
+  balanceMeta: { fontSize: 11, fontWeight: '600' },
+  progressBg: { height: 5, borderRadius: 999, overflow: 'hidden' },
+  progressFill: { height: '100%', borderRadius: 999 },
   requestCard: { marginBottom: 12 },
   requestHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   requestType: { fontSize: 16, fontWeight: '700' },
