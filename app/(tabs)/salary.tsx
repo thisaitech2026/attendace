@@ -78,7 +78,8 @@ export default function SalaryScreen() {
 
       <Text style={[styles.sectionTitle, { color: colors.text }]}>Payslip History</Text>
       {salarySlips.map((slip) => (
-        <Card key={slip.id} style={styles.slipCard}>
+        <Card key={slip.id} noPadding style={styles.slipCard}>
+          <View style={styles.slipInner}>
           <View style={styles.slipHeader}>
             <Text style={[styles.slipMonth, { color: colors.text }]}>
               {slip.month} {slip.year}
@@ -106,6 +107,7 @@ export default function SalaryScreen() {
           <Text style={[styles.paymentDate, { color: colors.textSecondary }]}>
             Payment date: {slip.paymentDate}
           </Text>
+          </View>
         </Card>
       ))}
     </ScrollView>
@@ -131,15 +133,16 @@ const styles = StyleSheet.create({
   },
   heroStatLabel: { fontSize: 8, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.3, textAlign: 'center' },
   heroStatValue: { fontSize: 11, fontWeight: '800', marginTop: 4, textAlign: 'center' },
-  sectionTitle: { fontSize: 18, fontWeight: '700', marginBottom: 12 },
-  slipCard: { marginBottom: 12 },
-  slipHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
-  slipMonth: { fontSize: 16, fontWeight: '700' },
-  slipRow: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 6 },
-  slipLabel: { fontSize: 14 },
-  slipValue: { fontSize: 14, fontWeight: '600' },
-  slipDivider: { height: 1, marginVertical: 8 },
-  slipTotalLabel: { fontSize: 15, fontWeight: '700' },
-  slipTotal: { fontSize: 18, fontWeight: '800' },
-  paymentDate: { fontSize: 11, marginTop: 8 },
+  sectionTitle: { fontSize: 18, fontWeight: '700', marginBottom: 8 },
+  slipCard: { marginBottom: 8, borderRadius: 14 },
+  slipInner: { paddingHorizontal: 12, paddingVertical: 10 },
+  slipHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 },
+  slipMonth: { fontSize: 15, fontWeight: '700' },
+  slipRow: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 3 },
+  slipLabel: { fontSize: 13 },
+  slipValue: { fontSize: 13, fontWeight: '600' },
+  slipDivider: { height: 1, marginVertical: 4 },
+  slipTotalLabel: { fontSize: 14, fontWeight: '700' },
+  slipTotal: { fontSize: 16, fontWeight: '800' },
+  paymentDate: { fontSize: 10, marginTop: 4 },
 });
