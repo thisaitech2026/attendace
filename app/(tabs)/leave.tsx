@@ -93,7 +93,7 @@ export default function LeaveScreen() {
 
   return (
     <ScrollView style={[styles.container, { backgroundColor: colors.background }]} contentContainerStyle={styles.content}>
-      <ScreenHeader title="Leave Management" subtitle="Balances and requests" />
+      <ScreenHeader title="Leave Management" />
 
       <View style={styles.statusRow}>
         <StatusOptionChip status="approved" count={approvedCount} active />
