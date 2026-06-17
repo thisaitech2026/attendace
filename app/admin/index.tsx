@@ -26,27 +26,31 @@ export default function AdminDashboard() {
       </Text>
 
       <View style={styles.stats}>
-        <StatCard
-          label="Employees"
-          value={String(adminStats.totalEmployees)}
-          accent="#4F46E5"
-          compact
-          icon={{ ios: 'person.2.fill', android: 'groups', web: 'groups' }}
-        />
-        <StatCard
-          label="Supervisors"
-          value={String(adminStats.totalSupervisors)}
-          accent="#0891B2"
-          compact
-          icon={{ ios: 'person.crop.circle.badge.checkmark', android: 'supervisor_account', web: 'supervisor_account' }}
-        />
-        <StatCard
-          label="Approvals"
-          value={String(adminStats.pendingApprovals)}
-          accent={colors.warning}
-          compact
-          statusSymbol="pending"
-        />
+        <View style={styles.statsTop}>
+          <StatCard
+            label="Employees"
+            value={String(adminStats.totalEmployees)}
+            accent="#4F46E5"
+            compact
+            icon={{ ios: 'person.2.fill', android: 'groups', web: 'groups' }}
+          />
+          <StatCard
+            label="Supervisors"
+            value={String(adminStats.totalSupervisors)}
+            accent="#0891B2"
+            compact
+            icon={{ ios: 'person.crop.circle.badge.checkmark', android: 'supervisor_account', web: 'supervisor_account' }}
+          />
+        </View>
+        <View style={styles.statsBottom}>
+          <StatCard
+            label="Approvals"
+            value={String(adminStats.pendingApprovals)}
+            accent={colors.warning}
+            compact
+            statusSymbol="pending"
+          />
+        </View>
       </View>
 
       <View style={styles.actions}>
