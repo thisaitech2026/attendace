@@ -21,25 +21,36 @@ export function StatCard({ label, value, subtitle, accent, icon, statusSymbol }:
   const symbol = statusSymbol === 'paid' ? PAID_SYMBOL : statusSymbol === 'pending' ? PENDING_WRONG_SYMBOL : null;
   const symbolBg =
     statusSymbol === 'paid' ? colors.success : statusSymbol === 'pending' ? colors.warning : accent ?? colors.primary;
+  const hasHeaderIcon = Boolean(symbol || icon);
+
+  const iconNode = symbol ? (
+    <View style={[styles.iconWrap, { backgroundColor: statusSymbol === 'paid' ? colors.successLight : colors.warningLight }]}>
+      <View style={[styles.symbolCircle, { backgroundColor: symbolBg }]}>
+        <Text style={styles.symbolText}>{symbol}</Text>
+      </View>
+    </View>
+  ) : icon ? (
+    <View style={[styles.iconWrap, { backgroundColor: colors.primaryLight }]}>
+      <SymbolView
+        name={icon as React.ComponentProps<typeof SymbolView>['name']}
+        tintColor={accent ?? colors.primary}
+        size={15}
+      />
+    </View>
+  ) : null;
 
   return (
     <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.borderLight, shadowColor: colors.shadow }]}>
-      {symbol ? (
-        <View style={[styles.iconWrap, { backgroundColor: statusSymbol === 'paid' ? colors.successLight : colors.warningLight }]}>
-          <View style={[styles.symbolCircle, { backgroundColor: symbolBg }]}>
-            <Text style={styles.symbolText}>{symbol}</Text>
-          </View>
+      {hasHeaderIcon ? (
+        <View style={styles.headerRow}>
+          {iconNode}
+          <Text style={[styles.label, styles.labelInline, { color: colors.textMuted }]} numberOfLines={2}>
+            {label}
+          </Text>
         </View>
-      ) : icon ? (
-        <View style={[styles.iconWrap, { backgroundColor: colors.primaryLight }]}>
-          <SymbolView
-            name={icon as React.ComponentProps<typeof SymbolView>['name']}
-            tintColor={accent ?? colors.primary}
-            size={15}
-          />
-        </View>
-      ) : null}
-      <Text style={[styles.label, { color: colors.textMuted }]}>{label}</Text>
+      ) : (
+        <Text style={[styles.label, { color: colors.textMuted }]}>{label}</Text>
+      )}
       <Text style={[styles.value, { color: accent ?? colors.text }]}>{value}</Text>
       {subtitle ? <Text style={[styles.subtitle, { color: colors.textSecondary }]}>{subtitle}</Text> : null}
     </View>
@@ -58,13 +69,19 @@ const styles = StyleSheet.create({
     shadowRadius: 12,
     elevation: 3,
   },
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 10,
+  },
   iconWrap: {
     width: 30,
     height: 30,
     borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 8,
+    flexShrink: 0,
   },
   symbolCircle: {
     width: 22,
@@ -74,7 +91,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   symbolText: { color: '#FFF', fontSize: 12, fontWeight: '800' },
-  label: { fontSize: 11, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.6 },
-  value: { fontSize: 24, fontWeight: '800', marginTop: 4, letterSpacing: -0.5 },
+  label: { fontSize: 11, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.6, marginBottom: 8 },
+  labelInline: { flex: 1, marginBottom: 0, lineHeight: 14 },
+  value: { fontSize: 24, fontWeight: '800', letterSpacing: -0.5 },
   subtitle: { fontSize: 12, marginTop: 4, fontWeight: '500' },
 });
