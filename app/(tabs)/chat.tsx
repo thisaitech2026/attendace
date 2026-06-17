@@ -1,12 +1,9 @@
 import { useCallback, useRef, useState } from 'react';
 import {
   FlatList,
-  KeyboardAvoidingView,
-  Platform,
   Pressable,
   StyleSheet,
   Text,
-  TextInput,
   View,
 } from 'react-native';
 import { format, parseISO } from 'date-fns';
@@ -40,24 +37,20 @@ export default function ChatScreen() {
   const insets = useSafeAreaInsets();
   const listRef = useRef<FlatList>(null);
 
-  const [text, setText] = useState('');
-  const [category, setCategory] = useState<ChatCategory>('general');
   const [sending, setSending] = useState(false);
 
   const handleSend = useCallback(
-    async (messageText?: string, messageCategory?: ChatCategory) => {
-      const body = (messageText ?? text).trim();
-      if (!body || sending) return;
+    async (messageText: string, messageCategory: ChatCategory) => {
+      if (!messageText.trim() || sending) return;
       setSending(true);
       try {
-        await sendMessage(body, messageCategory ?? category);
-        setText('');
+        await sendMessage(messageText.trim(), messageCategory);
         setTimeout(() => listRef.current?.scrollToEnd({ animated: true }), 100);
       } finally {
         setSending(false);
       }
     },
-    [text, category, sending, sendMessage]
+    [sending, sendMessage]
   );
 
   const renderMessage = ({ item }: { item: (typeof chatMessages)[0] }) => {
@@ -94,11 +87,7 @@ export default function ChatScreen() {
   };
 
   return (
-    <KeyboardAvoidingView
-      style={[styles.container, { backgroundColor: colors.background }]}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 88 : 0}
-    >
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={[styles.headerWrap, { paddingTop: insets.top + 8 }]}>
         <ScreenHeader title="Team Chat" subtitle="Share updates, sick leave & messages" inset={false} />
         <Text style={[styles.memberCount, { color: colors.textSecondary }]}>Everyone on your team can see messages here</Text>
@@ -121,52 +110,14 @@ export default function ChatScreen() {
               key={quick.label}
               style={[styles.quickChip, { backgroundColor: colors.background, borderColor: colors.borderLight }]}
               onPress={() => handleSend(quick.text, quick.category)}
+              disabled={sending}
             >
               <Text style={[styles.quickText, { color: colors.primary }]}>{quick.label}</Text>
             </Pressable>
           ))}
         </View>
-
-        <View style={styles.categoryRow}>
-          {(['general', 'update', 'sick-leave', 'leave'] as ChatCategory[]).map((cat) => (
-            <Pressable
-              key={cat}
-              style={[
-                styles.catChip,
-                {
-                  backgroundColor: category === cat ? colors.primaryLight : colors.background,
-                  borderColor: category === cat ? colors.primary : colors.borderLight,
-                },
-              ]}
-              onPress={() => setCategory(cat)}
-            >
-              <Text style={[styles.catText, { color: category === cat ? colors.primary : colors.textSecondary }]}>
-                {CHAT_CATEGORY_LABELS[cat]}
-              </Text>
-            </Pressable>
-          ))}
-        </View>
-
-        <View style={styles.inputRow}>
-          <TextInput
-            style={[styles.input, { color: colors.text, backgroundColor: colors.background, borderColor: colors.borderLight }]}
-            value={text}
-            onChangeText={setText}
-            placeholder="Type a message to your team..."
-            placeholderTextColor={colors.textMuted}
-            multiline
-            maxLength={500}
-          />
-          <Pressable
-            style={[styles.sendBtn, { backgroundColor: text.trim() ? colors.primary : colors.borderLight }]}
-            onPress={() => handleSend()}
-            disabled={!text.trim() || sending}
-          >
-            <Text style={styles.sendText}>Send</Text>
-          </Pressable>
-        </View>
       </View>
-    </KeyboardAvoidingView>
+    </View>
   );
 }
 
@@ -191,23 +142,7 @@ const styles = StyleSheet.create({
   messageText: { fontSize: 15, lineHeight: 21, fontWeight: '500' },
   time: { fontSize: 10, marginTop: 6, alignSelf: 'flex-end', fontWeight: '500' },
   composer: { borderTopWidth: 1, paddingTop: 10, paddingHorizontal: 12 },
-  quickRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: 8 },
+  quickRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
   quickChip: { paddingHorizontal: 10, paddingVertical: 6, borderRadius: 14, borderWidth: 1 },
   quickText: { fontSize: 11, fontWeight: '600' },
-  categoryRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: 8 },
-  catChip: { paddingHorizontal: 10, paddingVertical: 5, borderRadius: 12, borderWidth: 1 },
-  catText: { fontSize: 10, fontWeight: '700' },
-  inputRow: { flexDirection: 'row', alignItems: 'flex-end', gap: 8 },
-  input: {
-    flex: 1,
-    borderWidth: 1,
-    borderRadius: 16,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    fontSize: 15,
-    maxHeight: 100,
-    fontWeight: '500',
-  },
-  sendBtn: { paddingHorizontal: 16, paddingVertical: 12, borderRadius: 14 },
-  sendText: { color: '#FFF', fontSize: 14, fontWeight: '700' },
 });
