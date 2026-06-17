@@ -99,9 +99,10 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    paddingVertical: 10,
-    paddingHorizontal: 12,
+    justifyContent: 'center',
+    gap: 6,
+    paddingVertical: 8,
+    paddingHorizontal: 10,
     borderRadius: 14,
     borderWidth: 1.5,
   },
@@ -113,8 +114,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   chipSymbolText: { color: '#FFF', fontSize: 12, fontWeight: '800' },
-  chipLabel: { fontSize: 13, fontWeight: '700', flex: 1 },
-  chipCount: { fontSize: 16, fontWeight: '800' },
+  chipLabel: { fontSize: 13, fontWeight: '700' },
+  chipCount: { fontSize: 15, fontWeight: '800', marginLeft: 2 },
 });
 
 export type { SymbolStatus };
