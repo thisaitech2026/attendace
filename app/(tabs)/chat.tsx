@@ -131,11 +131,12 @@ export default function ChatScreen() {
             style={[styles.input, { color: colors.text, backgroundColor: colors.background, borderColor: colors.borderLight }]}
             value={text}
             onChangeText={setText}
-            placeholder="Type a message to your team..."
+            placeholder="Message..."
             placeholderTextColor={colors.textMuted}
-            multiline
             maxLength={500}
-            textAlignVertical="center"
+            returnKeyType="send"
+            onSubmitEditing={() => handleSend()}
+            blurOnSubmit={false}
           />
           <Pressable
             style={[styles.sendBtn, { backgroundColor: text.trim() ? colors.primary : colors.borderLight }]}
@@ -170,23 +171,30 @@ const styles = StyleSheet.create({
   categoryText: { fontSize: 10, fontWeight: '700' },
   messageText: { fontSize: 15, lineHeight: 21, fontWeight: '500' },
   time: { fontSize: 10, marginTop: 6, alignSelf: 'flex-end', fontWeight: '500' },
-  composer: { borderTopWidth: 1, paddingTop: 6, paddingHorizontal: 12 },
-  quickRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: 6 },
-  quickChip: { paddingHorizontal: 10, paddingVertical: 5, borderRadius: 14, borderWidth: 1 },
-  quickText: { fontSize: 11, fontWeight: '600' },
-  inputRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  composer: { borderTopWidth: 1, paddingTop: 4, paddingHorizontal: 10 },
+  quickRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 5, marginBottom: 4 },
+  quickChip: { paddingHorizontal: 8, paddingVertical: 4, borderRadius: 12, borderWidth: 1 },
+  quickText: { fontSize: 10, fontWeight: '600' },
+  inputRow: { flexDirection: 'row', alignItems: 'center', gap: 5 },
   input: {
     flex: 1,
     borderWidth: 1,
-    borderRadius: 12,
+    borderRadius: 10,
     paddingHorizontal: 10,
-    paddingVertical: Platform.OS === 'ios' ? 8 : 6,
-    fontSize: 14,
-    lineHeight: 18,
-    minHeight: 38,
-    maxHeight: 72,
+    paddingVertical: 0,
+    height: 32,
+    fontSize: 13,
+    lineHeight: 16,
     fontWeight: '500',
+    ...(Platform.OS === 'android' ? { includeFontPadding: false, textAlignVertical: 'center' as const } : {}),
   },
-  sendBtn: { paddingHorizontal: 12, paddingVertical: 8, borderRadius: 12, minHeight: 38, justifyContent: 'center' },
-  sendText: { color: '#FFF', fontSize: 13, fontWeight: '700' },
+  sendBtn: {
+    height: 32,
+    minWidth: 52,
+    paddingHorizontal: 10,
+    borderRadius: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  sendText: { color: '#FFF', fontSize: 12, fontWeight: '700' },
 });
