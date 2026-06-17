@@ -2,9 +2,9 @@ import { Alert, Platform, Pressable, ScrollView, StyleSheet, Text, View } from '
 import { format, parseISO } from 'date-fns';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Link } from 'expo-router';
 import { SymbolView } from 'expo-symbols';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useState } from 'react';
 
 import { Card } from '@/components/ui/Card';
 import { ProfileHeader } from '@/components/ui/ProfileHeader';
@@ -13,26 +13,109 @@ import { StatCard } from '@/components/ui/StatCard';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { useApp } from '@/contexts/AppContext';
 import Colors from '@/constants/Colors';
+import { verifyOfficeWifi } from '@/services/wifiService';
 import { useColorScheme } from '@/components/useColorScheme';
 
+function showPunchAlert(title: string, message: string) {
+  if (Platform.OS === 'web') {
+    window.alert(`${title}\n\n${message}`);
+    return;
+  }
+  Alert.alert(title, message);
+}
+
 export default function DashboardScreen() {
-  const { employee, attendance, leaveBalances, leaveRequests, logout } = useApp();
+  const { employee, attendance, leaveBalances, leaveRequests, logout, doPunchIn, doPunchOut } = useApp();
   const scheme = useColorScheme() ?? 'light';
   const colors = Colors[scheme];
   const insets = useSafeAreaInsets();
+  const [punchLoading, setPunchLoading] = useState(false);
 
   const today = attendance[0];
   const annualLeave = leaveBalances.find((b) => b.type === 'annual');
   const pendingLeaves = leaveRequests.filter((r) => r.status === 'pending').length;
 
+  const canPunchIn = today && !today.punchIn;
+  const canPunchOut = today && today.punchIn && !today.punchOut;
+  const punchComplete = Boolean(today?.punchOut);
+
   const punchStatus = today?.punchIn ? (today.punchOut ? 'Done' : 'Active') : 'Away';
   const punchTone = today?.punchIn ? (today.punchOut ? 'success' : 'primary') : 'warning';
 
-  const punchButtonTitle = today?.punchOut
-    ? 'View Punch Details'
-    : today?.punchIn
-      ? 'View Punch Details'
-      : 'Punch In Now';
+  const punchButtonTitle = punchLoading
+    ? 'Please wait...'
+    : punchComplete
+      ? 'Done for today'
+      : canPunchOut
+        ? 'Punch Out'
+        : 'Punch In Now';
+
+  const heroHint = punchComplete
+    ? 'Attendance completed for today'
+    : canPunchOut
+      ? 'Tap below to punch out'
+      : 'Tap below to punch in';
+
+  const handleHeroPunch = async () => {
+    if (punchLoading || punchComplete) return;
+
+    if (canPunchIn) {
+      setPunchLoading(true);
+      try {
+        const result = await verifyOfficeWifi();
+        if (result.valid) {
+          const record = await doPunchIn('wifi', result.ssid);
+          if (record) {
+            showPunchAlert('Punched In', `Recorded at ${record.punchIn?.slice(0, 5) ?? 'now'}`);
+          }
+          return;
+        }
+
+        const runManual = async () => {
+          const record = await doPunchIn('manual', null);
+          if (record) {
+            showPunchAlert('Punched In', 'Manual punch recorded — pending approval.');
+          }
+        };
+
+        if (Platform.OS === 'web') {
+          if (window.confirm(`${result.message}\n\nManual punch requires manager approval. Continue?`)) {
+            await runManual();
+          }
+          return;
+        }
+
+        Alert.alert('WiFi not verified', result.message, [
+          { text: 'Cancel', style: 'cancel' },
+          { text: 'Manual Punch', onPress: runManual },
+        ]);
+      } catch (e) {
+        showPunchAlert('Error', e instanceof Error ? e.message : 'Punch in failed');
+      } finally {
+        setPunchLoading(false);
+      }
+      return;
+    }
+
+    if (canPunchOut) {
+      setPunchLoading(true);
+      try {
+        const result = await verifyOfficeWifi();
+        const method = result.valid ? 'wifi' : 'manual';
+        const record = await doPunchOut(method);
+        if (record) {
+          showPunchAlert(
+            'Punched Out',
+            `Recorded at ${record.punchOut?.slice(0, 5) ?? 'now'}${record.hoursWorked ? ` · ${record.hoursWorked}h worked` : ''}`
+          );
+        }
+      } catch (e) {
+        showPunchAlert('Error', e instanceof Error ? e.message : 'Punch out failed');
+      } finally {
+        setPunchLoading(false);
+      }
+    }
+  };
 
   const handleLogout = () => {
     if (Platform.OS === 'web') {
@@ -101,26 +184,26 @@ export default function DashboardScreen() {
                   {today.punchOut ? ` → ${today.punchOut.slice(0, 5)}` : ' · still working'}
                 </Text>
               ) : (
-                <Text style={styles.heroTime}>Tap below to punch in</Text>
+                <Text style={styles.heroTime}>{heroHint}</Text>
               )}
             </View>
             <StatusBadge label={punchStatus} tone={punchTone} light />
           </View>
-          <Link href={'/punch' as never} asChild>
-            <Pressable
-              style={({ pressed }) => [
-                styles.heroBtn,
-                {
-                  opacity: pressed ? 0.88 : 1,
-                  transform: [{ scale: pressed ? 0.98 : 1 }],
-                },
-              ]}
-              accessibilityRole="button"
-              accessibilityLabel={punchButtonTitle}
-            >
-              <Text style={[styles.heroBtnText, { color: colors.primary }]}>{punchButtonTitle}</Text>
-            </Pressable>
-          </Link>
+          <Pressable
+            onPress={handleHeroPunch}
+            disabled={punchLoading || punchComplete}
+            style={({ pressed }) => [
+              styles.heroBtn,
+              {
+                opacity: punchLoading || punchComplete ? 0.7 : pressed ? 0.88 : 1,
+                transform: [{ scale: pressed && !punchLoading && !punchComplete ? 0.98 : 1 }],
+              },
+            ]}
+            accessibilityRole="button"
+            accessibilityLabel={punchButtonTitle}
+          >
+            <Text style={[styles.heroBtnText, { color: colors.primary }]}>{punchButtonTitle}</Text>
+          </Pressable>
         </LinearGradient>
       </Card>
 
