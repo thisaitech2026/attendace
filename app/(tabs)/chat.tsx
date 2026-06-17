@@ -112,7 +112,7 @@ export default function ChatScreen() {
         showsVerticalScrollIndicator={false}
       />
 
-      <View style={[styles.composer, { backgroundColor: colors.card, borderTopColor: colors.borderLight, paddingBottom: insets.bottom + 8 }]}>
+      <View style={[styles.composer, { backgroundColor: colors.card, borderTopColor: colors.borderLight, paddingBottom: insets.bottom + 4 }]}>
         <View style={styles.quickRow}>
           {QUICK_MESSAGES.map((quick) => (
             <Pressable
@@ -135,6 +135,7 @@ export default function ChatScreen() {
             placeholderTextColor={colors.textMuted}
             multiline
             maxLength={500}
+            textAlignVertical="center"
           />
           <Pressable
             style={[styles.sendBtn, { backgroundColor: text.trim() ? colors.primary : colors.borderLight }]}
@@ -169,21 +170,23 @@ const styles = StyleSheet.create({
   categoryText: { fontSize: 10, fontWeight: '700' },
   messageText: { fontSize: 15, lineHeight: 21, fontWeight: '500' },
   time: { fontSize: 10, marginTop: 6, alignSelf: 'flex-end', fontWeight: '500' },
-  composer: { borderTopWidth: 1, paddingTop: 10, paddingHorizontal: 12 },
-  quickRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: 8 },
-  quickChip: { paddingHorizontal: 10, paddingVertical: 6, borderRadius: 14, borderWidth: 1 },
+  composer: { borderTopWidth: 1, paddingTop: 6, paddingHorizontal: 12 },
+  quickRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: 6 },
+  quickChip: { paddingHorizontal: 10, paddingVertical: 5, borderRadius: 14, borderWidth: 1 },
   quickText: { fontSize: 11, fontWeight: '600' },
-  inputRow: { flexDirection: 'row', alignItems: 'flex-end', gap: 8 },
+  inputRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   input: {
     flex: 1,
     borderWidth: 1,
-    borderRadius: 16,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    fontSize: 15,
-    maxHeight: 100,
+    borderRadius: 12,
+    paddingHorizontal: 10,
+    paddingVertical: Platform.OS === 'ios' ? 8 : 6,
+    fontSize: 14,
+    lineHeight: 18,
+    minHeight: 38,
+    maxHeight: 72,
     fontWeight: '500',
   },
-  sendBtn: { paddingHorizontal: 16, paddingVertical: 12, borderRadius: 14 },
-  sendText: { color: '#FFF', fontSize: 14, fontWeight: '700' },
+  sendBtn: { paddingHorizontal: 12, paddingVertical: 8, borderRadius: 12, minHeight: 38, justifyContent: 'center' },
+  sendText: { color: '#FFF', fontSize: 13, fontWeight: '700' },
 });
