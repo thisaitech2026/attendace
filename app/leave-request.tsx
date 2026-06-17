@@ -60,8 +60,7 @@ export default function LeaveRequestModal() {
   const reasonError = touched.reason && !reason ? 'Reason is required' : undefined;
 
   const datesValid = Boolean(startDate && endDate && endDate >= startDate);
-  const canSubmit = datesValid && Boolean(reason) && Boolean(employee);
-  const submitDisabled = submitting || !canSubmit;
+  const formComplete = datesValid && Boolean(reason);
 
   const leaveDays = useMemo(() => {
     if (!datesValid) return 0;
@@ -189,17 +188,11 @@ export default function LeaveRequestModal() {
           {...fieldColors}
         />
 
-        {!canSubmit ? (
-          <Text style={[styles.submitHint, { color: colors.textMuted }]}>
-            Submit is disabled until dates and reason are selected.
-          </Text>
-        ) : null}
-
         <Button
           title="Submit Request"
           onPress={handleSubmit}
           loading={submitting}
-          disabled={submitDisabled}
+          disabled={submitting || !formComplete}
           style={styles.submit}
         />
         <Button title="Cancel" variant="outline" onPress={() => router.back()} />
@@ -237,6 +230,5 @@ const styles = StyleSheet.create({
   typeRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   typeBtn: { flexGrow: 1, minWidth: '45%', paddingVertical: 10 },
   hint: { fontSize: 12, marginTop: 8, fontWeight: '500' },
-  submitHint: { fontSize: 12, marginTop: 16, fontWeight: '500' },
-  submit: { marginTop: 16, marginBottom: 10 },
+  submit: { marginTop: 24, marginBottom: 10 },
 });
