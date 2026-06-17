@@ -9,14 +9,14 @@ import { formatCurrency } from '@/services/employeeService';
 import { useColorScheme } from '@/components/useColorScheme';
 
 export default function SalaryScreen() {
-  const { salarySlips, employee } = useApp();
+  const { salarySlips } = useApp();
   const scheme = useColorScheme() ?? 'light';
   const colors = Colors[scheme];
 
   const latest = salarySlips[0];
   const paidSlips = salarySlips.filter((s) => s.status === 'paid');
   const pendingSlips = salarySlips.filter((s) => s.status === 'pending');
-  const ytdNet = paidSlips.reduce((sum, s) => sum + s.netPay, 0);
+  const totalSalary = latest?.basic ?? 0;
 
   return (
     <ScrollView style={[styles.container, { backgroundColor: colors.background }]} contentContainerStyle={styles.content}>
@@ -40,12 +40,20 @@ export default function SalaryScreen() {
         ) : null}
         <View style={styles.heroStats}>
           <View style={styles.heroStat}>
-            <Text style={styles.heroStatLabel}>YTD Net</Text>
-            <Text style={styles.heroStatValue}>{formatCurrency(ytdNet)}</Text>
+            <Text style={styles.heroStatLabel}>Total Salary</Text>
+            <Text style={styles.heroStatValue}>{latest ? formatCurrency(totalSalary) : '—'}</Text>
           </View>
           <View style={styles.heroStat}>
-            <Text style={styles.heroStatLabel}>Position</Text>
-            <Text style={styles.heroStatValue}>{employee?.position ?? '—'}</Text>
+            <Text style={styles.heroStatLabel}>Allowances</Text>
+            <Text style={[styles.heroStatValue, styles.heroStatPositive]}>
+              {latest ? `+${formatCurrency(latest.allowances)}` : '—'}
+            </Text>
+          </View>
+          <View style={styles.heroStat}>
+            <Text style={styles.heroStatLabel}>Deductions</Text>
+            <Text style={[styles.heroStatValue, styles.heroStatNegative]}>
+              {latest ? `-${formatCurrency(latest.deductions)}` : '—'}
+            </Text>
           </View>
         </View>
       </Card>
@@ -95,10 +103,12 @@ const styles = StyleSheet.create({
   heroAmount: { color: '#FFF', fontSize: 36, fontWeight: '800', marginVertical: 8 },
   heroPeriod: { color: 'rgba(255,255,255,0.8)', fontSize: 14 },
   heroBadge: { marginTop: 8, alignSelf: 'flex-start' },
-  heroStats: { flexDirection: 'row', marginTop: 20, gap: 24 },
+  heroStats: { flexDirection: 'row', marginTop: 20, gap: 10 },
   heroStat: { flex: 1 },
-  heroStatLabel: { color: 'rgba(255,255,255,0.7)', fontSize: 11 },
-  heroStatValue: { color: '#FFF', fontSize: 14, fontWeight: '700', marginTop: 4 },
+  heroStatLabel: { color: 'rgba(255,255,255,0.7)', fontSize: 10, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.3 },
+  heroStatValue: { color: '#FFF', fontSize: 13, fontWeight: '800', marginTop: 4 },
+  heroStatPositive: { color: '#BBF7D0' },
+  heroStatNegative: { color: '#FECACA' },
   sectionTitle: { fontSize: 18, fontWeight: '700', marginBottom: 12 },
   slipCard: { marginBottom: 12 },
   slipHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
