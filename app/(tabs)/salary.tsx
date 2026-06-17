@@ -20,7 +20,7 @@ export default function SalaryScreen() {
 
   return (
     <ScrollView style={[styles.container, { backgroundColor: colors.background }]} contentContainerStyle={styles.content}>
-      <ScreenHeader title="Salary & Payslips" subtitle="Compensation details" />
+      <ScreenHeader title="Salary & Payslips" />
 
       <View style={styles.statusRow}>
         <StatusOptionChip status="paid" count={paidSlips.length} active />
