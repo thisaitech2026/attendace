@@ -6,7 +6,7 @@ import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import Colors from '@/constants/Colors';
-import { TAB_NAV_ICONS, type TabPictureKey } from '@/constants/tabPictures';
+import { TAB_NAV_ICONS, TAB_COLORS, type TabPictureKey } from '@/constants/tabPictures';
 import { useColorScheme } from '@/components/useColorScheme';
 
 const ROUTE_TO_TAB: Record<string, TabPictureKey> = {
@@ -51,6 +51,7 @@ export function PremiumTabBar({ state, descriptors, navigation }: PremiumTabBarP
           const focused = state.index === index;
           const tabKey = ROUTE_TO_TAB[route.name] ?? 'home';
           const icons = TAB_NAV_ICONS[tabKey];
+          const tabColors = TAB_COLORS[tabKey];
           const label = descriptors[route.key].options.title ?? icons.label;
           const iconName = (focused ? icons.active : icons.inactive) as IoniconName;
 
@@ -81,9 +82,9 @@ export function PremiumTabBar({ state, descriptors, navigation }: PremiumTabBarP
             >
               <View style={styles.iconSlot}>
                 {focused ? (
-                  <View style={[styles.activeGlow, { shadowColor: colors.primary }]}>
+                  <View style={[styles.activeGlow, { shadowColor: tabColors.icon }]}>
                     <LinearGradient
-                      colors={[colors.gradientStart, colors.gradientEnd]}
+                      colors={[tabColors.gradientStart, tabColors.gradientEnd]}
                       start={{ x: 0, y: 0 }}
                       end={{ x: 1, y: 1 }}
                       style={styles.activeChip}
@@ -92,8 +93,13 @@ export function PremiumTabBar({ state, descriptors, navigation }: PremiumTabBarP
                     </LinearGradient>
                   </View>
                 ) : (
-                  <View style={styles.inactiveIconWrap}>
-                    <Ionicons name={iconName} size={25} color={colors.tabIconDefault} />
+                  <View
+                    style={[
+                      styles.inactiveIconWrap,
+                      { backgroundColor: isDark ? tabColors.iconBgDark : tabColors.iconBg },
+                    ]}
+                  >
+                    <Ionicons name={iconName} size={25} color={tabColors.icon} />
                   </View>
                 )}
               </View>
@@ -101,14 +107,14 @@ export function PremiumTabBar({ state, descriptors, navigation }: PremiumTabBarP
                 style={[
                   styles.label,
                   focused
-                    ? { color: colors.primary, fontWeight: '700' }
-                    : { color: colors.tabIconDefault, fontWeight: '500' },
+                    ? { color: tabColors.icon, fontWeight: '700' }
+                    : { color: tabColors.icon, fontWeight: '500', opacity: 0.72 },
                 ]}
                 numberOfLines={1}
               >
                 {label}
               </Text>
-              {focused ? <View style={[styles.activeDot, { backgroundColor: colors.primary }]} /> : <View style={styles.dotSpacer} />}
+              {focused ? <View style={[styles.activeDot, { backgroundColor: tabColors.icon }]} /> : <View style={styles.dotSpacer} />}
             </Pressable>
           );
         })}
@@ -163,6 +169,7 @@ const styles = StyleSheet.create({
   inactiveIconWrap: {
     width: 52,
     height: 44,
+    borderRadius: 22,
     alignItems: 'center',
     justifyContent: 'center',
   },

@@ -6,6 +6,52 @@ type TabNavIconSet = {
   label: string;
 };
 
+export type TabColorSet = {
+  gradientStart: string;
+  gradientEnd: string;
+  icon: string;
+  iconBg: string;
+  iconBgDark: string;
+};
+
+export const TAB_COLORS: Record<TabPictureKey, TabColorSet> = {
+  home: {
+    gradientStart: '#4F46E5',
+    gradientEnd: '#7C3AED',
+    icon: '#4F46E5',
+    iconBg: '#EEF2FF',
+    iconBgDark: 'rgba(99, 102, 241, 0.2)',
+  },
+  time: {
+    gradientStart: '#0891B2',
+    gradientEnd: '#06B6D4',
+    icon: '#0891B2',
+    iconBg: '#ECFEFF',
+    iconBgDark: 'rgba(6, 182, 212, 0.2)',
+  },
+  leave: {
+    gradientStart: '#EA580C',
+    gradientEnd: '#F59E0B',
+    icon: '#EA580C',
+    iconBg: '#FFF7ED',
+    iconBgDark: 'rgba(245, 158, 11, 0.2)',
+  },
+  chat: {
+    gradientStart: '#059669',
+    gradientEnd: '#10B981',
+    icon: '#059669',
+    iconBg: '#ECFDF5',
+    iconBgDark: 'rgba(16, 185, 129, 0.2)',
+  },
+  pay: {
+    gradientStart: '#DB2777',
+    gradientEnd: '#EC4899',
+    icon: '#DB2777',
+    iconBg: '#FDF2F8',
+    iconBgDark: 'rgba(236, 72, 153, 0.2)',
+  },
+};
+
 export const TAB_NAV_ICONS: Record<TabPictureKey, TabNavIconSet> = {
   home: { active: 'home', inactive: 'home-outline', label: 'Home' },
   time: { active: 'time', inactive: 'time-outline', label: 'Time' },
