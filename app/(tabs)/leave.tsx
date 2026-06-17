@@ -152,7 +152,7 @@ export default function LeaveScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   content: { padding: 20, paddingBottom: 40 },
-  statusRow: { flexDirection: 'row', justifyContent: 'center', gap: 8, marginBottom: 12 },
+  statusRow: { flexDirection: 'row', justifyContent: 'center', gap: 14, marginBottom: 12 },
   requestBtn: { marginBottom: 20 },
   sectionTitle: { fontSize: 18, fontWeight: '700', marginBottom: 12 },
   balanceGrid: {
