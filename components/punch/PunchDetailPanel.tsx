@@ -16,14 +16,13 @@ import { Card } from '@/components/ui/Card';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { useApp } from '@/contexts/AppContext';
 import Colors from '@/constants/Colors';
-import { getAllowedNetworks, getCurrentWifiInfo, verifyOfficeWifi } from '@/services/wifiService';
-import { useColorScheme } from '@/components/useColorScheme';
-import { formatOfficeNetworkLabel } from '@/utils/officeNetwork';
+import { getCurrentWifiInfo, verifyOfficeWifi } from '@/services/wifiService';
 import {
   formatPunchAlertMessage,
   formatPunchAlertTitle,
   formatPunchPreviewLines,
 } from '@/utils/punchDetails';
+import { useColorScheme } from '@/components/useColorScheme';
 
 function showAlert(title: string, message: string, onOk?: () => void) {
   if (Platform.OS === 'web') {
@@ -43,8 +42,6 @@ export function PunchDetailPanel({ onClose }: PunchDetailPanelProps) {
   const scheme = useColorScheme() ?? 'light';
   const colors = Colors[scheme];
 
-  const [wifiSsid, setWifiSsid] = useState<string | null>(null);
-  const [wifiIp, setWifiIp] = useState<string | null>(null);
   const [wifiValid, setWifiValid] = useState(false);
   const [wifiMessage, setWifiMessage] = useState('Checking network...');
   const [loading, setLoading] = useState(false);
@@ -56,9 +53,7 @@ export function PunchDetailPanel({ onClose }: PunchDetailPanelProps) {
   const detailLines = formatPunchPreviewLines(today, employee);
 
   const checkWifi = useCallback(async () => {
-    const info = await getCurrentWifiInfo();
-    setWifiSsid(info.ssid);
-    setWifiIp(info.ipAddress);
+    await getCurrentWifiInfo();
     const result = await verifyOfficeWifi();
     setWifiValid(result.valid);
     setWifiMessage(result.message);
@@ -157,34 +152,6 @@ export function PunchDetailPanel({ onClose }: PunchDetailPanelProps) {
         <Card style={[styles.wifiCard, { borderColor: wifiValid ? colors.success : colors.border }]}>
           <Text style={[styles.sectionLabel, { color: colors.textSecondary }]}>Office WiFi</Text>
           <Text style={[styles.wifiMsg, { color: colors.text }]}>{wifiMessage}</Text>
-          <Text style={[styles.detailLine, { color: colors.textSecondary }]}>
-            Required: {formatOfficeNetworkLabel()}
-          </Text>
-          {wifiSsid ? (
-            <Text style={[styles.wifiSsid, { color: colors.primary }]}>Connected: {wifiSsid}</Text>
-          ) : null}
-          {wifiIp ? (
-            <Text style={[styles.wifiSsid, { color: colors.primary }]}>Device IP: {wifiIp}</Text>
-          ) : null}
-          <View style={styles.networkList}>
-            {getAllowedNetworks().map((network) => (
-              <View
-                key={network}
-                style={[
-                  styles.networkChip,
-                  {
-                    backgroundColor:
-                      wifiSsid?.toLowerCase() === network.toLowerCase()
-                        ? colors.primaryLight
-                        : colors.background,
-                    borderColor: colors.border,
-                  },
-                ]}
-              >
-                <Text style={[styles.networkText, { color: colors.text }]}>{network}</Text>
-              </View>
-            ))}
-          </View>
         </Card>
 
         <Card style={styles.todayCard}>
@@ -284,10 +251,6 @@ const styles = StyleSheet.create({
   sectionLabel: { fontSize: 12, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.6 },
   wifiCard: { marginBottom: 14, borderWidth: 2, gap: 8 },
   wifiMsg: { fontSize: 14, fontWeight: '600', marginTop: 4 },
-  wifiSsid: { fontSize: 13, fontWeight: '700' },
-  networkList: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 8 },
-  networkChip: { paddingHorizontal: 10, paddingVertical: 6, borderRadius: 8, borderWidth: 1 },
-  networkText: { fontSize: 12, fontWeight: '500' },
   todayCard: { marginBottom: 14, gap: 8 },
   todayDate: { fontSize: 18, fontWeight: '700' },
   punchRow: { flexDirection: 'row', alignItems: 'center', marginTop: 8 },

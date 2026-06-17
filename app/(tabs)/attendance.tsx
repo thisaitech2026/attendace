@@ -8,8 +8,7 @@ import { ScreenHeader } from '@/components/ui/ScreenHeader';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { useApp } from '@/contexts/AppContext';
 import Colors from '@/constants/Colors';
-import { getAllowedNetworks, getCurrentWifiInfo, verifyOfficeWifi } from '@/services/wifiService';
-import { formatOfficeNetworkLabel } from '@/utils/officeNetwork';
+import { getCurrentWifiInfo, verifyOfficeWifi } from '@/services/wifiService';
 import { useColorScheme } from '@/components/useColorScheme';
 
 export default function AttendanceScreen() {
@@ -17,8 +16,6 @@ export default function AttendanceScreen() {
   const scheme = useColorScheme() ?? 'light';
   const colors = Colors[scheme];
 
-  const [wifiSsid, setWifiSsid] = useState<string | null>(null);
-  const [wifiIp, setWifiIp] = useState<string | null>(null);
   const [wifiValid, setWifiValid] = useState(false);
   const [wifiMessage, setWifiMessage] = useState('Checking network...');
   const [loading, setLoading] = useState(false);
@@ -29,9 +26,7 @@ export default function AttendanceScreen() {
   const canPunchOut = today && today.punchIn && !today.punchOut;
 
   const checkWifi = useCallback(async () => {
-    const info = await getCurrentWifiInfo();
-    setWifiSsid(info.ssid);
-    setWifiIp(info.ipAddress);
+    await getCurrentWifiInfo();
     const result = await verifyOfficeWifi();
     setWifiValid(result.valid);
     setWifiMessage(result.message);
@@ -119,38 +114,9 @@ export default function AttendanceScreen() {
         <View style={styles.wifiHeader}>
           <Text style={styles.wifiIcon}>{wifiValid ? '✅' : '📶'}</Text>
           <View style={styles.wifiInfo}>
-            <Text style={[styles.wifiTitle, { color: colors.text }]}>Office WiFi Status</Text>
+            <Text style={[styles.wifiTitle, { color: colors.text }]}>Office WiFi</Text>
             <Text style={[styles.wifiMsg, { color: colors.textSecondary }]}>{wifiMessage}</Text>
-            <Text style={[styles.wifiMsg, { color: colors.textSecondary }]}>
-              Required: {formatOfficeNetworkLabel()}
-            </Text>
-            {wifiSsid ? (
-              <Text style={[styles.wifiSsid, { color: colors.primary }]}>Network: {wifiSsid}</Text>
-            ) : null}
-            {wifiIp ? (
-              <Text style={[styles.wifiSsid, { color: colors.primary }]}>Device IP: {wifiIp}</Text>
-            ) : null}
           </View>
-        </View>
-        <Text style={[styles.allowedLabel, { color: colors.textSecondary }]}>Approved networks:</Text>
-        <View style={styles.networkList}>
-          {getAllowedNetworks().map((network) => (
-            <View
-              key={network}
-              style={[
-                styles.networkChip,
-                {
-                  backgroundColor:
-                    wifiSsid?.toLowerCase() === network.toLowerCase()
-                      ? colors.primaryLight
-                      : colors.background,
-                  borderColor: colors.border,
-                },
-              ]}
-            >
-              <Text style={[styles.networkText, { color: colors.text }]}>{network}</Text>
-            </View>
-          ))}
         </View>
       </Card>
 
@@ -243,11 +209,6 @@ const styles = StyleSheet.create({
   wifiInfo: { flex: 1 },
   wifiTitle: { fontSize: 16, fontWeight: '700' },
   wifiMsg: { fontSize: 13, marginTop: 4 },
-  wifiSsid: { fontSize: 13, fontWeight: '600', marginTop: 6 },
-  allowedLabel: { fontSize: 12, marginTop: 14, marginBottom: 8 },
-  networkList: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  networkChip: { paddingHorizontal: 10, paddingVertical: 6, borderRadius: 8, borderWidth: 1 },
-  networkText: { fontSize: 12, fontWeight: '500' },
   todayCard: { marginBottom: 20 },
   todayLabel: { fontSize: 12, fontWeight: '500' },
   todayDate: { fontSize: 18, fontWeight: '700', marginTop: 4, marginBottom: 16 },

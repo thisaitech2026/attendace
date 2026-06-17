@@ -3,7 +3,7 @@ import * as Location from 'expo-location';
 import { Platform } from 'react-native';
 
 import { ALLOWED_WIFI_SSIDS } from '@/constants/config';
-import { formatOfficeNetworkLabel, isOfficeIpAddress } from '@/utils/officeNetwork';
+import { isOfficeIpAddress } from '@/utils/officeNetwork';
 
 export interface WifiVerificationResult {
   valid: boolean;
@@ -66,8 +66,8 @@ export async function verifyOfficeWifi(): Promise<WifiVerificationResult> {
       connectionType: 'unknown',
       message:
         Platform.OS === 'web'
-          ? 'WiFi verification is not available on web. Use manual punch or run on a device.'
-          : 'Location permission is required to verify office WiFi.',
+          ? 'Use the mobile app on THISAI WiFi.'
+          : 'Allow location access to verify WiFi.',
     };
   }
 
@@ -79,7 +79,7 @@ export async function verifyOfficeWifi(): Promise<WifiVerificationResult> {
       ssid: null,
       ipAddress,
       connectionType,
-      message: `You must be connected to ${formatOfficeNetworkLabel()} to punch in at the office.`,
+      message: 'Connect to THISAI WiFi.',
     };
   }
 
@@ -89,8 +89,7 @@ export async function verifyOfficeWifi(): Promise<WifiVerificationResult> {
       ssid: null,
       ipAddress,
       connectionType,
-      message:
-        'Could not detect WiFi network name. Enable location services and ensure you are on THISAI.',
+      message: 'Connect to THISAI WiFi.',
     };
   }
 
@@ -100,7 +99,7 @@ export async function verifyOfficeWifi(): Promise<WifiVerificationResult> {
       ssid,
       ipAddress,
       connectionType,
-      message: `"${ssid}" is not the office network. Connect to ${formatOfficeNetworkLabel()}.`,
+      message: 'Wrong network — connect to THISAI.',
     };
   }
 
@@ -110,17 +109,17 @@ export async function verifyOfficeWifi(): Promise<WifiVerificationResult> {
       ssid,
       ipAddress,
       connectionType,
-      message: `Connected to ${ssid} but IP ${ipAddress} is outside the office range (192.168.100.x).`,
+      message: 'Wrong IP — use THISAI (192.168.100.x).',
     };
   }
 
-  const ipNote = ipAddress ? ` · IP ${ipAddress}` : ' · IP not detected';
+  const ipNote = ipAddress ? ` · ${ipAddress}` : '';
   return {
     valid: true,
     ssid,
     ipAddress,
     connectionType,
-    message: `Verified on office network: ${ssid}${ipNote}`,
+    message: `Verified · ${ssid}${ipNote}`,
   };
 }
 
