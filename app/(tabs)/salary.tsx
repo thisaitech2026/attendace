@@ -47,9 +47,9 @@ export default function SalaryScreen() {
 
       <Card style={[styles.heroCard, { backgroundColor: colors.primary }]}>
         <View style={styles.heroTop}>
+          <Text style={styles.heroLabel}>Latest Net Pay</Text>
           {latest ? <StatusSymbolBadge status={latest.status} compact /> : null}
         </View>
-        <Text style={styles.heroLabel}>Latest Net Pay</Text>
         <Text style={styles.heroAmount}>{latest ? formatCurrency(latest.netPay) : '—'}</Text>
         <Text style={styles.heroPeriod}>
           {latest ? `${latest.month} ${latest.year}` : 'No payslips'}
@@ -119,8 +119,14 @@ const styles = StyleSheet.create({
   content: { padding: 20, paddingBottom: 40 },
   statusRow: { flexDirection: 'row', gap: 10, marginBottom: 16 },
   heroCard: { marginBottom: 16, borderRadius: 16, padding: 16 },
-  heroTop: { flexDirection: 'row', justifyContent: 'flex-end', marginBottom: 4 },
-  heroLabel: { color: 'rgba(255,255,255,0.8)', fontSize: 11, fontWeight: '500' },
+  heroTop: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 4,
+    gap: 8,
+  },
+  heroLabel: { color: 'rgba(255,255,255,0.8)', fontSize: 11, fontWeight: '500', flex: 1 },
   heroAmount: { color: '#FFF', fontSize: 28, fontWeight: '800', marginTop: 4, marginBottom: 2 },
   heroPeriod: { color: 'rgba(255,255,255,0.8)', fontSize: 12 },
   heroStats: { flexDirection: 'row', marginTop: 12, gap: 6 },
