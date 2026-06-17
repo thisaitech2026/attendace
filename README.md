@@ -75,16 +75,19 @@ npx eas-cli build --platform android --profile preview
 
 ## WiFi Punch-In
 
-The app verifies attendance by checking that the device is connected to an approved office WiFi network. Configure allowed SSIDs in `constants/config.ts`:
+The app verifies attendance on the **THISAI** office WiFi. Devices must be on the `192.168.100.x` network (for example `192.168.100.15`).
+
+Configure office settings in `constants/config.ts` and `utils/officeNetwork.ts`:
 
 ```typescript
-export const ALLOWED_WIFI_SSIDS = [
-  'Office-WiFi',
-  'Company-5G',
-  'HQ-Guest',
-  'WorkPulse-Office',
-];
+export const ALLOWED_WIFI_SSIDS = ['THISAI'];
+export const OFFICE_IP_PREFIX = '192.168.100.';
 ```
+
+**Verification checks:**
+1. Device is connected to WiFi
+2. SSID matches **THISAI**
+3. Device IP is in `192.168.100.x` (when IP can be detected)
 
 **Requirements for WiFi SSID detection:**
 - **Android**: Location permission + WiFi enabled

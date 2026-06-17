@@ -181,7 +181,7 @@ export function getInitialAttendance(): AttendanceRecord[] {
       punchOut: '18:15:00',
       punchInMethod: 'wifi',
       punchOutMethod: 'wifi',
-      wifiSsid: 'Office-WiFi',
+      wifiSsid: 'THISAI',
       hoursWorked: 9.2,
       status: 'present',
     },

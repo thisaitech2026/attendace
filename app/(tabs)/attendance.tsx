@@ -9,6 +9,7 @@ import { StatusBadge } from '@/components/ui/StatusBadge';
 import { useApp } from '@/contexts/AppContext';
 import Colors from '@/constants/Colors';
 import { getAllowedNetworks, getCurrentWifiInfo, verifyOfficeWifi } from '@/services/wifiService';
+import { formatOfficeNetworkLabel } from '@/utils/officeNetwork';
 import { useColorScheme } from '@/components/useColorScheme';
 
 export default function AttendanceScreen() {
@@ -17,6 +18,7 @@ export default function AttendanceScreen() {
   const colors = Colors[scheme];
 
   const [wifiSsid, setWifiSsid] = useState<string | null>(null);
+  const [wifiIp, setWifiIp] = useState<string | null>(null);
   const [wifiValid, setWifiValid] = useState(false);
   const [wifiMessage, setWifiMessage] = useState('Checking network...');
   const [loading, setLoading] = useState(false);
@@ -29,6 +31,7 @@ export default function AttendanceScreen() {
   const checkWifi = useCallback(async () => {
     const info = await getCurrentWifiInfo();
     setWifiSsid(info.ssid);
+    setWifiIp(info.ipAddress);
     const result = await verifyOfficeWifi();
     setWifiValid(result.valid);
     setWifiMessage(result.message);
@@ -90,7 +93,8 @@ export default function AttendanceScreen() {
   const handlePunchOut = async () => {
     setLoading(true);
     try {
-      const method = wifiValid ? 'wifi' : 'manual';
+      const result = await verifyOfficeWifi();
+      const method = result.valid ? 'wifi' : 'manual';
       await doPunchOut(method);
       Alert.alert('Punched Out', `Recorded at ${new Date().toLocaleTimeString()}`);
     } catch (e) {
@@ -117,8 +121,14 @@ export default function AttendanceScreen() {
           <View style={styles.wifiInfo}>
             <Text style={[styles.wifiTitle, { color: colors.text }]}>Office WiFi Status</Text>
             <Text style={[styles.wifiMsg, { color: colors.textSecondary }]}>{wifiMessage}</Text>
+            <Text style={[styles.wifiMsg, { color: colors.textSecondary }]}>
+              Required: {formatOfficeNetworkLabel()}
+            </Text>
             {wifiSsid ? (
               <Text style={[styles.wifiSsid, { color: colors.primary }]}>Network: {wifiSsid}</Text>
+            ) : null}
+            {wifiIp ? (
+              <Text style={[styles.wifiSsid, { color: colors.primary }]}>Device IP: {wifiIp}</Text>
             ) : null}
           </View>
         </View>

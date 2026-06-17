@@ -3,10 +3,12 @@ import * as Location from 'expo-location';
 import { Platform } from 'react-native';
 
 import { ALLOWED_WIFI_SSIDS } from '@/constants/config';
+import { formatOfficeNetworkLabel, isOfficeIpAddress } from '@/utils/officeNetwork';
 
 export interface WifiVerificationResult {
   valid: boolean;
   ssid: string | null;
+  ipAddress: string | null;
   connectionType: string;
   message: string;
 }
@@ -27,20 +29,28 @@ export async function requestWifiPermissions(): Promise<boolean> {
 
 export async function getCurrentWifiInfo(): Promise<{
   ssid: string | null;
+  ipAddress: string | null;
   connectionType: string;
   isWifi: boolean;
 }> {
   const state = await NetInfo.fetch();
   const isWifi = state.type === 'wifi';
   let ssid: string | null = null;
+  let ipAddress: string | null = null;
 
   if (isWifi && state.details && 'ssid' in state.details) {
     const raw = state.details.ssid;
     ssid = raw ? normalizeSsid(String(raw)) : null;
   }
 
+  if (isWifi && state.details && 'ipAddress' in state.details) {
+    const rawIp = state.details.ipAddress;
+    ipAddress = rawIp ? String(rawIp).trim() : null;
+  }
+
   return {
     ssid,
+    ipAddress,
     connectionType: state.type,
     isWifi,
   };
@@ -52,6 +62,7 @@ export async function verifyOfficeWifi(): Promise<WifiVerificationResult> {
     return {
       valid: false,
       ssid: null,
+      ipAddress: null,
       connectionType: 'unknown',
       message:
         Platform.OS === 'web'
@@ -60,14 +71,15 @@ export async function verifyOfficeWifi(): Promise<WifiVerificationResult> {
     };
   }
 
-  const { ssid, connectionType, isWifi } = await getCurrentWifiInfo();
+  const { ssid, ipAddress, connectionType, isWifi } = await getCurrentWifiInfo();
 
   if (!isWifi) {
     return {
       valid: false,
       ssid: null,
+      ipAddress,
       connectionType,
-      message: 'You must be connected to WiFi to punch in at the office.',
+      message: `You must be connected to ${formatOfficeNetworkLabel()} to punch in at the office.`,
     };
   }
 
@@ -75,20 +87,40 @@ export async function verifyOfficeWifi(): Promise<WifiVerificationResult> {
     return {
       valid: false,
       ssid: null,
+      ipAddress,
       connectionType,
       message:
-        'Could not detect WiFi network name. Ensure location services are enabled and try again.',
+        'Could not detect WiFi network name. Enable location services and ensure you are on THISAI.',
     };
   }
 
-  const valid = isAllowedSsid(ssid);
+  if (!isAllowedSsid(ssid)) {
+    return {
+      valid: false,
+      ssid,
+      ipAddress,
+      connectionType,
+      message: `"${ssid}" is not the office network. Connect to ${formatOfficeNetworkLabel()}.`,
+    };
+  }
+
+  if (ipAddress && !isOfficeIpAddress(ipAddress)) {
+    return {
+      valid: false,
+      ssid,
+      ipAddress,
+      connectionType,
+      message: `Connected to ${ssid} but IP ${ipAddress} is outside the office range (192.168.100.x).`,
+    };
+  }
+
+  const ipNote = ipAddress ? ` · IP ${ipAddress}` : ' · IP not detected';
   return {
-    valid,
+    valid: true,
     ssid,
+    ipAddress,
     connectionType,
-    message: valid
-      ? `Verified on office network: ${ssid}`
-      : `"${ssid}" is not an approved office network.`,
+    message: `Verified on office network: ${ssid}${ipNote}`,
   };
 }
 

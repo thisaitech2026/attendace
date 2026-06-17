@@ -18,6 +18,7 @@ import { useApp } from '@/contexts/AppContext';
 import Colors from '@/constants/Colors';
 import { getAllowedNetworks, getCurrentWifiInfo, verifyOfficeWifi } from '@/services/wifiService';
 import { useColorScheme } from '@/components/useColorScheme';
+import { formatOfficeNetworkLabel } from '@/utils/officeNetwork';
 import {
   formatPunchAlertMessage,
   formatPunchAlertTitle,
@@ -43,6 +44,7 @@ export function PunchDetailPanel({ onClose }: PunchDetailPanelProps) {
   const colors = Colors[scheme];
 
   const [wifiSsid, setWifiSsid] = useState<string | null>(null);
+  const [wifiIp, setWifiIp] = useState<string | null>(null);
   const [wifiValid, setWifiValid] = useState(false);
   const [wifiMessage, setWifiMessage] = useState('Checking network...');
   const [loading, setLoading] = useState(false);
@@ -56,6 +58,7 @@ export function PunchDetailPanel({ onClose }: PunchDetailPanelProps) {
   const checkWifi = useCallback(async () => {
     const info = await getCurrentWifiInfo();
     setWifiSsid(info.ssid);
+    setWifiIp(info.ipAddress);
     const result = await verifyOfficeWifi();
     setWifiValid(result.valid);
     setWifiMessage(result.message);
@@ -116,7 +119,8 @@ export function PunchDetailPanel({ onClose }: PunchDetailPanelProps) {
   const handlePunchOut = async () => {
     setLoading(true);
     try {
-      const method = wifiValid ? 'wifi' : 'manual';
+      const result = await verifyOfficeWifi();
+      const method = result.valid ? 'wifi' : 'manual';
       const record = await doPunchOut(method);
       if (record) showPunchResult(record);
     } catch (e) {
@@ -153,8 +157,14 @@ export function PunchDetailPanel({ onClose }: PunchDetailPanelProps) {
         <Card style={[styles.wifiCard, { borderColor: wifiValid ? colors.success : colors.border }]}>
           <Text style={[styles.sectionLabel, { color: colors.textSecondary }]}>Office WiFi</Text>
           <Text style={[styles.wifiMsg, { color: colors.text }]}>{wifiMessage}</Text>
+          <Text style={[styles.detailLine, { color: colors.textSecondary }]}>
+            Required: {formatOfficeNetworkLabel()}
+          </Text>
           {wifiSsid ? (
             <Text style={[styles.wifiSsid, { color: colors.primary }]}>Connected: {wifiSsid}</Text>
+          ) : null}
+          {wifiIp ? (
+            <Text style={[styles.wifiSsid, { color: colors.primary }]}>Device IP: {wifiIp}</Text>
           ) : null}
           <View style={styles.networkList}>
             {getAllowedNetworks().map((network) => (

@@ -2,12 +2,14 @@ import type { AppUser, UserRole } from '@/types/employee';
 
 export const APP_NAME = 'WorkPulse';
 
-export const ALLOWED_WIFI_SSIDS = [
-  'Office-WiFi',
-  'Company-5G',
-  'HQ-Guest',
-  'WorkPulse-Office',
-];
+/** Office WiFi SSID — employees must connect to THISAI. */
+export const OFFICE_WIFI_SSID = 'THISAI';
+
+/** Office LAN uses 192.168.100.x addresses (e.g. 192.168.100.15). */
+export const OFFICE_IP_PREFIX = '192.168.100.';
+
+/** Approved office WiFi SSIDs for attendance punch-in/out. */
+export const ALLOWED_WIFI_SSIDS = [OFFICE_WIFI_SSID];
 
 export const INITIAL_USERS: AppUser[] = [
   {
