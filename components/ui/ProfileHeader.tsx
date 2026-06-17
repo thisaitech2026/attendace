@@ -2,6 +2,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Link } from 'expo-router';
 import { SymbolView } from 'expo-symbols';
 
+import { EmployeeAvatar } from '@/components/ui/EmployeeAvatar';
 import Colors from '@/constants/Colors';
 import { useColorScheme } from '@/components/useColorScheme';
 
@@ -10,20 +11,31 @@ interface ProfileHeaderProps {
   lastName: string;
   position: string;
   employeeId: string;
+  avatar?: string;
 }
 
-export function ProfileHeader({ firstName, lastName, position, employeeId }: ProfileHeaderProps) {
+export function ProfileHeader({ firstName, lastName, position, employeeId, avatar }: ProfileHeaderProps) {
   const scheme = useColorScheme() ?? 'light';
   const colors = Colors[scheme];
-  const initials = `${firstName[0]}${lastName[0]}`;
 
   return (
     <Link href="/profile" asChild>
       <Pressable style={({ pressed }) => [styles.wrap, { opacity: pressed ? 0.92 : 1 }]}>
         <View style={styles.left}>
-          <View style={[styles.avatar, { backgroundColor: colors.primaryLight, borderColor: colors.primary }]}>
-            <Text style={[styles.initials, { color: colors.primary }]}>{initials}</Text>
-          </View>
+          <EmployeeAvatar
+            firstName={firstName}
+            lastName={lastName}
+            avatar={avatar}
+            employeeId={employeeId}
+            size={46}
+            borderRadius={16}
+            borderWidth={2}
+            borderColor={colors.primary}
+            backgroundColor={colors.primaryLight}
+            textColor={colors.primary}
+            fontSize={17}
+            style={styles.avatar}
+          />
           <View style={styles.info}>
             <Text style={[styles.greeting, { color: colors.textMuted }]}>Good {getGreeting()}</Text>
             <Text style={[styles.name, { color: colors.text }]}>
@@ -57,16 +69,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   left: { flexDirection: 'row', alignItems: 'center', flex: 1 },
-  avatar: {
-    width: 46,
-    height: 46,
-    borderRadius: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 2,
-    marginRight: 12,
-  },
-  initials: { fontSize: 17, fontWeight: '800' },
+  avatar: { marginRight: 12 },
   info: { flex: 1 },
   greeting: { fontSize: 13, fontWeight: '500', textTransform: 'capitalize' },
   name: { fontSize: 22, fontWeight: '800', letterSpacing: -0.5, marginTop: 2 },

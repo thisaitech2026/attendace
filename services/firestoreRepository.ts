@@ -146,7 +146,15 @@ export async function saveUsers(users: AppUser[]): Promise<void> {
 export async function loadEmployees(): Promise<Employee[]> {
   await ensureFirestoreSeed();
   const snapshot = await getDocs(employeesCollection());
-  return snapshot.docs.map((item) => item.data() as Employee);
+  const mockById = Object.fromEntries(MOCK_EMPLOYEES.map((employee) => [employee.employeeId, employee]));
+
+  return snapshot.docs.map((item) => {
+    const employee = item.data() as Employee;
+    if (employee.avatar) return employee;
+
+    const mockAvatar = mockById[employee.employeeId]?.avatar;
+    return mockAvatar ? { ...employee, avatar: mockAvatar } : employee;
+  });
 }
 
 export async function saveEmployees(employees: Employee[]): Promise<void> {

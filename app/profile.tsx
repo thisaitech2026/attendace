@@ -4,6 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
+import { EmployeeAvatar } from '@/components/ui/EmployeeAvatar';
 import { InfoRow } from '@/components/ui/InfoRow';
 import { useApp } from '@/contexts/AppContext';
 import Colors from '@/constants/Colors';
@@ -24,8 +25,6 @@ export default function ProfileScreen() {
     ]);
   };
 
-  const initials = `${employee.firstName[0]}${employee.lastName[0]}`;
-
   return (
     <ScrollView
         style={[styles.container, { backgroundColor: colors.background }]}
@@ -33,9 +32,20 @@ export default function ProfileScreen() {
         showsVerticalScrollIndicator={false}
       >
         <Card style={styles.profileCard}>
-          <View style={[styles.avatar, { backgroundColor: colors.primaryLight, borderColor: colors.primary }]}>
-            <Text style={[styles.avatarText, { color: colors.primary }]}>{initials}</Text>
-          </View>
+          <EmployeeAvatar
+            firstName={employee.firstName}
+            lastName={employee.lastName}
+            avatar={employee.avatar}
+            employeeId={employee.employeeId}
+            size={88}
+            borderRadius={28}
+            borderWidth={3}
+            borderColor={colors.primary}
+            backgroundColor={colors.primaryLight}
+            textColor={colors.primary}
+            fontSize={32}
+            style={styles.avatar}
+          />
           <Text style={[styles.name, { color: colors.text }]}>
             {employee.firstName} {employee.lastName}
           </Text>
@@ -72,16 +82,7 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
   content: { paddingHorizontal: 20 },
   profileCard: { alignItems: 'center', marginBottom: 20, paddingVertical: 28 },
-  avatar: {
-    width: 88,
-    height: 88,
-    borderRadius: 28,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 14,
-    borderWidth: 3,
-  },
-  avatarText: { fontSize: 32, fontWeight: '800' },
+  avatar: { marginBottom: 14 },
   name: { fontSize: 24, fontWeight: '800', letterSpacing: -0.5 },
   position: { fontSize: 14, marginTop: 4, fontWeight: '500' },
   deptBadge: { paddingHorizontal: 14, paddingVertical: 6, borderRadius: 20, marginTop: 10 },

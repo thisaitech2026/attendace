@@ -164,6 +164,7 @@ export default function DashboardScreen() {
           lastName={employee.lastName}
           position={employee.position}
           employeeId={employee.employeeId}
+          avatar={employee.avatar}
         />
       ) : null}
 
