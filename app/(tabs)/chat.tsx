@@ -138,11 +138,17 @@ export default function ChatScreen() {
             blurOnSubmit={false}
           />
           <Pressable
-            style={[styles.sendBtn, { backgroundColor: text.trim() ? colors.primary : colors.borderLight }]}
+            style={[
+              styles.sendBtn,
+              {
+                backgroundColor: text.trim() ? colors.successLight : colors.borderLight,
+                borderColor: text.trim() ? colors.success : colors.borderLight,
+              },
+            ]}
             onPress={() => handleSend()}
             disabled={!text.trim() || sending}
           >
-            <Text style={styles.sendText}>Send</Text>
+            <Text style={[styles.sendText, { color: text.trim() ? colors.success : colors.textMuted }]}>Send</Text>
           </Pressable>
         </View>
       </View>
@@ -191,8 +197,9 @@ const styles = StyleSheet.create({
     minWidth: 52,
     paddingHorizontal: 10,
     borderRadius: 10,
+    borderWidth: 1,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  sendText: { color: '#FFF', fontSize: 12, fontWeight: '700' },
+  sendText: { fontSize: 12, fontWeight: '700' },
 });
