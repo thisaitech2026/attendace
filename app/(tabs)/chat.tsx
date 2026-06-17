@@ -98,8 +98,7 @@ export default function ChatScreen() {
       keyboardVerticalOffset={Platform.OS === 'ios' ? 88 : 0}
     >
       <View style={[styles.headerWrap, { paddingTop: insets.top + 8 }]}>
-        <ScreenHeader title="Team Chat" subtitle="Share updates, sick leave & messages" inset={false} />
-        <Text style={[styles.memberCount, { color: colors.textSecondary }]}>Everyone on your team can see messages here</Text>
+        <ScreenHeader title="Team Chat" inset={false} />
       </View>
 
       <FlatList
@@ -153,8 +152,7 @@ export default function ChatScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  headerWrap: { paddingHorizontal: 20, paddingBottom: 8 },
-  memberCount: { fontSize: 12, fontWeight: '500', marginTop: -12, marginBottom: 4 },
+  headerWrap: { paddingHorizontal: 20, paddingBottom: 4 },
   messageList: { paddingHorizontal: 16, paddingBottom: 12, paddingTop: 8 },
   messageRow: { flexDirection: 'row', marginBottom: 14, alignItems: 'flex-end', gap: 8 },
   messageRowMe: { justifyContent: 'flex-end' },
