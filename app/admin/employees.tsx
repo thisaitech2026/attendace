@@ -69,10 +69,10 @@ export default function AdminEmployeesScreen() {
               </Text>
             </View>
             <View style={styles.info}>
-              <Text style={[styles.name, { color: colors.text }]}>{getEmployeeDisplayName(emp)}</Text>
-              <Text style={[styles.meta, { color: colors.textSecondary }]}>
+              <Text style={[styles.position, { color: colors.textSecondary }]}>
                 {emp.position} · {emp.department}
               </Text>
+              <Text style={[styles.name, { color: colors.text }]}>{getEmployeeDisplayName(emp)}</Text>
               <Text style={[styles.meta, { color: colors.textMuted }]}>
                 {emp.employeeId} · {emp.email}
               </Text>
