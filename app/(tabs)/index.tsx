@@ -12,6 +12,7 @@ import { SectionHeader } from '@/components/ui/QuickAction';
 import { StatCard } from '@/components/ui/StatCard';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { useApp } from '@/contexts/AppContext';
+import { APP_NAME } from '@/constants/config';
 import Colors from '@/constants/Colors';
 import { verifyOfficeWifi } from '@/services/wifiService';
 import { useColorScheme } from '@/components/useColorScheme';
@@ -137,7 +138,7 @@ export default function DashboardScreen() {
       showsVerticalScrollIndicator={false}
     >
       <View style={styles.topBar}>
-        <Text style={[styles.appTitle, { color: colors.text }]}>WorkPulse</Text>
+        <Text style={[styles.appTitle, { color: colors.text }]}>{APP_NAME}</Text>
         <Pressable
           onPress={handleLogout}
           style={({ pressed }) => [

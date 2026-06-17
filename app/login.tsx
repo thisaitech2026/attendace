@@ -71,7 +71,7 @@ export default function LoginScreen() {
         style={[styles.headerGradient, { paddingTop: insets.top + 40 }]}
       >
         <View style={styles.logoWrap}>
-          <Text style={styles.logoText}>WP</Text>
+          <Text style={styles.logoText}>TA</Text>
         </View>
         <Text style={styles.appName}>{APP_NAME}</Text>
         <Text style={styles.tagline}>Employee & HR portal</Text>
