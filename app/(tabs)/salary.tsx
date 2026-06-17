@@ -8,6 +8,24 @@ import Colors from '@/constants/Colors';
 import { formatCurrency } from '@/services/employeeService';
 import { useColorScheme } from '@/components/useColorScheme';
 
+const SALARY_STAT_COLORS = {
+  total: {
+    box: 'rgba(125, 211, 252, 0.22)',
+    label: '#E0F2FE',
+    value: '#7DD3FC',
+  },
+  allowances: {
+    box: 'rgba(110, 231, 183, 0.22)',
+    label: '#D1FAE5',
+    value: '#6EE7B7',
+  },
+  deductions: {
+    box: 'rgba(253, 164, 175, 0.22)',
+    label: '#FFE4E6',
+    value: '#FDA4AF',
+  },
+} as const;
+
 export default function SalaryScreen() {
   const { salarySlips } = useApp();
   const scheme = useColorScheme() ?? 'light';
@@ -37,19 +55,21 @@ export default function SalaryScreen() {
           {latest ? `${latest.month} ${latest.year}` : 'No payslips'}
         </Text>
         <View style={styles.heroStats}>
-          <View style={styles.heroStat}>
-            <Text style={styles.heroStatLabel}>Total Salary</Text>
-            <Text style={styles.heroStatValue}>{latest ? formatCurrency(totalSalary) : '—'}</Text>
+          <View style={[styles.heroStatBox, { backgroundColor: SALARY_STAT_COLORS.total.box }]}>
+            <Text style={[styles.heroStatLabel, { color: SALARY_STAT_COLORS.total.label }]}>Total Salary</Text>
+            <Text style={[styles.heroStatValue, { color: SALARY_STAT_COLORS.total.value }]}>
+              {latest ? formatCurrency(totalSalary) : '—'}
+            </Text>
           </View>
-          <View style={styles.heroStat}>
-            <Text style={styles.heroStatLabel}>Allowances</Text>
-            <Text style={[styles.heroStatValue, styles.heroStatPositive]}>
+          <View style={[styles.heroStatBox, { backgroundColor: SALARY_STAT_COLORS.allowances.box }]}>
+            <Text style={[styles.heroStatLabel, { color: SALARY_STAT_COLORS.allowances.label }]}>Allowances</Text>
+            <Text style={[styles.heroStatValue, { color: SALARY_STAT_COLORS.allowances.value }]}>
               {latest ? `+${formatCurrency(latest.allowances)}` : '—'}
             </Text>
           </View>
-          <View style={styles.heroStat}>
-            <Text style={styles.heroStatLabel}>Deductions</Text>
-            <Text style={[styles.heroStatValue, styles.heroStatNegative]}>
+          <View style={[styles.heroStatBox, { backgroundColor: SALARY_STAT_COLORS.deductions.box }]}>
+            <Text style={[styles.heroStatLabel, { color: SALARY_STAT_COLORS.deductions.label }]}>Deductions</Text>
+            <Text style={[styles.heroStatValue, { color: SALARY_STAT_COLORS.deductions.value }]}>
               {latest ? `-${formatCurrency(latest.deductions)}` : '—'}
             </Text>
           </View>
@@ -97,16 +117,20 @@ const styles = StyleSheet.create({
   content: { padding: 20, paddingBottom: 40 },
   statusRow: { flexDirection: 'row', gap: 10, marginBottom: 16 },
   heroCard: { marginBottom: 16, borderRadius: 16, padding: 16 },
-  heroTop: { marginBottom: 8, alignSelf: 'flex-start' },
+  heroTop: { flexDirection: 'row', justifyContent: 'flex-end', marginBottom: 4 },
   heroLabel: { color: 'rgba(255,255,255,0.8)', fontSize: 11, fontWeight: '500' },
   heroAmount: { color: '#FFF', fontSize: 28, fontWeight: '800', marginTop: 4, marginBottom: 2 },
   heroPeriod: { color: 'rgba(255,255,255,0.8)', fontSize: 12 },
-  heroStats: { flexDirection: 'row', marginTop: 12, gap: 8 },
-  heroStat: { flex: 1 },
-  heroStatLabel: { color: 'rgba(255,255,255,0.7)', fontSize: 9, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.3 },
-  heroStatValue: { color: '#FFF', fontSize: 12, fontWeight: '800', marginTop: 2 },
-  heroStatPositive: { color: '#BBF7D0' },
-  heroStatNegative: { color: '#FECACA' },
+  heroStats: { flexDirection: 'row', marginTop: 12, gap: 6 },
+  heroStatBox: {
+    flex: 1,
+    borderRadius: 10,
+    paddingVertical: 8,
+    paddingHorizontal: 6,
+    alignItems: 'center',
+  },
+  heroStatLabel: { fontSize: 8, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.3, textAlign: 'center' },
+  heroStatValue: { fontSize: 11, fontWeight: '800', marginTop: 4, textAlign: 'center' },
   sectionTitle: { fontSize: 18, fontWeight: '700', marginBottom: 12 },
   slipCard: { marginBottom: 12 },
   slipHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
