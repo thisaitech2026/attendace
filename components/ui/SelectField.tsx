@@ -26,6 +26,7 @@ interface SelectFieldProps {
   cardColor: string;
   dangerColor: string;
   primaryColor: string;
+  compact?: boolean;
 }
 
 export function SelectField({
@@ -42,6 +43,7 @@ export function SelectField({
   cardColor,
   dangerColor,
   primaryColor,
+  compact = false,
 }: SelectFieldProps) {
   const [open, setOpen] = useState(false);
   const hasError = Boolean(error);
@@ -60,7 +62,7 @@ export function SelectField({
   if (Platform.OS === 'web') {
     return (
       <View>
-        <Text style={[styles.label, { color: mutedColor }]}>{label}</Text>
+        <Text style={[styles.label, compact && styles.labelCompact, { color: mutedColor }]}>{label}</Text>
         <View style={fieldStyle}>
           <Ionicons name="chevron-down" size={18} color={hasError ? dangerColor : primaryColor} />
           <select
@@ -97,7 +99,7 @@ export function SelectField({
 
   return (
     <View>
-      <Text style={[styles.label, { color: mutedColor }]}>{label}</Text>
+      <Text style={[styles.label, compact && styles.labelCompact, { color: mutedColor }]}>{label}</Text>
       <Pressable
         onPress={() => !disabled && setOpen(true)}
         style={fieldStyle}
@@ -158,6 +160,14 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     marginBottom: 8,
     marginTop: 16,
+  },
+  labelCompact: {
+    fontSize: 11,
+    fontWeight: '700',
+    marginTop: 0,
+    marginBottom: 4,
+    letterSpacing: 0.6,
+    textTransform: 'uppercase',
   },
   fieldWrap: {
     flexDirection: 'row',

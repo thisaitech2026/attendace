@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   Alert,
   KeyboardAvoidingView,
@@ -13,11 +13,27 @@ import {
 import { Stack, useRouter } from 'expo-router';
 
 import { Button } from '@/components/ui/Button';
+import { SelectField } from '@/components/ui/SelectField';
 import { getEmployeeDisplayName } from '@/services/employeeRegistry';
 import { useApp } from '@/contexts/AppContext';
 import Colors from '@/constants/Colors';
+import {
+  buildJoinDateOptions,
+  DEPARTMENT_OPTIONS,
+  POSITIONS_BY_DEPARTMENT,
+} from '@/constants/hrOptions';
 import type { Employee } from '@/types/employee';
 import { useColorScheme } from '@/components/useColorScheme';
+
+const TEXT_FIELDS: { key: 'firstName' | 'lastName' | 'email' | 'phone' | 'address' | 'emergencyContact' | 'tempPassword'; label: string }[] = [
+  { key: 'firstName', label: 'First name' },
+  { key: 'lastName', label: 'Last name' },
+  { key: 'email', label: 'Work email' },
+  { key: 'phone', label: 'Phone (10 digits)' },
+  { key: 'address', label: 'Address' },
+  { key: 'emergencyContact', label: 'Emergency contact' },
+  { key: 'tempPassword', label: 'Temporary password' },
+];
 
 export default function NewHireScreen() {
   const router = useRouter();
@@ -27,6 +43,8 @@ export default function NewHireScreen() {
   const [supervisors, setSupervisors] = useState<Employee[]>([]);
   const [supervisorId, setSupervisorId] = useState('');
   const [submitting, setSubmitting] = useState(false);
+
+  const joinDateOptions = useMemo(() => buildJoinDateOptions(), []);
 
   const [form, setForm] = useState({
     firstName: '',
@@ -48,6 +66,20 @@ export default function NewHireScreen() {
     });
   }, [getSupervisors]);
 
+  const positionOptions = useMemo(
+    () => (form.department ? POSITIONS_BY_DEPARTMENT[form.department] ?? [] : []),
+    [form.department]
+  );
+
+  const fieldColors = {
+    textColor: colors.text,
+    mutedColor: colors.textMuted,
+    borderColor: colors.borderLight,
+    cardColor: colors.card,
+    dangerColor: colors.danger,
+    primaryColor: colors.primary,
+  };
+
   const update = (key: keyof typeof form, value: string) => setForm((prev) => ({ ...prev, [key]: value }));
 
   const handleFieldChange = (key: keyof typeof form, value: string) => {
@@ -56,6 +88,10 @@ export default function NewHireScreen() {
       return;
     }
     update(key, value);
+  };
+
+  const handleDepartmentChange = (value: string) => {
+    setForm((prev) => ({ ...prev, department: value, position: '' }));
   };
 
   const handleSubmit = async () => {
@@ -82,19 +118,6 @@ export default function NewHireScreen() {
     }
   };
 
-  const fields: { key: keyof typeof form; label: string }[] = [
-    { key: 'firstName', label: 'First name' },
-    { key: 'lastName', label: 'Last name' },
-    { key: 'email', label: 'Work email' },
-    { key: 'phone', label: 'Phone' },
-    { key: 'department', label: 'Department' },
-    { key: 'position', label: 'Position' },
-    { key: 'joinDate', label: 'Join date (YYYY-MM-DD)' },
-    { key: 'address', label: 'Address' },
-    { key: 'emergencyContact', label: 'Emergency contact' },
-    { key: 'tempPassword', label: 'Temporary password' },
-  ];
-
   return (
     <>
       <Stack.Screen options={{ title: 'Create New Hire', presentation: 'modal' }} />
@@ -102,40 +125,93 @@ export default function NewHireScreen() {
         <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
           <Text style={[styles.title, { color: colors.text }]}>New hire details</Text>
 
-          {fields.map((field) => (
+          {TEXT_FIELDS.slice(0, 4).map((field) => (
             <View key={field.key} style={styles.fieldGroup}>
               <Text style={[styles.label, { color: colors.textMuted }]}>{field.label.toUpperCase()}</Text>
               <TextInput
                 style={[styles.input, { color: colors.text, borderColor: colors.borderLight, backgroundColor: colors.card }]}
                 value={form[field.key]}
-                onChangeText={(v) => update(field.key, v)}
+                onChangeText={(v) => handleFieldChange(field.key, v)}
                 autoCapitalize={field.key === 'email' ? 'none' : 'words'}
-                keyboardType={field.key === 'email' ? 'email-address' : 'default'}
+                keyboardType={
+                  field.key === 'email' ? 'email-address' : field.key === 'phone' ? 'phone-pad' : 'default'
+                }
+                maxLength={field.key === 'phone' ? 10 : undefined}
+                placeholder={field.key === 'phone' ? '1234567890' : undefined}
               />
             </View>
           ))}
 
           <View style={styles.fieldGroup}>
-          <Text style={[styles.label, { color: colors.textMuted }]}>ASSIGN SUPERVISOR</Text>
-          <View style={styles.supervisorList}>
-            {supervisors.map((sup) => (
-              <Pressable
-                key={sup.employeeId}
-                style={[
-                  styles.supChip,
-                  {
-                    backgroundColor: supervisorId === sup.employeeId ? colors.primaryLight : colors.card,
-                    borderColor: supervisorId === sup.employeeId ? colors.primary : colors.borderLight,
-                  },
-                ]}
-                onPress={() => setSupervisorId(sup.employeeId)}
-              >
-                <Text style={[styles.supText, { color: supervisorId === sup.employeeId ? colors.primary : colors.text }]}>
-                  {getEmployeeDisplayName(sup)} · {sup.position}
-                </Text>
-              </Pressable>
-            ))}
+            <SelectField
+              label="Department"
+              value={form.department}
+              onChange={handleDepartmentChange}
+              options={DEPARTMENT_OPTIONS}
+              placeholder="Select department"
+              compact
+              {...fieldColors}
+            />
           </View>
+
+          <View style={styles.fieldGroup}>
+            <SelectField
+              label="Position"
+              value={form.position}
+              onChange={(value) => update('position', value)}
+              options={positionOptions}
+              placeholder={form.department ? 'Select position' : 'Select department first'}
+              disabled={!form.department}
+              compact
+              {...fieldColors}
+            />
+          </View>
+
+          <View style={styles.fieldGroup}>
+            <SelectField
+              label="Join date"
+              value={form.joinDate}
+              onChange={(value) => update('joinDate', value)}
+              options={joinDateOptions}
+              placeholder="Select join date"
+              compact
+              {...fieldColors}
+            />
+          </View>
+
+          {TEXT_FIELDS.slice(4).map((field) => (
+            <View key={field.key} style={styles.fieldGroup}>
+              <Text style={[styles.label, { color: colors.textMuted }]}>{field.label.toUpperCase()}</Text>
+              <TextInput
+                style={[styles.input, { color: colors.text, borderColor: colors.borderLight, backgroundColor: colors.card }]}
+                value={form[field.key]}
+                onChangeText={(v) => handleFieldChange(field.key, v)}
+                autoCapitalize="words"
+              />
+            </View>
+          ))}
+
+          <View style={styles.fieldGroup}>
+            <Text style={[styles.label, { color: colors.textMuted }]}>ASSIGN SUPERVISOR</Text>
+            <View style={styles.supervisorList}>
+              {supervisors.map((sup) => (
+                <Pressable
+                  key={sup.employeeId}
+                  style={[
+                    styles.supChip,
+                    {
+                      backgroundColor: supervisorId === sup.employeeId ? colors.primaryLight : colors.card,
+                      borderColor: supervisorId === sup.employeeId ? colors.primary : colors.borderLight,
+                    },
+                  ]}
+                  onPress={() => setSupervisorId(sup.employeeId)}
+                >
+                  <Text style={[styles.supText, { color: supervisorId === sup.employeeId ? colors.primary : colors.text }]}>
+                    {getEmployeeDisplayName(sup)} · {sup.position}
+                  </Text>
+                </Pressable>
+              ))}
+            </View>
           </View>
 
           <Button title="Create employee account" onPress={handleSubmit} loading={submitting} size="lg" style={styles.submit} />
