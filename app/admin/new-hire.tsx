@@ -91,7 +91,7 @@ export default function NewHireScreen() {
           <Text style={[styles.title, { color: colors.text }]}>New hire details</Text>
 
           {fields.map((field) => (
-            <View key={field.key}>
+            <View key={field.key} style={styles.fieldGroup}>
               <Text style={[styles.label, { color: colors.textMuted }]}>{field.label.toUpperCase()}</Text>
               <TextInput
                 style={[styles.input, { color: colors.text, borderColor: colors.borderLight, backgroundColor: colors.card }]}
@@ -103,6 +103,7 @@ export default function NewHireScreen() {
             </View>
           ))}
 
+          <View style={styles.fieldGroup}>
           <Text style={[styles.label, { color: colors.textMuted }]}>ASSIGN SUPERVISOR</Text>
           <View style={styles.supervisorList}>
             {supervisors.map((sup) => (
@@ -123,6 +124,7 @@ export default function NewHireScreen() {
               </Pressable>
             ))}
           </View>
+          </View>
 
           <Button title="Create employee account" onPress={handleSubmit} loading={submitting} size="lg" style={styles.submit} />
           <Button title="Cancel" variant="outline" onPress={() => router.back()} />
@@ -135,11 +137,12 @@ export default function NewHireScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   content: { padding: 20, paddingBottom: 40 },
-  title: { fontSize: 22, fontWeight: '800', marginBottom: 16 },
-  label: { fontSize: 11, fontWeight: '700', marginBottom: 6, marginTop: 12, letterSpacing: 0.6 },
-  input: { borderWidth: 1, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 12, fontSize: 15 },
-  supervisorList: { gap: 8, marginTop: 4 },
-  supChip: { padding: 12, borderRadius: 12, borderWidth: 1.5 },
+  title: { fontSize: 22, fontWeight: '800', marginBottom: 12 },
+  fieldGroup: { marginBottom: 6 },
+  label: { fontSize: 11, fontWeight: '700', marginBottom: 4, letterSpacing: 0.6 },
+  input: { borderWidth: 1, borderRadius: 12, paddingHorizontal: 12, paddingVertical: 9, fontSize: 15 },
+  supervisorList: { gap: 6 },
+  supChip: { padding: 10, borderRadius: 12, borderWidth: 1.5 },
   supText: { fontSize: 13, fontWeight: '600' },
-  submit: { marginTop: 24, marginBottom: 10 },
+  submit: { marginTop: 16, marginBottom: 8 },
 });
