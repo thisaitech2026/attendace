@@ -5,6 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
+import { EmployeeAvatar } from '@/components/ui/EmployeeAvatar';
 import { getEmployeeDisplayName } from '@/services/employeeRegistry';
 import { useApp } from '@/contexts/AppContext';
 import Colors from '@/constants/Colors';
@@ -63,11 +64,18 @@ export default function AdminEmployeesScreen() {
       {allEmployees.map((emp) => (
         <Card key={emp.employeeId} style={styles.card}>
           <View style={styles.row}>
-            <View style={[styles.avatar, { backgroundColor: colors.primaryLight }]}>
-              <Text style={[styles.initials, { color: colors.primary }]}>
-                {emp.firstName[0]}{emp.lastName[0]}
-              </Text>
-            </View>
+            <EmployeeAvatar
+              firstName={emp.firstName}
+              lastName={emp.lastName}
+              avatar={emp.avatar}
+              employeeId={emp.employeeId}
+              size={48}
+              borderRadius={16}
+              borderWidth={0}
+              backgroundColor={colors.primaryLight}
+              textColor={colors.primary}
+              fontSize={16}
+            />
             <View style={styles.info}>
               <Text style={[styles.name, { color: colors.text }]}>{getEmployeeDisplayName(emp)}</Text>
               <Text style={[styles.position, { color: colors.textSecondary }]}>{emp.position}</Text>
@@ -99,8 +107,6 @@ const styles = StyleSheet.create({
   title: { fontSize: 24, fontWeight: '800' },
   card: { marginBottom: 12 },
   row: { flexDirection: 'row', gap: 12 },
-  avatar: { width: 48, height: 48, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
-  initials: { fontSize: 16, fontWeight: '800' },
   info: { flex: 1 },
   name: { fontSize: 16, fontWeight: '700' },
   position: { fontSize: 12, fontWeight: '600', marginTop: 4 },

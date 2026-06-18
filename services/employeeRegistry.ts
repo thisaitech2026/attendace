@@ -1,3 +1,4 @@
+import { getEmployeeAvatarUri } from '@/components/ui/EmployeeAvatar';
 import {
   loadEmployees as loadEmployeesFromFirestore,
   loadLeaveBalancesMap,
@@ -79,6 +80,7 @@ export async function createNewHire(input: NewHireInput): Promise<Employee> {
     joinDate: input.joinDate,
     address: input.address.trim(),
     emergencyContact: input.emergencyContact.trim(),
+    avatar: getEmployeeAvatarUri({ employeeId, email: normalizedEmail }),
   };
 
   const user: AppUser = {
