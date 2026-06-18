@@ -58,7 +58,7 @@ export default function AdminEmployeesScreen() {
     <>
       <ScrollView
         style={[styles.container, { backgroundColor: colors.background }]}
-        contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 24 }]}
+        contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 12 }]}
       >
         <View style={styles.headerRow}>
           <Text style={[styles.title, { color: colors.text }]}>Employees</Text>
@@ -68,38 +68,40 @@ export default function AdminEmployeesScreen() {
         </View>
 
         {allEmployees.map((emp) => (
-          <Card key={emp.employeeId} style={styles.card}>
-            <View style={styles.row}>
-              <EmployeeAvatar
-                firstName={emp.firstName}
-                lastName={emp.lastName}
-                avatar={emp.avatar}
-                employeeId={emp.employeeId}
-                size={48}
-                borderRadius={16}
-                borderWidth={0}
-                backgroundColor={colors.primaryLight}
-                textColor={colors.primary}
-                fontSize={16}
-              />
-              <View style={styles.info}>
-                <Text style={[styles.name, { color: colors.text }]}>{getEmployeeDisplayName(emp)}</Text>
-                <Text style={[styles.position, { color: colors.textSecondary }]}>{emp.position}</Text>
-                <Text style={[styles.meta, { color: colors.textMuted }]}>
-                  {emp.employeeId} · {emp.email}
-                </Text>
-                <Text style={[styles.supervisor, { color: colors.primary }]}>
-                  Supervisor: {emp.manager}
-                </Text>
+          <Card key={emp.employeeId} style={styles.card} noPadding>
+            <View style={styles.cardInner}>
+              <View style={styles.row}>
+                <EmployeeAvatar
+                  firstName={emp.firstName}
+                  lastName={emp.lastName}
+                  avatar={emp.avatar}
+                  employeeId={emp.employeeId}
+                  size={42}
+                  borderRadius={14}
+                  borderWidth={0}
+                  backgroundColor={colors.primaryLight}
+                  textColor={colors.primary}
+                  fontSize={14}
+                />
+                <View style={styles.info}>
+                  <Text style={[styles.name, { color: colors.text }]}>{getEmployeeDisplayName(emp)}</Text>
+                  <Text style={[styles.position, { color: colors.textSecondary }]}>{emp.position}</Text>
+                  <Text style={[styles.meta, { color: colors.textMuted }]}>
+                    {emp.employeeId} · {emp.email}
+                  </Text>
+                  <Text style={[styles.supervisor, { color: colors.primary }]}>
+                    Supervisor: {emp.manager}
+                  </Text>
+                </View>
               </View>
+              <Pressable
+                style={[styles.assignBtn, { borderColor: colors.borderLight }]}
+                onPress={() => handleAssign(emp)}
+                disabled={assigningId === emp.employeeId}
+              >
+                <Text style={[styles.assignText, { color: colors.primary }]}>Change supervisor</Text>
+              </Pressable>
             </View>
-            <Pressable
-              style={[styles.assignBtn, { borderColor: colors.borderLight }]}
-              onPress={() => handleAssign(emp)}
-              disabled={assigningId === emp.employeeId}
-            >
-              <Text style={[styles.assignText, { color: colors.primary }]}>Change supervisor</Text>
-            </Pressable>
           </Card>
         ))}
       </ScrollView>
@@ -139,38 +141,39 @@ export default function AdminEmployeesScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  content: { padding: 20 },
-  headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 },
-  title: { fontSize: 24, fontWeight: '800' },
-  card: { marginBottom: 12 },
-  row: { flexDirection: 'row', gap: 12 },
+  content: { padding: 14 },
+  headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 },
+  title: { fontSize: 22, fontWeight: '800' },
+  card: { marginBottom: 8, borderRadius: 14 },
+  cardInner: { padding: 10 },
+  row: { flexDirection: 'row', gap: 8 },
   info: { flex: 1 },
-  name: { fontSize: 16, fontWeight: '700' },
-  position: { fontSize: 12, fontWeight: '600', marginTop: 4 },
-  meta: { fontSize: 12, marginTop: 4, fontWeight: '500' },
-  supervisor: { fontSize: 12, marginTop: 6, fontWeight: '700' },
-  assignBtn: { marginTop: 12, paddingVertical: 10, borderRadius: 12, borderWidth: 1, alignItems: 'center' },
-  assignText: { fontSize: 13, fontWeight: '700' },
+  name: { fontSize: 15, fontWeight: '700' },
+  position: { fontSize: 11, fontWeight: '600', marginTop: 2 },
+  meta: { fontSize: 11, marginTop: 2, fontWeight: '500' },
+  supervisor: { fontSize: 11, marginTop: 3, fontWeight: '700' },
+  assignBtn: { marginTop: 6, paddingVertical: 6, borderRadius: 10, borderWidth: 1, alignItems: 'center' },
+  assignText: { fontSize: 12, fontWeight: '700' },
   modalBackdrop: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.45)',
     justifyContent: 'center',
-    padding: 24,
+    padding: 20,
   },
   modalCard: {
-    borderRadius: 20,
-    padding: 20,
+    borderRadius: 16,
+    padding: 14,
     maxHeight: '80%',
   },
-  modalTitle: { fontSize: 18, fontWeight: '800' },
-  modalSubtitle: { fontSize: 13, marginTop: 4, marginBottom: 12 },
-  modalList: { maxHeight: 320, marginBottom: 12 },
+  modalTitle: { fontSize: 17, fontWeight: '800' },
+  modalSubtitle: { fontSize: 12, marginTop: 2, marginBottom: 8 },
+  modalList: { maxHeight: 280, marginBottom: 8 },
   modalOption: {
     borderWidth: 1,
-    borderRadius: 12,
-    padding: 12,
-    marginBottom: 8,
+    borderRadius: 10,
+    padding: 8,
+    marginBottom: 6,
   },
-  modalOptionText: { fontSize: 15, fontWeight: '700' },
-  modalOptionMeta: { fontSize: 12, marginTop: 2 },
+  modalOptionText: { fontSize: 14, fontWeight: '700' },
+  modalOptionMeta: { fontSize: 11, marginTop: 1 },
 });
