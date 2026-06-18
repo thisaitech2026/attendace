@@ -1,6 +1,29 @@
 import { findEmployeeById, getEmployeeDisplayName, loadEmployees } from '@/services/employeeRegistry';
-import { loadLeaveRequests, saveLeaveRequests } from '@/services/firestoreRepository';
-import type { Employee, LeaveRequest, LeaveStatus } from '@/types/employee';
+import {
+  loadLeaveBalancesMap,
+  loadLeaveRequests,
+  saveLeaveBalancesMap,
+  saveLeaveRequests,
+} from '@/services/firestoreRepository';
+import type { Employee, LeaveBalance, LeaveRequest, LeaveStatus } from '@/types/employee';
+
+async function applyApprovedLeaveBalance(request: LeaveRequest): Promise<void> {
+  const map = await loadLeaveBalancesMap();
+  const balances = map[request.employeeId];
+  if (!balances?.length) return;
+
+  const updated = balances.map((balance) => {
+    if (balance.type !== request.type) return balance;
+    const used = balance.used + request.days;
+    return {
+      ...balance,
+      used,
+      remaining: Math.max(0, balance.total - used),
+    } satisfies LeaveBalance;
+  });
+
+  await saveLeaveBalancesMap({ [request.employeeId]: updated });
+}
 
 function countSupervisors(employees: Employee[]): number {
   const withDirectReports = employees.filter((employee) =>
@@ -47,6 +70,9 @@ export async function reviewLeaveRequest(
     reviewedBy,
   };
   await saveLeaveRequests([updated]);
+  if (status === 'approved') {
+    await applyApprovedLeaveBalance(updated);
+  }
   return updated;
 }
 

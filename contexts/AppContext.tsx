@@ -272,6 +272,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const approveLeave = useCallback(
     async (requestId: string) => {
       await reviewLeaveRequest(requestId, 'approved', session?.name ?? 'HR Admin');
+      setPendingApprovals((prev) => prev.filter((item) => item.id !== requestId));
+      setAdminStats((prev) => ({
+        ...prev,
+        pendingApprovals: Math.max(0, prev.pendingApprovals - 1),
+      }));
       await refreshData();
     },
     [session?.name, refreshData]
@@ -280,6 +285,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const rejectLeave = useCallback(
     async (requestId: string) => {
       await reviewLeaveRequest(requestId, 'rejected', session?.name ?? 'HR Admin');
+      setPendingApprovals((prev) => prev.filter((item) => item.id !== requestId));
+      setAdminStats((prev) => ({
+        ...prev,
+        pendingApprovals: Math.max(0, prev.pendingApprovals - 1),
+      }));
       await refreshData();
     },
     [session?.name, refreshData]

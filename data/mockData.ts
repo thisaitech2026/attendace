@@ -79,6 +79,17 @@ export const MOCK_LEAVE_REQUESTS: LeaveRequest[] = [
     status: 'pending',
     submittedAt: '2026-06-01T09:00:00Z',
   },
+  {
+    id: 'lr3',
+    employeeId: 'EMP002',
+    type: 'annual',
+    startDate: '2026-08-11',
+    endDate: '2026-08-15',
+    days: 5,
+    reason: 'Summer break',
+    status: 'pending',
+    submittedAt: '2026-06-10T11:00:00Z',
+  },
 ];
 
 export const MOCK_PERFORMANCE: PerformanceReview[] = [
