@@ -22,9 +22,6 @@ export default function AdminApprovalsScreen() {
       contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 24 }]}
     >
       <Text style={[styles.title, { color: colors.text }]}>Approvals</Text>
-      <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
-        Review leave requests and take action
-      </Text>
 
       {pendingApprovals.length === 0 ? (
         <Card>
@@ -60,8 +57,7 @@ export default function AdminApprovalsScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   content: { padding: 20 },
-  title: { fontSize: 24, fontWeight: '800' },
-  subtitle: { fontSize: 14, marginTop: 4, marginBottom: 20, fontWeight: '500' },
+  title: { fontSize: 24, fontWeight: '800', marginBottom: 16 },
   card: { marginBottom: 14 },
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   name: { fontSize: 17, fontWeight: '700' },
