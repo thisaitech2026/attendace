@@ -40,7 +40,7 @@ const TEXT_FIELDS: { key: 'firstName' | 'lastName' | 'email' | 'phone' | 'addres
   { key: 'email', label: 'Work email' },
   { key: 'phone', label: 'Phone (10 digits)' },
   { key: 'address', label: 'Address' },
-  { key: 'emergencyContact', label: 'Emergency contact' },
+  { key: 'emergencyContact', label: 'Emergency contact (10 digits)' },
   { key: 'tempPassword', label: 'Temporary password' },
 ];
 
@@ -92,8 +92,8 @@ export default function NewHireScreen() {
   const update = (key: keyof typeof form, value: string) => setForm((prev) => ({ ...prev, [key]: value }));
 
   const handleFieldChange = (key: keyof typeof form, value: string) => {
-    if (key === 'phone') {
-      update('phone', value.replace(/\D/g, '').slice(0, 10));
+    if (key === 'phone' || key === 'emergencyContact') {
+      update(key, value.replace(/\D/g, '').slice(0, 10));
       return;
     }
     update(key, value);
@@ -120,6 +120,10 @@ export default function NewHireScreen() {
     }
     if (form.phone.length !== 10) {
       showAlert('Invalid phone', 'Phone number must be exactly 10 digits.');
+      return;
+    }
+    if (form.emergencyContact && form.emergencyContact.length !== 10) {
+      showAlert('Invalid emergency contact', 'Emergency contact number must be exactly 10 digits.');
       return;
     }
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) {
@@ -210,6 +214,8 @@ export default function NewHireScreen() {
                 value={form[field.key]}
                 onChangeText={(v) => handleFieldChange(field.key, v)}
                 autoCapitalize="words"
+                keyboardType={field.key === 'emergencyContact' ? 'phone-pad' : 'default'}
+                maxLength={field.key === 'emergencyContact' ? 10 : undefined}
               />
             </View>
           ))}
