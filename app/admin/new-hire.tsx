@@ -161,7 +161,6 @@ export default function NewHireScreen() {
                   field.key === 'email' ? 'email-address' : field.key === 'phone' ? 'phone-pad' : 'default'
                 }
                 maxLength={field.key === 'phone' ? 10 : undefined}
-                placeholder={field.key === 'phone' ? '1234567890' : undefined}
               />
             </View>
           ))}
