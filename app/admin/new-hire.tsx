@@ -50,9 +50,21 @@ export default function NewHireScreen() {
 
   const update = (key: keyof typeof form, value: string) => setForm((prev) => ({ ...prev, [key]: value }));
 
+  const handleFieldChange = (key: keyof typeof form, value: string) => {
+    if (key === 'phone') {
+      update('phone', value.replace(/\D/g, '').slice(0, 10));
+      return;
+    }
+    update(key, value);
+  };
+
   const handleSubmit = async () => {
-    if (!form.firstName || !form.lastName || !form.email || !form.department || !form.position || !supervisorId) {
+    if (!form.firstName || !form.lastName || !form.email || !form.phone || !form.department || !form.position || !supervisorId) {
       Alert.alert('Missing fields', 'Please fill in all required fields.');
+      return;
+    }
+    if (form.phone.length !== 10) {
+      Alert.alert('Invalid phone', 'Phone number must be exactly 10 digits.');
       return;
     }
     setSubmitting(true);
