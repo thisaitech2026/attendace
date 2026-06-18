@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Alert, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { format, parseISO } from 'date-fns';
 
 import { Button } from '@/components/ui/Button';
@@ -10,6 +10,7 @@ import { useApp } from '@/contexts/AppContext';
 import Colors from '@/constants/Colors';
 import { getCurrentWifiInfo, verifyOfficeWifi } from '@/services/wifiService';
 import { formatDisplayTime } from '@/utils/formatTime';
+import { showAlert, showConfirm } from '@/utils/uiAlert';
 import { useColorScheme } from '@/components/useColorScheme';
 
 export default function AttendanceScreen() {
@@ -50,40 +51,34 @@ export default function AttendanceScreen() {
     try {
       const result = await verifyOfficeWifi();
       if (!result.valid) {
-        Alert.alert('WiFi Verification Failed', result.message);
+        showAlert('WiFi Verification Failed', result.message);
         return;
       }
       await doPunchIn('wifi', result.ssid);
-      Alert.alert('Punched In', `Verified via office WiFi: ${result.ssid}`);
+      showAlert('Punched In', `Verified via office WiFi: ${result.ssid}`);
     } catch (e) {
-      Alert.alert('Error', e instanceof Error ? e.message : 'Punch in failed');
+      showAlert('Error', e instanceof Error ? e.message : 'Punch in failed');
     } finally {
       setLoading(false);
     }
   };
 
   const handleManualPunchIn = async () => {
-    Alert.alert(
+    const confirmed = await showConfirm(
       'Manual Punch In',
-      'Manual punch requires manager approval. Continue?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Continue',
-          onPress: async () => {
-            setLoading(true);
-            try {
-              await doPunchIn('manual', null);
-              Alert.alert('Punched In', 'Manual punch recorded — pending approval.');
-            } catch (e) {
-              Alert.alert('Error', e instanceof Error ? e.message : 'Punch in failed');
-            } finally {
-              setLoading(false);
-            }
-          },
-        },
-      ]
+      'Manual punch requires manager approval. Continue?'
     );
+    if (!confirmed) return;
+
+    setLoading(true);
+    try {
+      await doPunchIn('manual', null);
+      showAlert('Punched In', 'Manual punch recorded — pending approval.');
+    } catch (e) {
+      showAlert('Error', e instanceof Error ? e.message : 'Punch in failed');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handlePunchOut = async () => {
@@ -92,9 +87,9 @@ export default function AttendanceScreen() {
       const result = await verifyOfficeWifi();
       const method = result.valid ? 'wifi' : 'manual';
       await doPunchOut(method);
-      Alert.alert('Punched Out', `Recorded at ${format(new Date(), 'h:mm a')}`);
+      showAlert('Punched Out', `Recorded at ${format(new Date(), 'h:mm a')}`);
     } catch (e) {
-      Alert.alert('Error', e instanceof Error ? e.message : 'Punch out failed');
+      showAlert('Error', e instanceof Error ? e.message : 'Punch out failed');
     } finally {
       setLoading(false);
     }
@@ -131,6 +126,9 @@ export default function AttendanceScreen() {
             </Text>
             {today?.punchInMethod ? (
               <StatusBadge label={today.punchInMethod} tone={today.punchInMethod === 'wifi' ? 'success' : 'warning'} />
+            ) : null}
+            {today?.manualApprovalStatus === 'pending' ? (
+              <StatusBadge label="pending approval" tone="warning" />
             ) : null}
           </View>
           <View style={[styles.divider, { backgroundColor: colors.border }]} />

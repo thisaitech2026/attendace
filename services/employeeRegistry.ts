@@ -1,5 +1,6 @@
 import { getEmployeeAvatarUri } from '@/components/ui/EmployeeAvatar';
 import {
+  createNewHireRecords,
   loadEmployees as loadEmployeesFromFirestore,
   loadLeaveBalancesMap,
   loadUsers as loadUsersFromFirestore,
@@ -98,9 +99,7 @@ export async function createNewHire(input: NewHireInput): Promise<Employee> {
     { type: 'unpaid', total: 0, used: 0, remaining: 0 },
   ];
 
-  await saveEmployees([employee]);
-  await saveUsers([user]);
-  await saveLeaveBalancesMap({ [employeeId]: defaultBalances });
+  await createNewHireRecords(employee, user, defaultBalances);
   return employee;
 }
 
@@ -117,5 +116,17 @@ export async function assignSupervisor(employeeId: string, supervisorId: string)
 }
 
 export async function getSupervisorOptions(): Promise<Employee[]> {
-  return loadEmployees();
+  const employees = await loadEmployees();
+  const managers = employees.filter((employee) =>
+    /manager|supervisor|lead|director|head/i.test(employee.position)
+  );
+  const withReports = employees.filter((employee) =>
+    employees.some(
+      (other) =>
+        other.employeeId !== employee.employeeId &&
+        other.manager === getEmployeeDisplayName(employee)
+    )
+  );
+  const combined = [...new Map([...managers, ...withReports].map((e) => [e.employeeId, e])).values()];
+  return combined.length > 0 ? combined : employees;
 }

@@ -1,22 +1,24 @@
-# WorkPulse — Employee Mobile App
+# thisAI — Employee Mobile App
 
-A cross-platform mobile HR app built with **React Native** and **Expo** for employee self-service: attendance, leave, performance, salary, and profile management.
+A cross-platform mobile HR app built with **React Native** and **Expo** for employee self-service: attendance, leave, salary, and profile management.
 
 ## Features
 
 - **Employee Profile** — View personal and work contact details
 - **Attendance (Punch In/Out)** — Track daily attendance with timestamps
-- **WiFi Punch-In** — WorkJam-style office WiFi verification before punch-in (validates connected SSID against approved office networks)
+- **WiFi Punch-In** — Office WiFi verification before punch-in (validates connected SSID against approved office networks)
+- **Manual Punch Approval** — Manual punches queue for HR admin approval
 - **Leave Management** — View balances, submit requests, track approval status
-- **Performance Reviews** — Goals, ratings, strengths, and improvement areas
 - **Salary & Payslips** — Monthly breakdown with basic, allowances, deductions, and net pay
+- **HR Admin** — Employee management, new hire onboarding, leave and attendance approvals
 
 ## Tech Stack
 
 - React Native 0.85 + Expo SDK 56
 - Expo Router (file-based navigation)
 - TypeScript
-- AsyncStorage for local persistence
+- Firebase Firestore for cloud data
+- AsyncStorage for session persistence
 - `@react-native-community/netinfo` + `expo-location` for WiFi verification
 
 ## Getting Started
@@ -52,9 +54,11 @@ Then scan the QR code with Expo Go, or press `a` for Android / `i` for iOS simul
 
 ## Android APK
 
-A release APK is available at [`releases/WorkPulse-v1.0.0.apk`](releases/WorkPulse-v1.0.0.apk) (arm64-v8a).
+A release APK is available at [`releases/thisAI-v1.0.0.apk`](releases/thisAI-v1.0.0.apk) (arm64-v8a).
 
 Install on Android by enabling "Install unknown apps" for your file manager, then open the APK.
+
+**Package:** `com.thisaitech.hris`
 
 ### Build APK locally
 
@@ -65,7 +69,7 @@ npm install
 npm run build:apk
 ```
 
-The output is copied to `releases/WorkPulse-v1.0.0.apk`.
+The output is copied to `releases/thisAI-v1.0.0.apk`.
 
 For cloud builds with EAS:
 
@@ -99,6 +103,7 @@ export const OFFICE_IP_PREFIX = '192.168.100.';
 ```
 app/                  # Screens (Expo Router)
   (tabs)/             # Main tab navigation
+  admin/              # HR admin screens
   login.tsx           # Authentication
   leave-request.tsx   # Leave request modal
 components/ui/        # Reusable UI components

@@ -65,6 +65,7 @@ export async function punchIn(
     punchInMethod: method,
     wifiSsid,
     status: method === 'wifi' ? 'present' : 'late',
+    manualApprovalStatus: method === 'manual' ? 'pending' : undefined,
   };
   await saveAttendanceRecords([updated]);
   return updated;

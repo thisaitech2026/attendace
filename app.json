@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "thisAI",
-    "slug": "workpulse",
+    "slug": "thisai",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -26,7 +26,8 @@
         "ACCESS_FINE_LOCATION",
         "ACCESS_COARSE_LOCATION",
         "ACCESS_WIFI_STATE",
-        "ACCESS_NETWORK_STATE"
+        "ACCESS_NETWORK_STATE",
+        "NEARBY_WIFI_DEVICES"
       ],
       "predictiveBackGestureEnabled": false
     },
@@ -51,7 +52,8 @@
           "locationWhenInUsePermission": "Allow thisAI to access your location to verify office WiFi for attendance punch-in."
         }
       ],
-      "@react-native-community/datetimepicker"
+      "@react-native-community/datetimepicker",
+      "expo-system-ui"
     ],
     "experiments": {
       "typedRoutes": true

@@ -27,6 +27,7 @@ export interface AttendanceRecord {
   wifiSsid: string | null;
   hoursWorked: number;
   status: 'present' | 'absent' | 'half-day' | 'late';
+  manualApprovalStatus?: 'pending' | 'approved' | 'rejected';
 }
 
 export type LeaveType = 'annual' | 'sick' | 'personal' | 'unpaid';

@@ -1,11 +1,24 @@
 import { findEmployeeById, getEmployeeDisplayName, loadEmployees } from '@/services/employeeRegistry';
 import {
+  loadAllAttendance,
   loadLeaveBalancesMap,
   loadLeaveRequests,
+  saveAttendanceRecords,
   saveLeaveBalancesMap,
   saveLeaveRequests,
 } from '@/services/firestoreRepository';
-import type { Employee, LeaveBalance, LeaveRequest, LeaveStatus } from '@/types/employee';
+import type {
+  AttendanceRecord,
+  Employee,
+  LeaveBalance,
+  LeaveRequest,
+  LeaveStatus,
+} from '@/types/employee';
+
+export interface EnrichedAttendanceApproval extends AttendanceRecord {
+  employeeName: string;
+  department: string;
+}
 
 async function applyApprovedLeaveBalance(request: LeaveRequest): Promise<void> {
   const map = await loadLeaveBalancesMap();
@@ -45,9 +58,19 @@ export async function getAllLeaveRequests(): Promise<LeaveRequest[]> {
   return loadLeaveRequests();
 }
 
-export async function getPendingApprovals(): Promise<LeaveRequest[]> {
+export async function getPendingLeaveApprovals(): Promise<LeaveRequest[]> {
   const all = await getAllLeaveRequests();
   return all.filter((r) => r.status === 'pending');
+}
+
+/** @deprecated Use getPendingLeaveApprovals */
+export async function getPendingApprovals(): Promise<LeaveRequest[]> {
+  return getPendingLeaveApprovals();
+}
+
+export async function getPendingAttendanceApprovals(): Promise<AttendanceRecord[]> {
+  const all = await loadAllAttendance();
+  return all.filter((record) => record.manualApprovalStatus === 'pending');
 }
 
 export async function reviewLeaveRequest(
@@ -76,12 +99,41 @@ export async function reviewLeaveRequest(
   return updated;
 }
 
+export async function reviewAttendanceApproval(
+  recordId: string,
+  approved: boolean,
+  _reviewedBy: string
+): Promise<AttendanceRecord> {
+  const all = await loadAllAttendance();
+  const target = all.find((record) => record.id === recordId);
+  if (!target) {
+    throw new Error('Attendance record not found');
+  }
+  if (target.manualApprovalStatus !== 'pending') {
+    throw new Error('Attendance already reviewed');
+  }
+
+  const updated: AttendanceRecord = {
+    ...target,
+    manualApprovalStatus: approved ? 'approved' : 'rejected',
+    status: approved ? 'present' : 'absent',
+    punchIn: approved ? target.punchIn : null,
+    punchInMethod: approved ? target.punchInMethod : null,
+  };
+  await saveAttendanceRecords([updated]);
+  return updated;
+}
+
 export async function getAdminStats() {
-  const [employees, pending] = await Promise.all([loadEmployees(), getPendingApprovals()]);
+  const [employees, pendingLeave, pendingAttendance] = await Promise.all([
+    loadEmployees(),
+    getPendingLeaveApprovals(),
+    getPendingAttendanceApprovals(),
+  ]);
   return {
     totalEmployees: employees.length,
     totalSupervisors: countSupervisors(employees),
-    pendingApprovals: pending.length,
+    pendingApprovals: pendingLeave.length + pendingAttendance.length,
     departments: [...new Set(employees.map((e) => e.department))].length,
   };
 }
@@ -93,5 +145,14 @@ export async function enrichLeaveRequest(request: LeaveRequest) {
     employeeName: employee ? `${employee.firstName} ${employee.lastName}` : request.employeeId,
     department: employee?.department ?? '—',
     supervisor: employee?.manager ?? '—',
+  };
+}
+
+export async function enrichAttendanceApproval(record: AttendanceRecord): Promise<EnrichedAttendanceApproval> {
+  const employee = await findEmployeeById(record.employeeId);
+  return {
+    ...record,
+    employeeName: employee ? getEmployeeDisplayName(employee) : record.employeeId,
+    department: employee?.department ?? '—',
   };
 }

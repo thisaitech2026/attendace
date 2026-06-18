@@ -137,7 +137,7 @@ export default function NewHireScreen() {
       showAlert(
         'New hire created',
         `${getEmployeeDisplayName(created)} added.\nLogin: ${created.email}\nTemp password: ${form.tempPassword}`,
-        () => router.back()
+        () => router.replace('/admin/employees')
       );
     } catch (e) {
       showAlert('Error', e instanceof Error ? e.message : 'Could not create employee account');

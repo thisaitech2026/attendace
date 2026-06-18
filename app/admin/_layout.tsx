@@ -6,6 +6,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useApp } from '@/contexts/AppContext';
 import Colors from '@/constants/Colors';
 import { useColorScheme } from '@/components/useColorScheme';
+import { showConfirm } from '@/utils/uiAlert';
 
 type IoniconName = keyof typeof Ionicons.glyphMap;
 
@@ -64,15 +65,21 @@ export default function AdminLayout() {
     return <Redirect href="/(tabs)" />;
   }
 
+  const handleLogout = async () => {
+    const confirmed = await showConfirm('Sign out', 'Are you sure you want to sign out?');
+    if (confirmed) await logout();
+  };
+
   return (
     <>
-      <Pressable
+      <View
         style={[styles.topBar, { backgroundColor: colors.card, borderBottomColor: colors.borderLight, paddingTop: insets.top + 8 }]}
-        onPress={logout}
       >
         <Text style={[styles.topTitle, { color: colors.text }]}>HR Admin · {adminName}</Text>
-        <Text style={[styles.signOut, { color: colors.danger }]}>Sign out</Text>
-      </Pressable>
+        <Pressable onPress={handleLogout} hitSlop={8}>
+          <Text style={[styles.signOut, { color: colors.danger }]}>Sign out</Text>
+        </Pressable>
+      </View>
       <Tabs
         screenOptions={{
           tabBarStyle: {

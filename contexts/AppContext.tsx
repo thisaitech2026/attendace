@@ -2,10 +2,12 @@ import React, { createContext, useCallback, useContext, useEffect, useMemo, useS
 
 import { DEMO_LOGINS } from '@/constants/config';
 import {
+  enrichAttendanceApproval,
   enrichLeaveRequest,
   getAdminStats,
-  getAllLeaveRequests,
-  getPendingApprovals,
+  getPendingAttendanceApprovals,
+  getPendingLeaveApprovals,
+  reviewAttendanceApproval,
   reviewLeaveRequest,
 } from '@/services/adminService';
 import { loadChatMessages, sendChatMessage } from '@/services/chatService';
@@ -55,6 +57,11 @@ export interface EnrichedLeaveRequest extends LeaveRequest {
   supervisor: string;
 }
 
+export interface EnrichedAttendanceApproval extends AttendanceRecord {
+  employeeName: string;
+  department: string;
+}
+
 interface AppContextValue {
   isLoading: boolean;
   isAuthenticated: boolean;
@@ -69,6 +76,7 @@ interface AppContextValue {
   chatMessages: ChatMessage[];
   allEmployees: Employee[];
   pendingApprovals: EnrichedLeaveRequest[];
+  pendingAttendanceApprovals: EnrichedAttendanceApproval[];
   adminStats: { totalEmployees: number; totalSupervisors: number; pendingApprovals: number; departments: number };
   login: (email: string, password: string, role: UserRole) => Promise<void>;
   logout: () => Promise<void>;
@@ -81,6 +89,8 @@ interface AppContextValue {
   updateSupervisor: (employeeId: string, supervisorId: string) => Promise<void>;
   approveLeave: (requestId: string) => Promise<void>;
   rejectLeave: (requestId: string) => Promise<void>;
+  approveAttendance: (recordId: string) => Promise<void>;
+  rejectAttendance: (recordId: string) => Promise<void>;
   getSupervisors: () => Promise<Employee[]>;
 }
 
@@ -97,6 +107,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [allEmployees, setAllEmployees] = useState<Employee[]>([]);
   const [pendingApprovals, setPendingApprovals] = useState<EnrichedLeaveRequest[]>([]);
+  const [pendingAttendanceApprovals, setPendingAttendanceApprovals] = useState<EnrichedAttendanceApproval[]>([]);
   const [adminStats, setAdminStats] = useState({ totalEmployees: 0, totalSupervisors: 0, pendingApprovals: 0, departments: 0 });
 
   const employeeId = employee?.employeeId ?? '';
@@ -108,14 +119,19 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setChatMessages(messages);
 
     if (session?.role === 'admin') {
-      const [employees, pending, stats] = await Promise.all([
+      const [employees, pendingLeave, pendingAttendance, stats] = await Promise.all([
         loadEmployees(),
-        getPendingApprovals(),
+        getPendingLeaveApprovals(),
+        getPendingAttendanceApprovals(),
         getAdminStats(),
       ]);
-      const enriched = await Promise.all(pending.map((r) => enrichLeaveRequest(r)));
+      const [enrichedLeave, enrichedAttendance] = await Promise.all([
+        Promise.all(pendingLeave.map((r) => enrichLeaveRequest(r))),
+        Promise.all(pendingAttendance.map((r) => enrichAttendanceApproval(r))),
+      ]);
       setAllEmployees(employees);
-      setPendingApprovals(enriched);
+      setPendingApprovals(enrichedLeave);
+      setPendingAttendanceApprovals(enrichedAttendance);
       setAdminStats(stats);
       return;
     }
@@ -140,10 +156,16 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         await ensureFirestoreSeed();
         const saved = await getItem<Session>(storageKeys.SESSION);
         if (saved) {
-          setSession(saved);
           if (saved.role === 'employee' && saved.email) {
             const emp = await findEmployeeByEmail(saved.email);
-            setEmployee(emp ?? null);
+            if (!emp) {
+              await removeItem(storageKeys.SESSION);
+            } else {
+              setSession(saved);
+              setEmployee(emp);
+            }
+          } else {
+            setSession(saved);
           }
         }
         const messages = await loadChatMessages();
@@ -202,6 +224,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setSalarySlips([]);
     setAllEmployees([]);
     setPendingApprovals([]);
+    setPendingAttendanceApprovals([]);
     setAdminStats({ totalEmployees: 0, totalSupervisors: 0, pendingApprovals: 0, departments: 0 });
   }, []);
 
@@ -295,6 +318,32 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     [session?.name, refreshData]
   );
 
+  const approveAttendance = useCallback(
+    async (recordId: string) => {
+      await reviewAttendanceApproval(recordId, true, session?.name ?? 'HR Admin');
+      setPendingAttendanceApprovals((prev) => prev.filter((item) => item.id !== recordId));
+      setAdminStats((prev) => ({
+        ...prev,
+        pendingApprovals: Math.max(0, prev.pendingApprovals - 1),
+      }));
+      await refreshData();
+    },
+    [session?.name, refreshData]
+  );
+
+  const rejectAttendance = useCallback(
+    async (recordId: string) => {
+      await reviewAttendanceApproval(recordId, false, session?.name ?? 'HR Admin');
+      setPendingAttendanceApprovals((prev) => prev.filter((item) => item.id !== recordId));
+      setAdminStats((prev) => ({
+        ...prev,
+        pendingApprovals: Math.max(0, prev.pendingApprovals - 1),
+      }));
+      await refreshData();
+    },
+    [session?.name, refreshData]
+  );
+
   const getSupervisors = useCallback(() => getSupervisorOptions(), []);
 
   const value = useMemo<AppContextValue>(
@@ -312,6 +361,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       chatMessages,
       allEmployees,
       pendingApprovals,
+      pendingAttendanceApprovals,
       adminStats,
       login,
       logout,
@@ -324,6 +374,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       updateSupervisor,
       approveLeave,
       rejectLeave,
+      approveAttendance,
+      rejectAttendance,
       getSupervisors,
     }),
     [
@@ -339,6 +391,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       chatMessages,
       allEmployees,
       pendingApprovals,
+      pendingAttendanceApprovals,
       adminStats,
       login,
       logout,
@@ -351,6 +404,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       updateSupervisor,
       approveLeave,
       rejectLeave,
+      approveAttendance,
+      rejectAttendance,
       getSupervisors,
     ]
   );

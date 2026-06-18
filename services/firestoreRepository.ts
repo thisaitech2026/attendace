@@ -130,6 +130,18 @@ async function seedFirestoreIfNeeded(): Promise<void> {
   await batch.commit();
 }
 
+export async function createNewHireRecords(
+  employee: Employee,
+  user: AppUser,
+  leaveBalances: LeaveBalance[]
+): Promise<void> {
+  const batch = writeBatch(firestore);
+  batch.set(doc(employeesCollection(), employee.employeeId), employee);
+  batch.set(doc(usersCollection(), userDocId(user.email)), user);
+  batch.set(doc(leaveBalancesCollection(), employee.employeeId), { employeeId: employee.employeeId, balances: leaveBalances });
+  await batch.commit();
+}
+
 export async function loadUsers(): Promise<AppUser[]> {
   await ensureFirestoreSeed();
   const snapshot = await getDocs(usersCollection());

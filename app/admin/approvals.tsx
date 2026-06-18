@@ -10,18 +10,28 @@ import { useApp } from '@/contexts/AppContext';
 import Colors from '@/constants/Colors';
 import { LEAVE_TYPE_LABELS } from '@/constants/config';
 import { useColorScheme } from '@/components/useColorScheme';
+import { formatDisplayTime } from '@/utils/formatTime';
 import { showAlert, showConfirm } from '@/utils/uiAlert';
 
 export default function AdminApprovalsScreen() {
-  const { pendingApprovals, approveLeave, rejectLeave } = useApp();
+  const {
+    pendingApprovals,
+    pendingAttendanceApprovals,
+    approveLeave,
+    rejectLeave,
+    approveAttendance,
+    rejectAttendance,
+  } = useApp();
   const scheme = useColorScheme() ?? 'light';
   const colors = Colors[scheme];
   const insets = useSafeAreaInsets();
   const [processingId, setProcessingId] = useState<string | null>(null);
 
-  const handleApprove = async (requestId: string, employeeName: string) => {
+  const hasPending = pendingApprovals.length > 0 || pendingAttendanceApprovals.length > 0;
+
+  const handleApproveLeave = async (requestId: string, employeeName: string) => {
     if (processingId) return;
-    setProcessingId(requestId);
+    setProcessingId(`leave:${requestId}`);
     try {
       await approveLeave(requestId);
       showAlert('Approved', `${employeeName}'s leave request has been approved.`);
@@ -32,7 +42,7 @@ export default function AdminApprovalsScreen() {
     }
   };
 
-  const handleReject = async (requestId: string, employeeName: string) => {
+  const handleRejectLeave = async (requestId: string, employeeName: string) => {
     if (processingId) return;
     const confirmed = await showConfirm(
       'Reject leave request',
@@ -40,10 +50,42 @@ export default function AdminApprovalsScreen() {
     );
     if (!confirmed) return;
 
-    setProcessingId(requestId);
+    setProcessingId(`leave:${requestId}`);
     try {
       await rejectLeave(requestId);
       showAlert('Rejected', `${employeeName}'s leave request has been rejected.`);
+    } catch (error) {
+      showAlert('Could not reject', error instanceof Error ? error.message : 'Something went wrong.');
+    } finally {
+      setProcessingId(null);
+    }
+  };
+
+  const handleApproveAttendance = async (recordId: string, employeeName: string) => {
+    if (processingId) return;
+    setProcessingId(`attendance:${recordId}`);
+    try {
+      await approveAttendance(recordId);
+      showAlert('Approved', `${employeeName}'s manual punch has been approved.`);
+    } catch (error) {
+      showAlert('Could not approve', error instanceof Error ? error.message : 'Something went wrong.');
+    } finally {
+      setProcessingId(null);
+    }
+  };
+
+  const handleRejectAttendance = async (recordId: string, employeeName: string) => {
+    if (processingId) return;
+    const confirmed = await showConfirm(
+      'Reject manual punch',
+      `Reject ${employeeName}'s manual punch request?`
+    );
+    if (!confirmed) return;
+
+    setProcessingId(`attendance:${recordId}`);
+    try {
+      await rejectAttendance(recordId);
+      showAlert('Rejected', `${employeeName}'s manual punch has been rejected.`);
     } catch (error) {
       showAlert('Could not reject', error instanceof Error ? error.message : 'Something went wrong.');
     } finally {
@@ -58,13 +100,26 @@ export default function AdminApprovalsScreen() {
     >
       <Text style={[styles.title, { color: colors.text }]}>Approvals</Text>
 
-      {pendingApprovals.length === 0 ? (
+      {!hasPending ? (
         <Card>
           <Text style={[styles.empty, { color: colors.textSecondary }]}>All caught up — no pending requests.</Text>
         </Card>
-      ) : (
-        pendingApprovals.map((item) => {
-          const isProcessing = processingId === item.id;
+      ) : null}
+
+      {pendingLeaveSection()}
+      {pendingAttendanceSection()}
+    </ScrollView>
+  );
+
+  function pendingLeaveSection() {
+    if (pendingApprovals.length === 0) return null;
+
+    return (
+      <>
+        <Text style={[styles.section, { color: colors.text }]}>Leave requests</Text>
+        {pendingApprovals.map((item) => {
+          const key = `leave:${item.id}`;
+          const isProcessing = processingId === key;
           return (
             <Card key={item.id} style={styles.card}>
               <View style={styles.header}>
@@ -83,7 +138,7 @@ export default function AdminApprovalsScreen() {
               <View style={styles.actions}>
                 <Button
                   title="Approve ✓"
-                  onPress={() => handleApprove(item.id, item.employeeName)}
+                  onPress={() => handleApproveLeave(item.id, item.employeeName)}
                   style={styles.btn}
                   loading={isProcessing}
                   disabled={!!processingId && !isProcessing}
@@ -91,7 +146,7 @@ export default function AdminApprovalsScreen() {
                 <Button
                   title="Reject ✕"
                   variant="danger"
-                  onPress={() => handleReject(item.id, item.employeeName)}
+                  onPress={() => handleRejectLeave(item.id, item.employeeName)}
                   style={styles.btn}
                   loading={isProcessing}
                   disabled={!!processingId && !isProcessing}
@@ -99,16 +154,63 @@ export default function AdminApprovalsScreen() {
               </View>
             </Card>
           );
-        })
-      )}
-    </ScrollView>
-  );
+        })}
+      </>
+    );
+  }
+
+  function pendingAttendanceSection() {
+    if (pendingAttendanceApprovals.length === 0) return null;
+
+    return (
+      <>
+        <Text style={[styles.section, { color: colors.text }]}>Manual punch requests</Text>
+        {pendingAttendanceApprovals.map((item) => {
+          const key = `attendance:${item.id}`;
+          const isProcessing = processingId === key;
+          return (
+            <Card key={item.id} style={styles.card}>
+              <View style={styles.header}>
+                <Text style={[styles.name, { color: colors.text }]}>{item.employeeName}</Text>
+                <StatusSymbolBadge status="pending" compact />
+              </View>
+              <Text style={[styles.meta, { color: colors.textSecondary }]}>
+                Manual punch in · {format(parseISO(item.date), 'MMM d, yyyy')}
+              </Text>
+              <Text style={[styles.meta, { color: colors.textSecondary }]}>
+                Time: {formatDisplayTime(item.punchIn)}
+              </Text>
+              <Text style={[styles.meta, { color: colors.textSecondary }]}>Department: {item.department}</Text>
+              <View style={styles.actions}>
+                <Button
+                  title="Approve ✓"
+                  onPress={() => handleApproveAttendance(item.id, item.employeeName)}
+                  style={styles.btn}
+                  loading={isProcessing}
+                  disabled={!!processingId && !isProcessing}
+                />
+                <Button
+                  title="Reject ✕"
+                  variant="danger"
+                  onPress={() => handleRejectAttendance(item.id, item.employeeName)}
+                  style={styles.btn}
+                  loading={isProcessing}
+                  disabled={!!processingId && !isProcessing}
+                />
+              </View>
+            </Card>
+          );
+        })}
+      </>
+    );
+  }
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
   content: { padding: 20 },
   title: { fontSize: 24, fontWeight: '800', marginBottom: 16 },
+  section: { fontSize: 16, fontWeight: '800', marginBottom: 10, marginTop: 4 },
   card: { marginBottom: 14 },
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   name: { fontSize: 17, fontWeight: '700' },

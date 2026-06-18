@@ -1,4 +1,4 @@
-import { Alert, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { format, parseISO } from 'date-fns';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -9,6 +9,7 @@ import { InfoRow } from '@/components/ui/InfoRow';
 import { useApp } from '@/contexts/AppContext';
 import Colors from '@/constants/Colors';
 import { useColorScheme } from '@/components/useColorScheme';
+import { showConfirm } from '@/utils/uiAlert';
 
 export default function ProfileScreen() {
   const { employee, logout } = useApp();
@@ -18,11 +19,9 @@ export default function ProfileScreen() {
 
   if (!employee) return null;
 
-  const handleLogout = () => {
-    Alert.alert('Sign Out', 'Are you sure you want to sign out?', [
-      { text: 'Cancel', style: 'cancel' },
-      { text: 'Sign Out', style: 'destructive', onPress: logout },
-    ]);
+  const handleLogout = async () => {
+    const confirmed = await showConfirm('Sign Out', 'Are you sure you want to sign out?');
+    if (confirmed) await logout();
   };
 
   return (
