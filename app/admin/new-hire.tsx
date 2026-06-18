@@ -25,6 +25,15 @@ import {
 import type { Employee } from '@/types/employee';
 import { useColorScheme } from '@/components/useColorScheme';
 
+function showAlert(title: string, message: string, onOk?: () => void) {
+  if (Platform.OS === 'web') {
+    window.alert(`${title}\n\n${message}`);
+    onOk?.();
+    return;
+  }
+  Alert.alert(title, message, onOk ? [{ text: 'OK', onPress: onOk }] : undefined);
+}
+
 const TEXT_FIELDS: { key: 'firstName' | 'lastName' | 'email' | 'phone' | 'address' | 'emergencyContact' | 'tempPassword'; label: string }[] = [
   { key: 'firstName', label: 'First name' },
   { key: 'lastName', label: 'Last name' },
@@ -95,24 +104,39 @@ export default function NewHireScreen() {
   };
 
   const handleSubmit = async () => {
-    if (!form.firstName || !form.lastName || !form.email || !form.phone || !form.department || !form.position || !supervisorId) {
-      Alert.alert('Missing fields', 'Please fill in all required fields.');
+    const missing: string[] = [];
+    if (!form.firstName.trim()) missing.push('First name');
+    if (!form.lastName.trim()) missing.push('Last name');
+    if (!form.email.trim()) missing.push('Work email');
+    if (!form.phone.trim()) missing.push('Phone');
+    if (!form.department) missing.push('Department');
+    if (!form.position) missing.push('Position');
+    if (!form.joinDate) missing.push('Join date');
+    if (!supervisorId) missing.push('Supervisor');
+
+    if (missing.length > 0) {
+      showAlert('Missing fields', `Please complete: ${missing.join(', ')}.`);
       return;
     }
     if (form.phone.length !== 10) {
-      Alert.alert('Invalid phone', 'Phone number must be exactly 10 digits.');
+      showAlert('Invalid phone', 'Phone number must be exactly 10 digits.');
       return;
     }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) {
+      showAlert('Invalid email', 'Please enter a valid work email address.');
+      return;
+    }
+
     setSubmitting(true);
     try {
       const created = await createHire({ ...form, supervisorId });
-      Alert.alert(
+      showAlert(
         'New hire created',
         `${getEmployeeDisplayName(created)} added.\nLogin: ${created.email}\nTemp password: ${form.tempPassword}`,
-        [{ text: 'OK', onPress: () => router.back() }]
+        () => router.back()
       );
     } catch (e) {
-      Alert.alert('Error', e instanceof Error ? e.message : 'Could not create hire');
+      showAlert('Error', e instanceof Error ? e.message : 'Could not create employee account');
     } finally {
       setSubmitting(false);
     }
@@ -214,7 +238,19 @@ export default function NewHireScreen() {
             </View>
           </View>
 
-          <Button title="Create employee account" onPress={handleSubmit} loading={submitting} size="lg" style={styles.submit} />
+          {supervisors.length === 0 ? (
+            <Text style={[styles.emptySupervisor, { color: colors.textSecondary }]}>
+              No supervisors available. Add employees first.
+            </Text>
+          ) : null}
+          <Button
+            title="Create employee account"
+            onPress={handleSubmit}
+            loading={submitting}
+            disabled={submitting || supervisors.length === 0}
+            size="lg"
+            style={styles.submit}
+          />
           <Button title="Cancel" variant="outline" onPress={() => router.back()} />
         </ScrollView>
       </KeyboardAvoidingView>
@@ -232,5 +268,6 @@ const styles = StyleSheet.create({
   supervisorList: { gap: 6 },
   supChip: { padding: 10, borderRadius: 12, borderWidth: 1.5 },
   supText: { fontSize: 13, fontWeight: '600' },
+  emptySupervisor: { fontSize: 12, marginBottom: 8, fontWeight: '500' },
   submit: { marginTop: 16, marginBottom: 8 },
 });

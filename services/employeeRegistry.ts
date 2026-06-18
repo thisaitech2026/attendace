@@ -54,11 +54,15 @@ function nextEmployeeId(employees: Employee[]): string {
 export async function createNewHire(input: NewHireInput): Promise<Employee> {
   const employees = await loadEmployees();
   const users = await loadUsers();
-  const balances = await loadLeaveBalancesMap();
 
   const supervisor = employees.find((e) => e.employeeId === input.supervisorId);
   if (!supervisor) {
-    throw new Error('Supervisor not found');
+    throw new Error('Supervisor not found. Please select a supervisor.');
+  }
+
+  const normalizedEmail = input.email.trim().toLowerCase();
+  if (users.some((user) => user.email.toLowerCase() === normalizedEmail)) {
+    throw new Error('An account with this email already exists.');
   }
 
   const employeeId = nextEmployeeId(employees);
@@ -67,7 +71,7 @@ export async function createNewHire(input: NewHireInput): Promise<Employee> {
     employeeId,
     firstName: input.firstName.trim(),
     lastName: input.lastName.trim(),
-    email: input.email.trim().toLowerCase(),
+    email: normalizedEmail,
     phone: input.phone.trim(),
     department: input.department.trim(),
     position: input.position.trim(),
@@ -85,16 +89,16 @@ export async function createNewHire(input: NewHireInput): Promise<Employee> {
     name: getEmployeeDisplayName(employee),
   };
 
-  balances[employeeId] = [
+  const defaultBalances: LeaveBalance[] = [
     { type: 'annual', total: 20, used: 0, remaining: 20 },
     { type: 'sick', total: 10, used: 0, remaining: 10 },
     { type: 'personal', total: 5, used: 0, remaining: 5 },
     { type: 'unpaid', total: 0, used: 0, remaining: 0 },
   ];
 
-  await saveEmployees([...employees, employee]);
-  await saveUsers([...users, user]);
-  await saveLeaveBalancesMap(balances);
+  await saveEmployees([employee]);
+  await saveUsers([user]);
+  await saveLeaveBalancesMap({ [employeeId]: defaultBalances });
   return employee;
 }
 
