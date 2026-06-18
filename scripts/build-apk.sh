@@ -24,7 +24,7 @@ cd android
   -PreactNativeArchitectures=arm64-v8a
 
 APK_SRC="app/build/outputs/apk/release/app-release.apk"
-APK_DEST="../releases/WorkPulse-v1.0.0.apk"
+APK_DEST="../releases/thisAI-v1.0.0.apk"
 mkdir -p ../releases
 cp "$APK_SRC" "$APK_DEST"
 
