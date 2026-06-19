@@ -1,7 +1,8 @@
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 
-const JWT_SECRET = process.env.JWT_SECRET || "rental-management-secret-key";
+const JWT_SECRET =
+  process.env.JWT_SECRET || "rental-management-secret-key-change-in-production";
 
 export type Role = "ADMIN" | "CUSTOMER";
 

@@ -1,13 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { Building2 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 
 export default function LoginPage() {
-  const router = useRouter();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -28,7 +26,7 @@ export default function LoginPage() {
         setError(data.error || "Login failed");
         return;
       }
-      router.push(data.redirect);
+      window.location.href = data.redirect;
     } catch {
       setError("Connection error. Please try again.");
     } finally {
