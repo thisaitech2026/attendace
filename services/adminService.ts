@@ -7,6 +7,7 @@ import {
   saveLeaveBalancesMap,
   saveLeaveRequests,
 } from '@/services/firestoreRepository';
+import { computeLeaveBalances } from '@/utils/leaveBalances';
 import type {
   AttendanceRecord,
   Employee,
@@ -20,22 +21,26 @@ export interface EnrichedAttendanceApproval extends AttendanceRecord {
   department: string;
 }
 
-async function applyApprovedLeaveBalance(request: LeaveRequest): Promise<void> {
-  const map = await loadLeaveBalancesMap();
-  const balances = map[request.employeeId];
+async function syncLeaveBalancesForEmployee(employeeId: string): Promise<void> {
+  const [map, requests] = await Promise.all([
+    loadLeaveBalancesMap(),
+    loadLeaveRequests(employeeId),
+  ]);
+  const balances = map[employeeId];
   if (!balances?.length) return;
 
-  const updated = balances.map((balance) => {
-    if (balance.type !== request.type) return balance;
-    const used = balance.used + request.days;
+  const synced = computeLeaveBalances(balances, requests).map((balance) => {
+    const approvedDays = requests
+      .filter((request) => request.type === balance.type && request.status === 'approved')
+      .reduce((sum, request) => sum + request.days, 0);
     return {
       ...balance,
-      used,
-      remaining: Math.max(0, balance.total - used),
-    } satisfies LeaveBalance;
+      used: approvedDays,
+      remaining: Math.max(0, balance.total - approvedDays),
+    };
   });
 
-  await saveLeaveBalancesMap({ [request.employeeId]: updated });
+  await saveLeaveBalancesMap({ [employeeId]: synced });
 }
 
 function countSupervisors(employees: Employee[]): number {
@@ -94,7 +99,7 @@ export async function reviewLeaveRequest(
   };
   await saveLeaveRequests([updated]);
   if (status === 'approved') {
-    await applyApprovedLeaveBalance(updated);
+    await syncLeaveBalancesForEmployee(target.employeeId);
   }
   return updated;
 }

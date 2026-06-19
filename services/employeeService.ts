@@ -11,6 +11,7 @@ import {
   saveLeaveRequests,
 } from '@/services/firestoreRepository';
 import { calculateLeaveDays, validateLeaveDateRange } from '@/utils/leaveValidation';
+import { getAvailableLeaveDays } from '@/utils/leaveBalances';
 import type {
   AttendanceRecord,
   LeaveBalance,
@@ -114,6 +115,13 @@ export async function submitLeaveRequest(
   }
 
   const days = calculateLeaveDays(startDate, endDate);
+  const balances = await getBalances(employeeId);
+  const existingRequests = await loadLeaveRequests(employeeId);
+  const available = getAvailableLeaveDays(balances, existingRequests, type);
+  if (days > available) {
+    throw new Error(`You only have ${available} day(s) of ${type} leave remaining.`);
+  }
+
   const request: LeaveRequest = {
     id: `lr-${Date.now()}`,
     employeeId,

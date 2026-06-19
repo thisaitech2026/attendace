@@ -1,6 +1,7 @@
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { format, parseISO } from 'date-fns';
-import { Link } from 'expo-router';
+import { Link, useFocusEffect } from 'expo-router';
+import { useCallback, useMemo } from 'react';
 
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
@@ -10,6 +11,7 @@ import { useApp } from '@/contexts/AppContext';
 import Colors from '@/constants/Colors';
 import { LEAVE_TYPE_LABELS } from '@/constants/config';
 import { useColorScheme } from '@/components/useColorScheme';
+import { computeLeaveBalances } from '@/utils/leaveBalances';
 
 
 const statusMap = {
@@ -39,12 +41,14 @@ function LeaveBalanceBox({
   used,
   accent,
   emoji,
+  pendingDays,
   colors,
 }: {
   label: string;
   remaining: number;
   total: number;
   used: number;
+  pendingDays: number;
   accent: string;
   emoji: string;
   colors: (typeof Colors)['light'];
@@ -73,7 +77,9 @@ function LeaveBalanceBox({
       <Text style={[styles.balanceRemaining, { color: accent }]}>{remaining}</Text>
       <Text style={[styles.balanceSub, { color: colors.textMuted }]}>days left</Text>
       <View style={styles.balanceMetaRow}>
-        <Text style={[styles.balanceMeta, { color: colors.textSecondary }]}>{used} used</Text>
+        <Text style={[styles.balanceMeta, { color: colors.textSecondary }]}>
+          {used} used{pendingDays > 0 ? ` · ${pendingDays} pending` : ''}
+        </Text>
         <Text style={[styles.balanceMeta, { color: colors.textSecondary }]}>{total} total</Text>
       </View>
       <View style={[styles.progressBg, { backgroundColor: colors.borderLight }]}>
@@ -86,9 +92,20 @@ function LeaveBalanceBox({
 const DISPLAYED_LEAVE_TYPES = new Set(['annual', 'sick']);
 
 export default function LeaveScreen() {
-  const { leaveBalances, leaveRequests } = useApp();
+  const { leaveBalances, leaveRequests, refreshData } = useApp();
   const scheme = useColorScheme() ?? 'light';
   const colors = Colors[scheme];
+
+  useFocusEffect(
+    useCallback(() => {
+      refreshData();
+    }, [refreshData])
+  );
+
+  const displayBalances = useMemo(
+    () => computeLeaveBalances(leaveBalances, leaveRequests),
+    [leaveBalances, leaveRequests]
+  );
 
   const approvedCount = leaveRequests.filter((r) => r.status === 'approved').length;
   const pendingCount = leaveRequests.filter((r) => r.status === 'pending').length;
@@ -108,7 +125,7 @@ export default function LeaveScreen() {
 
       <Text style={[styles.sectionTitle, { color: colors.text }]}>Leave Balances</Text>
       <View style={styles.balanceGrid}>
-        {leaveBalances
+        {displayBalances
           .filter((balance) => DISPLAYED_LEAVE_TYPES.has(balance.type))
           .map((balance) => (
           <LeaveBalanceBox
@@ -117,6 +134,9 @@ export default function LeaveScreen() {
             remaining={balance.remaining}
             total={balance.total}
             used={balance.used}
+            pendingDays={leaveRequests
+              .filter((request) => request.type === balance.type && request.status === 'pending')
+              .reduce((sum, request) => sum + request.days, 0)}
             accent={LEAVE_ACCENT[balance.type] ?? colors.primary}
             emoji={LEAVE_EMOJI[balance.type] ?? '📅'}
             colors={colors}
