@@ -1,0 +1,136 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+enum Role {
+  ADMIN
+  CUSTOMER
+}
+
+enum PropertyType {
+  HOUSE
+  APARTMENT
+  VILLA
+  SHOP
+  COMMERCIAL_UNIT
+}
+
+enum PropertyStatus {
+  OCCUPIED
+  VACANT
+}
+
+enum PaymentStatus {
+  SUCCESS
+  FAILED
+  PENDING
+}
+
+enum PaymentMethod {
+  UPI
+  GOOGLE_PAY
+  PHONEPE
+  PAYTM
+  DEBIT_CARD
+  CREDIT_CARD
+  NET_BANKING
+}
+
+enum RentalStatus {
+  ACTIVE
+  TERMINATED
+}
+
+model User {
+  id         String    @id @default(cuid())
+  username   String    @unique
+  password   String
+  role       Role
+  customerId String?   @unique
+  customer   Customer? @relation(fields: [customerId], references: [id])
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+}
+
+model Customer {
+  id               String          @id @default(cuid())
+  name             String
+  mobile           String
+  email            String
+  address          String
+  aadhaar          String
+  occupation       String
+  emergencyContact String
+  user             User?
+  rentals          RentalMapping[]
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+}
+
+model Property {
+  id              String         @id @default(cuid())
+  propertyId      String         @unique
+  name            String
+  address         String
+  description     String?
+  monthlyRent     Float
+  securityDeposit Float
+  status          PropertyStatus @default(VACANT)
+  type            PropertyType
+  images          String?
+  utility         Utility?
+  rentals         RentalMapping[]
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+}
+
+model Utility {
+  id                    String   @id @default(cuid())
+  propertyId            String   @unique
+  property              Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  ebServiceNumber       String?
+  ebConsumerName        String?
+  waterConnectionNumber String?
+  waterConsumerName     String?
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+}
+
+model RentalMapping {
+  id            String        @id @default(cuid())
+  customerId    String
+  customer      Customer      @relation(fields: [customerId], references: [id])
+  propertyId    String
+  property      Property      @relation(fields: [propertyId], references: [id])
+  rentStartDate DateTime
+  monthlyRent   Float
+  dueDate       Int
+  gracePeriod   Int           @default(5)
+  finePerDay    Float         @default(50)
+  depositAmount Float
+  status        RentalStatus  @default(ACTIVE)
+  payments      Payment[]
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+}
+
+model Payment {
+  id            String        @id @default(cuid())
+  rentalId      String
+  rental        RentalMapping @relation(fields: [rentalId], references: [id])
+  transactionId String        @unique
+  paymentDate   DateTime      @default(now())
+  rentMonth     String
+  rentAmount    Float
+  fineAmount    Float         @default(0)
+  totalPaid     Float
+  status        PaymentStatus @default(PENDING)
+  paymentMethod PaymentMethod
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+}
