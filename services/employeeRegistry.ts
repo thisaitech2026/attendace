@@ -8,7 +8,7 @@ import {
   saveLeaveBalancesMap,
   saveUsers as saveUsersToFirestore,
 } from '@/services/firestoreRepository';
-import type { AppUser, Employee, LeaveBalance, NewHireInput, RegisterInput } from '@/types/employee';
+import type { AppUser, Employee, EmployeeProfileUpdate, LeaveBalance, NewHireInput, RegisterInput } from '@/types/employee';
 
 export async function loadEmployees(): Promise<Employee[]> {
   return loadEmployeesFromFirestore();
@@ -136,6 +136,37 @@ export async function registerEmployee(input: RegisterInput): Promise<Employee> 
     joinDate: today,
     tempPassword: password,
   });
+}
+
+export async function updateEmployeeProfile(
+  employeeId: string,
+  input: EmployeeProfileUpdate
+): Promise<Employee> {
+  const employees = await loadEmployees();
+  const employee = employees.find((item) => item.employeeId === employeeId);
+  if (!employee) {
+    throw new Error('Employee profile not found');
+  }
+
+  const phone = input.phone.trim();
+  const emergencyContact = input.emergencyContact.trim();
+
+  if (phone && phone.length !== 10) {
+    throw new Error('Phone number must be exactly 10 digits.');
+  }
+  if (emergencyContact && emergencyContact.length !== 10) {
+    throw new Error('Emergency contact number must be exactly 10 digits.');
+  }
+
+  const updated: Employee = {
+    ...employee,
+    phone,
+    address: input.address.trim(),
+    emergencyContact,
+  };
+
+  await saveEmployees([updated]);
+  return updated;
 }
 
 export async function assignSupervisor(employeeId: string, supervisorId: string): Promise<Employee> {

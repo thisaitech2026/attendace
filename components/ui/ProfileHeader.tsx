@@ -14,6 +14,62 @@ interface ProfileHeaderProps {
   avatar?: string;
 }
 
+function getGreeting() {
+  const h = new Date().getHours();
+  if (h < 12) return 'morning';
+  if (h < 17) return 'afternoon';
+  return 'evening';
+}
+
+interface ProfileSummaryProps {
+  firstName: string;
+  lastName: string;
+  position: string;
+  employeeId: string;
+  avatar?: string;
+  size?: number;
+}
+
+export function ProfileSummary({
+  firstName,
+  lastName,
+  position,
+  employeeId,
+  avatar,
+  size = 46,
+}: ProfileSummaryProps) {
+  const scheme = useColorScheme() ?? 'light';
+  const colors = Colors[scheme];
+
+  return (
+    <View style={styles.left}>
+      <EmployeeAvatar
+        firstName={firstName}
+        lastName={lastName}
+        avatar={avatar}
+        employeeId={employeeId}
+        size={size}
+        borderRadius={16}
+        borderWidth={2}
+        borderColor={colors.primary}
+        backgroundColor={colors.primaryLight}
+        textColor={colors.primary}
+        fontSize={size > 50 ? 20 : 17}
+        style={styles.avatar}
+      />
+      <View style={styles.info}>
+        <Text style={[styles.greeting, { color: colors.textMuted }]}>Good {getGreeting()}</Text>
+        <Text style={[styles.name, { color: colors.text }]}>
+          {firstName} {lastName}
+        </Text>
+        <Text style={[styles.meta, { color: colors.textSecondary }]} numberOfLines={1}>
+          {position}
+        </Text>
+      </View>
+    </View>
+  );
+}
+
 export function ProfileHeader({ firstName, lastName, position, employeeId, avatar }: ProfileHeaderProps) {
   const scheme = useColorScheme() ?? 'light';
   const colors = Colors[scheme];
@@ -21,44 +77,19 @@ export function ProfileHeader({ firstName, lastName, position, employeeId, avata
   return (
     <Link href="/profile" asChild>
       <Pressable style={({ pressed }) => [styles.wrap, { opacity: pressed ? 0.92 : 1 }]}>
-        <View style={styles.left}>
-          <EmployeeAvatar
-            firstName={firstName}
-            lastName={lastName}
-            avatar={avatar}
-            employeeId={employeeId}
-            size={46}
-            borderRadius={16}
-            borderWidth={2}
-            borderColor={colors.primary}
-            backgroundColor={colors.primaryLight}
-            textColor={colors.primary}
-            fontSize={17}
-            style={styles.avatar}
-          />
-          <View style={styles.info}>
-            <Text style={[styles.greeting, { color: colors.textMuted }]}>Good {getGreeting()}</Text>
-            <Text style={[styles.name, { color: colors.text }]}>
-              {firstName} {lastName}
-            </Text>
-            <Text style={[styles.meta, { color: colors.textSecondary }]} numberOfLines={1}>
-              {position}
-            </Text>
-          </View>
-        </View>
+        <ProfileSummary
+          firstName={firstName}
+          lastName={lastName}
+          position={position}
+          employeeId={employeeId}
+          avatar={avatar}
+        />
         <View style={[styles.chevron, { backgroundColor: colors.background }]}>
           <SymbolView name={{ ios: 'chevron.right', android: 'chevron_right', web: 'chevron_right' }} tintColor={colors.textMuted} size={14} />
         </View>
       </Pressable>
     </Link>
   );
-}
-
-function getGreeting() {
-  const h = new Date().getHours();
-  if (h < 12) return 'morning';
-  if (h < 17) return 'afternoon';
-  return 'evening';
 }
 
 const styles = StyleSheet.create({

@@ -113,3 +113,9 @@ export interface RegisterInput {
   password: string;
   phone?: string;
 }
+
+export interface EmployeeProfileUpdate {
+  phone: string;
+  address: string;
+  emergencyContact: string;
+}

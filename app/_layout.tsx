@@ -106,7 +106,7 @@ function RootLayoutNav() {
           <Stack.Screen name="login" options={{ headerShown: false }} />
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
           <Stack.Screen name="admin" options={{ headerShown: false }} />
-          <Stack.Screen name="profile" options={{ title: 'My Profile', headerBackTitle: 'Back' }} />
+          <Stack.Screen name="profile" options={{ title: 'Edit Profile', headerBackTitle: 'Back' }} />
           <Stack.Screen name="leave-request" options={{ presentation: 'modal', title: 'Request Leave' }} />
           <Stack.Screen name="punch" options={{ presentation: 'modal', headerShown: false }} />
         </Stack>

@@ -18,6 +18,7 @@ import {
   getEmployeeDisplayName,
   getSupervisorOptions,
   registerEmployee,
+  updateEmployeeProfile,
   loadEmployees,
   loadUsers,
 } from '@/services/employeeRegistry';
@@ -36,6 +37,7 @@ import type { ChatCategory, ChatMessage } from '@/types/chat';
 import type {
   AttendanceRecord,
   Employee,
+  EmployeeProfileUpdate,
   LeaveBalance,
   LeaveRequest,
   LeaveType,
@@ -83,6 +85,7 @@ interface AppContextValue {
   login: (email: string, password: string, role: UserRole) => Promise<void>;
   register: (input: RegisterInput) => Promise<void>;
   logout: () => Promise<void>;
+  updateProfile: (input: EmployeeProfileUpdate) => Promise<void>;
   refreshData: () => Promise<void>;
   doPunchIn: (method: PunchMethod, wifiSsid?: string | null) => Promise<AttendanceRecord | null>;
   doPunchOut: (method: PunchMethod) => Promise<AttendanceRecord | null>;
@@ -230,6 +233,18 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setEmployee(emp);
     await refreshData();
   }, [refreshData]);
+
+  const updateProfile = useCallback(
+    async (input: EmployeeProfileUpdate) => {
+      if (!employeeId) {
+        throw new Error('You must be logged in to update your profile.');
+      }
+      const updated = await updateEmployeeProfile(employeeId, input);
+      setEmployee(updated);
+      await refreshData();
+    },
+    [employeeId, refreshData]
+  );
 
   const logout = useCallback(async () => {
     await removeItem(storageKeys.SESSION);
@@ -383,6 +398,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       login,
       register,
       logout,
+      updateProfile,
       refreshData,
       doPunchIn,
       doPunchOut,
@@ -414,6 +430,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       login,
       register,
       logout,
+      updateProfile,
       refreshData,
       doPunchIn,
       doPunchOut,
