@@ -1,80 +1,22 @@
-"use client";
-
-import { useState } from "react";
-import { Building2, Loader2 } from "lucide-react";
-import { Input } from "@/components/ui/Input";
+import { Building2 } from "lucide-react";
 
 const demoAccounts = [
-  { label: "Admin", username: "admin", password: "admin123", redirect: "/admin" },
-  { label: "Customer", username: "rajesh", password: "customer123", redirect: "/customer" },
+  { label: "Admin", username: "admin", password: "admin123" },
+  { label: "Customer", username: "rajesh", password: "customer123" },
 ];
 
-async function performLogin(username: string, password: string): Promise<{ ok: boolean; error?: string; redirect?: string }> {
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 15000);
+const errorMessages: Record<string, string> = {
+  missing: "Please enter username and password.",
+  invalid: "Invalid username or password. Use admin/admin123 or rajesh/customer123",
+  server: "Login failed. Run: npm run db:setup",
+};
 
-  try {
-    const res = await fetch("/api/auth/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username: username.trim(), password }),
-      signal: controller.signal,
-      credentials: "same-origin",
-    });
-
-    clearTimeout(timeout);
-
-    let data: { error?: string; redirect?: string } = {};
-    try {
-      data = await res.json();
-    } catch {
-      return { ok: false, error: "Server error. Run: npm run db:setup" };
-    }
-
-    if (!res.ok) {
-      return { ok: false, error: data.error || "Login failed" };
-    }
-
-    return { ok: true, redirect: data.redirect };
-  } catch (err) {
-    clearTimeout(timeout);
-    if (err instanceof Error && err.name === "AbortError") {
-      return { ok: false, error: "Request timed out. Please try again." };
-    }
-    return { ok: false, error: "Connection error. Make sure the server is running." };
-  }
-}
-
-export default function LoginPage() {
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
-
-  const handleLogin = async (user: string, pass: string) => {
-    setLoading(true);
-    setError("");
-
-    const result = await performLogin(user, pass);
-
-    if (!result.ok) {
-      setError(result.error || "Login failed");
-      setLoading(false);
-      return;
-    }
-
-    if (result.redirect) {
-      window.location.replace(result.redirect);
-      return;
-    }
-
-    setLoading(false);
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    handleLogin(username, password);
-  };
+export default function LoginPage({
+  searchParams,
+}: {
+  searchParams: { error?: string };
+}) {
+  const error = searchParams.error ? errorMessages[searchParams.error] : "";
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-900 via-blue-800 to-indigo-900">
@@ -87,42 +29,46 @@ export default function LoginPage() {
           <p className="mt-1 text-sm text-gray-500">House & Shop Management System</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <Input
-            label="Username"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            placeholder="Enter username"
-            autoComplete="username"
-            disabled={loading}
-            required
-          />
-          <Input
-            label="Password"
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder="Enter password"
-            autoComplete="current-password"
-            disabled={loading}
-            required
-          />
+        <form action="/api/auth/login" method="POST" className="space-y-4">
+          <div className="space-y-1">
+            <label htmlFor="username" className="block text-sm font-medium text-gray-700">
+              Username
+            </label>
+            <input
+              id="username"
+              name="username"
+              type="text"
+              placeholder="Enter username"
+              autoComplete="username"
+              required
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            />
+          </div>
+
+          <div className="space-y-1">
+            <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+              Password
+            </label>
+            <input
+              id="password"
+              name="password"
+              type="password"
+              placeholder="Enter password"
+              autoComplete="current-password"
+              required
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            />
+          </div>
+
           {error && (
             <div className="rounded-lg bg-red-50 p-3 text-sm text-red-600">{error}</div>
           )}
+
           <button
             type="submit"
-            disabled={loading}
-            className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+            className="inline-flex w-full items-center justify-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-blue-700"
           >
-            {loading ? (
-              <>
-                <Loader2 className="h-4 w-4 animate-spin" />
-                Signing in...
-              </>
-            ) : (
-              "Sign In"
-            )}
+            Sign In
           </button>
         </form>
 
@@ -130,18 +76,19 @@ export default function LoginPage() {
           <p className="font-medium text-gray-700 mb-3">Quick login (one click):</p>
           <div className="space-y-2">
             {demoAccounts.map((account) => (
-              <button
-                key={account.username}
-                type="button"
-                disabled={loading}
-                onClick={() => handleLogin(account.username, account.password)}
-                className="flex w-full items-center justify-between rounded-lg border border-gray-200 bg-white px-3 py-2 text-left hover:border-blue-300 hover:bg-blue-50 transition-colors disabled:opacity-50"
-              >
-                <span className="font-medium text-gray-700">{account.label}</span>
-                <span className="font-mono text-gray-500">
-                  {account.username} / {account.password}
-                </span>
-              </button>
+              <form key={account.username} action="/api/auth/login" method="POST">
+                <input type="hidden" name="username" value={account.username} />
+                <input type="hidden" name="password" value={account.password} />
+                <button
+                  type="submit"
+                  className="flex w-full items-center justify-between rounded-lg border border-gray-200 bg-white px-3 py-2 text-left hover:border-blue-300 hover:bg-blue-50 transition-colors"
+                >
+                  <span className="font-medium text-gray-700">{account.label}</span>
+                  <span className="font-mono text-gray-500">
+                    {account.username} / {account.password}
+                  </span>
+                </button>
+              </form>
             ))}
           </div>
         </div>
