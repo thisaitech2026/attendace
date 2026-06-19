@@ -33,6 +33,36 @@ A comprehensive full-stack application for managing rental houses and shops with
 - **Auth:** JWT with HTTP-only cookies
 - **PDF:** jsPDF
 
+## Repository
+
+**Primary repo:** https://github.com/thisaitech2026/Rentalhouse
+
+### First-time push to Rentalhouse (if cloning fresh)
+
+```bash
+git remote set-url origin https://github.com/thisaitech2026/Rentalhouse.git
+git push -u origin main
+```
+
+Or run:
+
+```bash
+./scripts/push-to-rentalhouse.sh
+```
+
+### Import from staging branch (if push access is not yet configured)
+
+The full app is also available on the `rentalhouse-migration` branch of the old repo for one-time import:
+
+```bash
+git clone -b rentalhouse-migration https://github.com/thisaitech2026/attendace.git rentalhouse
+cd rentalhouse
+git remote set-url origin https://github.com/thisaitech2026/Rentalhouse.git
+git push -u origin HEAD:main
+```
+
+After Rentalhouse is updated, delete the `rentalhouse-migration` branch from the attendace repo.
+
 ## Getting Started
 
 ### Prerequisites
