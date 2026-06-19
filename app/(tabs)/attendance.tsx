@@ -10,7 +10,7 @@ import { useApp } from '@/contexts/AppContext';
 import Colors from '@/constants/Colors';
 import { getCurrentWifiInfo, verifyOfficeWifi } from '@/services/wifiService';
 import { formatDisplayTime } from '@/utils/formatTime';
-import { showAlert, showConfirm } from '@/utils/uiAlert';
+import { showAlert } from '@/utils/uiAlert';
 import { useColorScheme } from '@/components/useColorScheme';
 
 export default function AttendanceScreen() {
@@ -55,7 +55,6 @@ export default function AttendanceScreen() {
         return;
       }
       await doPunchIn('wifi', result.ssid);
-      showAlert('Punched In', `Verified via office WiFi: ${result.ssid}`);
     } catch (e) {
       showAlert('Error', e instanceof Error ? e.message : 'Punch in failed');
     } finally {
@@ -64,16 +63,9 @@ export default function AttendanceScreen() {
   };
 
   const handleManualPunchIn = async () => {
-    const confirmed = await showConfirm(
-      'Manual Punch In',
-      'Manual punch requires manager approval. Continue?'
-    );
-    if (!confirmed) return;
-
     setLoading(true);
     try {
       await doPunchIn('manual', null);
-      showAlert('Punched In', 'Manual punch recorded — pending approval.');
     } catch (e) {
       showAlert('Error', e instanceof Error ? e.message : 'Punch in failed');
     } finally {

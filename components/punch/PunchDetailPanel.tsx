@@ -76,8 +76,7 @@ export function PunchDetailPanel({ onClose }: PunchDetailPanelProps) {
         showAlert('WiFi Verification Failed', result.message);
         return;
       }
-      const record = await doPunchIn('wifi', result.ssid);
-      if (record) showPunchResult(record);
+      await doPunchIn('wifi', result.ssid);
     } catch (e) {
       showAlert('Error', e instanceof Error ? e.message : 'Punch in failed');
     } finally {
@@ -86,29 +85,14 @@ export function PunchDetailPanel({ onClose }: PunchDetailPanelProps) {
   };
 
   const handleManualPunchIn = async () => {
-    const run = async () => {
-      setLoading(true);
-      try {
-        const record = await doPunchIn('manual', null);
-        if (record) showPunchResult(record);
-      } catch (e) {
-        showAlert('Error', e instanceof Error ? e.message : 'Punch in failed');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    if (Platform.OS === 'web') {
-      if (window.confirm('Manual punch requires manager approval. Continue?')) {
-        await run();
-      }
-      return;
+    setLoading(true);
+    try {
+      await doPunchIn('manual', null);
+    } catch (e) {
+      showAlert('Error', e instanceof Error ? e.message : 'Punch in failed');
+    } finally {
+      setLoading(false);
     }
-
-    Alert.alert('Manual Punch In', 'Manual punch requires manager approval. Continue?', [
-      { text: 'Cancel', style: 'cancel' },
-      { text: 'Continue', onPress: run },
-    ]);
   };
 
   const handlePunchOut = async () => {

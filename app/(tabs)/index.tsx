@@ -63,31 +63,10 @@ export default function DashboardScreen() {
       try {
         const result = await verifyOfficeWifi();
         if (result.valid) {
-          const record = await doPunchIn('wifi', result.ssid);
-          if (record) {
-            showPunchAlert('Punched In', `Recorded at ${formatDisplayTime(record.punchIn)}`);
-          }
-          return;
+          await doPunchIn('wifi', result.ssid);
+        } else {
+          await doPunchIn('manual', null);
         }
-
-        const runManual = async () => {
-          const record = await doPunchIn('manual', null);
-          if (record) {
-            showPunchAlert('Punched In', 'Manual punch recorded — pending approval.');
-          }
-        };
-
-        if (Platform.OS === 'web') {
-          if (window.confirm(`${result.message}\n\nManual punch requires manager approval. Continue?`)) {
-            await runManual();
-          }
-          return;
-        }
-
-        Alert.alert('WiFi not verified', result.message, [
-          { text: 'Cancel', style: 'cancel' },
-          { text: 'Manual Punch', onPress: runManual },
-        ]);
       } catch (e) {
         showPunchAlert('Error', e instanceof Error ? e.message : 'Punch in failed');
       } finally {
