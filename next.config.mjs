@@ -9,6 +9,15 @@ const nextConfig = {
       "better-sqlite3",
       "@prisma/adapter-better-sqlite3",
     ],
+    serverActions: {
+      allowedOrigins: [
+        "localhost:3000",
+        "localhost:3001",
+        "localhost:3002",
+        "*.agent.cvm.dev",
+        "*.cvm.dev",
+      ],
+    },
   },
 };
 
