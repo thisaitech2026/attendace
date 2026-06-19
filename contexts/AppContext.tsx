@@ -17,6 +17,7 @@ import {
   findEmployeeByEmail,
   getEmployeeDisplayName,
   getSupervisorOptions,
+  registerEmployee,
   loadEmployees,
   loadUsers,
 } from '@/services/employeeRegistry';
@@ -40,6 +41,7 @@ import type {
   LeaveType,
   NewHireInput,
   PunchMethod,
+  RegisterInput,
   SalarySlip,
   UserRole,
 } from '@/types/employee';
@@ -79,6 +81,7 @@ interface AppContextValue {
   pendingAttendanceApprovals: EnrichedAttendanceApproval[];
   adminStats: { totalEmployees: number; totalSupervisors: number; pendingApprovals: number; departments: number };
   login: (email: string, password: string, role: UserRole) => Promise<void>;
+  register: (input: RegisterInput) => Promise<void>;
   logout: () => Promise<void>;
   refreshData: () => Promise<void>;
   doPunchIn: (method: PunchMethod, wifiSsid?: string | null) => Promise<AttendanceRecord | null>;
@@ -213,6 +216,20 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setSession(newSession);
     setEmployee(emp);
   }, []);
+
+  const register = useCallback(async (input: RegisterInput) => {
+    const emp = await registerEmployee(input);
+    const newSession: Session = {
+      role: 'employee',
+      email: emp.email,
+      employeeId: emp.employeeId,
+      name: getEmployeeDisplayName(emp),
+    };
+    await setItem(storageKeys.SESSION, newSession);
+    setSession(newSession);
+    setEmployee(emp);
+    await refreshData();
+  }, [refreshData]);
 
   const logout = useCallback(async () => {
     await removeItem(storageKeys.SESSION);
@@ -364,6 +381,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       pendingAttendanceApprovals,
       adminStats,
       login,
+      register,
       logout,
       refreshData,
       doPunchIn,
@@ -394,6 +412,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       pendingAttendanceApprovals,
       adminStats,
       login,
+      register,
       logout,
       refreshData,
       doPunchIn,

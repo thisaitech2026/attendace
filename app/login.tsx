@@ -22,14 +22,20 @@ import { APP_NAME } from '@/constants/config';
 import type { UserRole } from '@/types/employee';
 import { useColorScheme } from '@/components/useColorScheme';
 
+type AuthMode = 'signin' | 'register';
+
 export default function LoginScreen() {
-  const { isAuthenticated, isLoading, login, isAdmin } = useApp();
+  const { isAuthenticated, isLoading, login, register, isAdmin } = useApp();
   const scheme = useColorScheme() ?? 'light';
   const colors = Colors[scheme];
   const insets = useSafeAreaInsets();
+  const [mode, setMode] = useState<AuthMode>('signin');
   const [role, setRole] = useState<UserRole>('employee');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState(DEMO_LOGINS.employee.email);
   const [password, setPassword] = useState(DEMO_LOGINS.employee.password);
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
@@ -37,7 +43,25 @@ export default function LoginScreen() {
     setRole(next);
     setEmail(DEMO_LOGINS[next].email);
     setPassword(DEMO_LOGINS[next].password);
+    setConfirmPassword('');
     setError('');
+  };
+
+  const switchMode = (next: AuthMode) => {
+    setMode(next);
+    setError('');
+    setConfirmPassword('');
+    if (next === 'signin') {
+      setRole('employee');
+      setEmail(DEMO_LOGINS.employee.email);
+      setPassword(DEMO_LOGINS.employee.password);
+    } else {
+      setRole('employee');
+      setFirstName('');
+      setLastName('');
+      setEmail('');
+      setPassword('');
+    }
   };
 
   if (isLoading) {
@@ -52,7 +76,7 @@ export default function LoginScreen() {
     return <Redirect href={isAdmin ? '/admin' : '/(tabs)'} />;
   }
 
-  const handleLogin = async () => {
+  const handleSignIn = async () => {
     setError('');
     setSubmitting(true);
     try {
@@ -63,6 +87,42 @@ export default function LoginScreen() {
       setSubmitting(false);
     }
   };
+
+  const handleRegister = async () => {
+    setError('');
+    if (!firstName.trim() || !lastName.trim()) {
+      setError('Please enter your first and last name.');
+      return;
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+      setError('Please enter a valid email address.');
+      return;
+    }
+    if (password.length < 6) {
+      setError('Password must be at least 6 characters.');
+      return;
+    }
+    if (password !== confirmPassword) {
+      setError('Passwords do not match.');
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      await register({
+        firstName: firstName.trim(),
+        lastName: lastName.trim(),
+        email: email.trim(),
+        password,
+      });
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Registration failed');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const isRegister = mode === 'register';
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
@@ -80,28 +140,57 @@ export default function LoginScreen() {
       <KeyboardAvoidingView style={styles.formArea} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
           <Card style={styles.form}>
-            <Text style={[styles.formTitle, { color: colors.text }]}>Sign in</Text>
-            <Text style={[styles.formSub, { color: colors.textSecondary }]}>Choose your access type</Text>
+            <Text style={[styles.formTitle, { color: colors.text }]}>
+              {isRegister ? 'Create account' : 'Sign in'}
+            </Text>
+            <Text style={[styles.formSub, { color: colors.textSecondary }]}>
+              {isRegister ? 'Register as a new employee' : 'Choose your access type'}
+            </Text>
 
-            <View style={styles.roleRow}>
-              {(['employee', 'admin'] as UserRole[]).map((item) => (
-                <Pressable
-                  key={item}
-                  style={[
-                    styles.roleChip,
-                    {
-                      backgroundColor: role === item ? colors.primaryLight : colors.background,
-                      borderColor: role === item ? colors.primary : colors.borderLight,
-                    },
-                  ]}
-                  onPress={() => switchRole(item)}
-                >
-                  <Text style={[styles.roleText, { color: role === item ? colors.primary : colors.textSecondary }]}>
-                    {item === 'employee' ? 'Employee' : 'Admin / HR'}
-                  </Text>
-                </Pressable>
-              ))}
-            </View>
+            {!isRegister ? (
+              <View style={styles.roleRow}>
+                {(['employee', 'admin'] as UserRole[]).map((item) => (
+                  <Pressable
+                    key={item}
+                    style={[
+                      styles.roleChip,
+                      {
+                        backgroundColor: role === item ? colors.primaryLight : colors.background,
+                        borderColor: role === item ? colors.primary : colors.borderLight,
+                      },
+                    ]}
+                    onPress={() => switchRole(item)}
+                  >
+                    <Text style={[styles.roleText, { color: role === item ? colors.primary : colors.textSecondary }]}>
+                      {item === 'employee' ? 'Employee' : 'Admin / HR'}
+                    </Text>
+                  </Pressable>
+                ))}
+              </View>
+            ) : null}
+
+            {isRegister ? (
+              <>
+                <Text style={[styles.label, { color: colors.textMuted }]}>FIRST NAME</Text>
+                <TextInput
+                  style={[styles.input, { color: colors.text, borderColor: colors.borderLight, backgroundColor: colors.background }]}
+                  value={firstName}
+                  onChangeText={setFirstName}
+                  autoCapitalize="words"
+                  placeholder="John"
+                  placeholderTextColor={colors.textMuted}
+                />
+                <Text style={[styles.label, { color: colors.textMuted }]}>LAST NAME</Text>
+                <TextInput
+                  style={[styles.input, { color: colors.text, borderColor: colors.borderLight, backgroundColor: colors.background }]}
+                  value={lastName}
+                  onChangeText={setLastName}
+                  autoCapitalize="words"
+                  placeholder="Doe"
+                  placeholderTextColor={colors.textMuted}
+                />
+              </>
+            ) : null}
 
             <Text style={[styles.label, { color: colors.textMuted }]}>EMAIL</Text>
             <TextInput
@@ -124,15 +213,43 @@ export default function LoginScreen() {
               placeholderTextColor={colors.textMuted}
             />
 
+            {isRegister ? (
+              <>
+                <Text style={[styles.label, { color: colors.textMuted }]}>CONFIRM PASSWORD</Text>
+                <TextInput
+                  style={[styles.input, { color: colors.text, borderColor: colors.borderLight, backgroundColor: colors.background }]}
+                  value={confirmPassword}
+                  onChangeText={setConfirmPassword}
+                  secureTextEntry
+                  placeholder="••••••••"
+                  placeholderTextColor={colors.textMuted}
+                />
+              </>
+            ) : null}
+
             {error ? <Text style={[styles.error, { color: colors.danger }]}>{error}</Text> : null}
 
-            <Button title="Sign In" onPress={handleLogin} loading={submitting} size="lg" style={styles.button} />
+            <Button
+              title={isRegister ? 'Create Account' : 'Sign In'}
+              onPress={isRegister ? handleRegister : handleSignIn}
+              loading={submitting}
+              size="lg"
+              style={styles.button}
+            />
+
+            <Pressable onPress={() => switchMode(isRegister ? 'signin' : 'register')} style={styles.switchMode}>
+              <Text style={[styles.switchModeText, { color: colors.primary }]}>
+                {isRegister ? 'Already have an account? Sign in' : "Don't have an account? Register"}
+              </Text>
+            </Pressable>
           </Card>
 
-          <Text style={[styles.demo, { color: colors.textMuted }]}>
-            Employee: john.doe@company.com / password123{'\n'}
-            Admin/HR: hr.admin@company.com / admin123
-          </Text>
+          {!isRegister ? (
+            <Text style={[styles.demo, { color: colors.textMuted }]}>
+              Employee: john.doe@company.com / password123{'\n'}
+              Admin/HR: hr.admin@company.com / admin123
+            </Text>
+          ) : null}
         </ScrollView>
       </KeyboardAvoidingView>
     </View>
@@ -169,5 +286,7 @@ const styles = StyleSheet.create({
   input: { borderWidth: 1, borderRadius: 14, paddingHorizontal: 16, paddingVertical: 14, fontSize: 16, fontWeight: '500' },
   error: { marginTop: 12, fontSize: 14, fontWeight: '500' },
   button: { marginTop: 24 },
+  switchMode: { marginTop: 16, alignItems: 'center', paddingVertical: 4 },
+  switchModeText: { fontSize: 14, fontWeight: '700' },
   demo: { textAlign: 'center', marginTop: 20, fontSize: 12, fontWeight: '500', lineHeight: 18 },
 });

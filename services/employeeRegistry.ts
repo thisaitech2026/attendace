@@ -8,7 +8,7 @@ import {
   saveLeaveBalancesMap,
   saveUsers as saveUsersToFirestore,
 } from '@/services/firestoreRepository';
-import type { AppUser, Employee, LeaveBalance, NewHireInput } from '@/types/employee';
+import type { AppUser, Employee, LeaveBalance, NewHireInput, RegisterInput } from '@/types/employee';
 
 export async function loadEmployees(): Promise<Employee[]> {
   return loadEmployeesFromFirestore();
@@ -101,6 +101,41 @@ export async function createNewHire(input: NewHireInput): Promise<Employee> {
 
   await createNewHireRecords(employee, user, defaultBalances);
   return employee;
+}
+
+export async function registerEmployee(input: RegisterInput): Promise<Employee> {
+  const firstName = input.firstName.trim();
+  const lastName = input.lastName.trim();
+  const password = input.password;
+
+  if (!firstName || !lastName) {
+    throw new Error('Please enter your first and last name.');
+  }
+  if (password.length < 6) {
+    throw new Error('Password must be at least 6 characters.');
+  }
+
+  const employees = await loadEmployees();
+  const supervisors = await getSupervisorOptions();
+  const supervisor = supervisors[0];
+  if (!supervisor) {
+    throw new Error('Registration is unavailable right now. Please contact HR.');
+  }
+
+  const today = new Date().toISOString().split('T')[0];
+  return createNewHire({
+    firstName,
+    lastName,
+    email: input.email,
+    phone: input.phone?.trim() ?? '',
+    department: 'Engineering',
+    position: 'Software Engineer',
+    supervisorId: supervisor.employeeId,
+    address: '',
+    emergencyContact: '',
+    joinDate: today,
+    tempPassword: password,
+  });
 }
 
 export async function assignSupervisor(employeeId: string, supervisorId: string): Promise<Employee> {

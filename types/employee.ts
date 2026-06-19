@@ -105,3 +105,11 @@ export interface NewHireInput {
   joinDate: string;
   tempPassword: string;
 }
+
+export interface RegisterInput {
+  firstName: string;
+  lastName: string;
+  email: string;
+  password: string;
+  phone?: string;
+}
