@@ -1,12 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { authenticateUser } from "@/lib/auth";
-
-function getRedirectUrl(request: NextRequest, path: string) {
-  return new URL(path, request.url);
-}
+import { getRedirectUrl, isSecureRequest } from "@/lib/redirect";
 
 function setAuthCookie(response: NextResponse, request: NextRequest, token: string) {
-  const isSecure = request.nextUrl.protocol === "https:";
+  const isSecure = isSecureRequest(request);
   response.cookies.set("auth-token", token, {
     httpOnly: true,
     secure: isSecure,

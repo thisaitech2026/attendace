@@ -35,13 +35,16 @@ export function Sidebar({ role }: { role: "ADMIN" | "CUSTOMER" }) {
 
   return (
     <aside className="fixed left-0 top-0 z-40 flex h-screen w-64 flex-col bg-gray-900 text-white">
-      <div className="flex h-16 items-center gap-2 border-b border-gray-800 px-6">
+      <Link
+        href="/"
+        className="flex h-16 items-center gap-2 border-b border-gray-800 px-6 hover:bg-gray-800/50 transition-colors"
+      >
         <Building2 className="h-7 w-7 text-blue-400" />
         <div>
           <h1 className="text-sm font-bold">Rental Manager</h1>
           <p className="text-xs text-gray-400">{role === "ADMIN" ? "Admin Panel" : "Customer Portal"}</p>
         </div>
-      </div>
+      </Link>
       <nav className="flex-1 space-y-1 p-4">
         {links.map((link) => {
           const Icon = link.icon;
