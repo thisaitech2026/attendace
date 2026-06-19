@@ -11,6 +11,7 @@ import {
   View,
 } from 'react-native';
 import { Redirect } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -36,6 +37,8 @@ export default function LoginScreen() {
   const [email, setEmail] = useState(DEMO_LOGINS.employee.email);
   const [password, setPassword] = useState(DEMO_LOGINS.employee.password);
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
@@ -51,6 +54,8 @@ export default function LoginScreen() {
     setMode(next);
     setError('');
     setConfirmPassword('');
+    setShowPassword(false);
+    setShowConfirmPassword(false);
     if (next === 'signin') {
       setRole('employee');
       setEmail(DEMO_LOGINS.employee.email);
@@ -204,25 +209,23 @@ export default function LoginScreen() {
             />
 
             <Text style={[styles.label, { color: colors.textMuted }]}>PASSWORD</Text>
-            <TextInput
-              style={[styles.input, { color: colors.text, borderColor: colors.borderLight, backgroundColor: colors.background }]}
+            <PasswordField
               value={password}
               onChangeText={setPassword}
-              secureTextEntry
-              placeholder="••••••••"
-              placeholderTextColor={colors.textMuted}
+              visible={showPassword}
+              onToggleVisible={() => setShowPassword((prev) => !prev)}
+              colors={colors}
             />
 
             {isRegister ? (
               <>
                 <Text style={[styles.label, { color: colors.textMuted }]}>CONFIRM PASSWORD</Text>
-                <TextInput
-                  style={[styles.input, { color: colors.text, borderColor: colors.borderLight, backgroundColor: colors.background }]}
+                <PasswordField
                   value={confirmPassword}
                   onChangeText={setConfirmPassword}
-                  secureTextEntry
-                  placeholder="••••••••"
-                  placeholderTextColor={colors.textMuted}
+                  visible={showConfirmPassword}
+                  onToggleVisible={() => setShowConfirmPassword((prev) => !prev)}
+                  colors={colors}
                 />
               </>
             ) : null}
@@ -256,6 +259,53 @@ export default function LoginScreen() {
   );
 }
 
+function PasswordField({
+  value,
+  onChangeText,
+  visible,
+  onToggleVisible,
+  colors,
+}: {
+  value: string;
+  onChangeText: (value: string) => void;
+  visible: boolean;
+  onToggleVisible: () => void;
+  colors: (typeof Colors)['light'];
+}) {
+  return (
+    <View
+      style={[
+        styles.passwordWrap,
+        { borderColor: colors.borderLight, backgroundColor: colors.background },
+      ]}
+    >
+      <TextInput
+        style={[styles.passwordInput, { color: colors.text }]}
+        value={value}
+        onChangeText={onChangeText}
+        secureTextEntry={!visible}
+        placeholder="••••••••"
+        placeholderTextColor={colors.textMuted}
+        autoCapitalize="none"
+        autoCorrect={false}
+      />
+      <Pressable
+        onPress={onToggleVisible}
+        hitSlop={8}
+        style={styles.eyeBtn}
+        accessibilityRole="button"
+        accessibilityLabel={visible ? 'Hide password' : 'Show password'}
+      >
+        <Ionicons
+          name={visible ? 'eye-off-outline' : 'eye-outline'}
+          size={20}
+          color={colors.textMuted}
+        />
+      </Pressable>
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
   container: { flex: 1 },
   centered: { flex: 1, alignItems: 'center', justifyContent: 'center' },
@@ -284,6 +334,25 @@ const styles = StyleSheet.create({
   roleText: { fontSize: 13, fontWeight: '700' },
   label: { fontSize: 11, fontWeight: '700', marginBottom: 8, marginTop: 14, letterSpacing: 0.8 },
   input: { borderWidth: 1, borderRadius: 14, paddingHorizontal: 16, paddingVertical: 14, fontSize: 16, fontWeight: '500' },
+  passwordWrap: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderRadius: 14,
+    paddingRight: 12,
+  },
+  passwordInput: {
+    flex: 1,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    fontSize: 16,
+    fontWeight: '500',
+  },
+  eyeBtn: {
+    padding: 4,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   error: { marginTop: 12, fontSize: 14, fontWeight: '500' },
   button: { marginTop: 24 },
   switchMode: { marginTop: 16, alignItems: 'center', paddingVertical: 4 },
