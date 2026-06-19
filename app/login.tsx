@@ -17,9 +17,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
+import { ThisAILogo } from '@/components/ui/ThisAILogo';
 import { useApp } from '@/contexts/AppContext';
 import Colors from '@/constants/Colors';
-import { APP_NAME } from '@/constants/config';
 import type { UserRole } from '@/types/employee';
 import { useColorScheme } from '@/components/useColorScheme';
 
@@ -131,10 +131,9 @@ export default function LoginScreen() {
         colors={[colors.gradientStart, colors.gradientEnd]}
         style={[styles.headerGradient, { paddingTop: insets.top + 20 }]}
       >
-        <View style={styles.logoWrap}>
-          <Text style={styles.logoText}>TA</Text>
+        <View style={styles.logoCard}>
+          <ThisAILogo compact />
         </View>
-        <Text style={styles.appName}>{APP_NAME}</Text>
         <Text style={styles.tagline}>Employee & HR portal</Text>
       </LinearGradient>
 
@@ -307,20 +306,19 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
   centered: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   headerGradient: { paddingBottom: 28, alignItems: 'center', borderBottomLeftRadius: 32, borderBottomRightRadius: 32 },
-  logoWrap: {
-    width: 52,
-    height: 52,
+  logoCard: {
+    backgroundColor: '#FFFFFF',
     borderRadius: 16,
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    alignItems: 'center',
-    justifyContent: 'center',
+    paddingHorizontal: 18,
+    paddingVertical: 12,
     marginBottom: 8,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.3)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.12,
+    shadowRadius: 10,
+    elevation: 4,
   },
-  logoText: { color: '#FFF', fontSize: 22, fontWeight: '800' },
-  appName: { color: '#FFF', fontSize: 26, fontWeight: '800', letterSpacing: -0.5 },
-  tagline: { color: 'rgba(255,255,255,0.8)', fontSize: 13, marginTop: 2, fontWeight: '500' },
+  tagline: { color: 'rgba(255,255,255,0.85)', fontSize: 13, marginTop: 2, fontWeight: '500' },
   formArea: { flex: 1, marginTop: -18 },
   scroll: { paddingHorizontal: 24, paddingBottom: 40 },
   form: { padding: 24 },
