@@ -15,8 +15,26 @@ interface LoginFormProps {
 export function LoginForm({ error }: LoginFormProps) {
   return (
     <>
-      <form action="/api/auth/login" method="POST" className="space-y-4">
-        <div className="space-y-1">
+      <form action="/api/auth/login" method="POST" autoComplete="off" className="space-y-4">
+        {/* Decoy fields absorb browser autofill so saved credentials are not suggested */}
+        <input
+          type="text"
+          name="prevent_autofill_username"
+          tabIndex={-1}
+          autoComplete="username"
+          aria-hidden="true"
+          className="pointer-events-none absolute -left-[9999px] h-0 w-0 opacity-0"
+        />
+        <input
+          type="password"
+          name="prevent_autofill_password"
+          tabIndex={-1}
+          autoComplete="current-password"
+          aria-hidden="true"
+          className="pointer-events-none absolute -left-[9999px] h-0 w-0 opacity-0"
+        />
+
+        <div className="relative space-y-1">
           <label htmlFor="username" className="block text-sm font-medium text-gray-700">
             Username
           </label>
@@ -25,7 +43,14 @@ export function LoginForm({ error }: LoginFormProps) {
             name="username"
             type="text"
             placeholder="Enter username"
-            autoComplete="username"
+            autoComplete="off"
+            autoCorrect="off"
+            autoCapitalize="none"
+            spellCheck={false}
+            data-lpignore="true"
+            data-1p-ignore="true"
+            readOnly
+            onFocus={(e) => e.currentTarget.removeAttribute("readOnly")}
             required
             className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
           />
@@ -36,7 +61,11 @@ export function LoginForm({ error }: LoginFormProps) {
           name="password"
           label="Password"
           placeholder="Enter password"
-          autoComplete="current-password"
+          autoComplete="new-password"
+          data-lpignore="true"
+          data-1p-ignore="true"
+          readOnly
+          onFocus={(e) => e.currentTarget.removeAttribute("readOnly")}
           required
         />
 
