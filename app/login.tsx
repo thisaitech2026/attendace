@@ -129,7 +129,7 @@ export default function LoginScreen() {
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <LinearGradient
         colors={[colors.gradientStart, colors.gradientEnd]}
-        style={[styles.headerGradient, { paddingTop: insets.top + 40 }]}
+        style={[styles.headerGradient, { paddingTop: insets.top + 20 }]}
       >
         <View style={styles.logoWrap}>
           <Text style={styles.logoText}>TA</Text>
@@ -306,22 +306,22 @@ function PasswordField({
 const styles = StyleSheet.create({
   container: { flex: 1 },
   centered: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  headerGradient: { paddingBottom: 48, alignItems: 'center', borderBottomLeftRadius: 32, borderBottomRightRadius: 32 },
+  headerGradient: { paddingBottom: 28, alignItems: 'center', borderBottomLeftRadius: 32, borderBottomRightRadius: 32 },
   logoWrap: {
-    width: 64,
-    height: 64,
-    borderRadius: 20,
+    width: 52,
+    height: 52,
+    borderRadius: 16,
     backgroundColor: 'rgba(255,255,255,0.2)',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 16,
+    marginBottom: 8,
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.3)',
   },
-  logoText: { color: '#FFF', fontSize: 26, fontWeight: '800' },
-  appName: { color: '#FFF', fontSize: 30, fontWeight: '800', letterSpacing: -0.5 },
-  tagline: { color: 'rgba(255,255,255,0.8)', fontSize: 14, marginTop: 6, fontWeight: '500' },
-  formArea: { flex: 1, marginTop: -24 },
+  logoText: { color: '#FFF', fontSize: 22, fontWeight: '800' },
+  appName: { color: '#FFF', fontSize: 26, fontWeight: '800', letterSpacing: -0.5 },
+  tagline: { color: 'rgba(255,255,255,0.8)', fontSize: 13, marginTop: 2, fontWeight: '500' },
+  formArea: { flex: 1, marginTop: -18 },
   scroll: { paddingHorizontal: 24, paddingBottom: 40 },
   form: { padding: 24 },
   formTitle: { fontSize: 22, fontWeight: '800', letterSpacing: -0.3 },
