@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Plus, Pencil, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
+import { PasswordInput } from "@/components/ui/PasswordInput";
 import { Card } from "@/components/ui/Card";
 import { Table, Modal } from "@/components/ui/Table";
 
@@ -22,7 +23,7 @@ interface Customer {
 const emptyForm = {
   name: "", mobile: "", email: "", address: "",
   aadhaar: "", occupation: "", emergencyContact: "",
-  username: "", password: "",
+  username: "", password: "", confirmPassword: "",
 };
 
 export default function CustomersPage() {
@@ -31,6 +32,7 @@ export default function CustomersPage() {
   const [editing, setEditing] = useState<Customer | null>(null);
   const [form, setForm] = useState(emptyForm);
   const [loading, setLoading] = useState(true);
+  const [passwordError, setPasswordError] = useState("");
 
   const load = () => {
     fetch("/api/admin/customers").then((r) => r.json()).then(setCustomers).finally(() => setLoading(false));
@@ -38,23 +40,34 @@ export default function CustomersPage() {
 
   useEffect(() => { load(); }, []);
 
-  const openCreate = () => { setEditing(null); setForm(emptyForm); setModalOpen(true); };
+  const openCreate = () => { setEditing(null); setForm(emptyForm); setPasswordError(""); setModalOpen(true); };
 
   const openEdit = (c: Customer) => {
     setEditing(c);
     setForm({
       name: c.name, mobile: c.mobile, email: c.email, address: c.address,
       aadhaar: c.aadhaar, occupation: c.occupation, emergencyContact: c.emergencyContact,
-      username: c.user?.username || "", password: "",
+      username: c.user?.username || "", password: "", confirmPassword: "",
     });
     setModalOpen(true);
+    setPasswordError("");
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!editing && form.password !== form.confirmPassword) {
+      setPasswordError("Passwords do not match");
+      return;
+    }
+    if (editing && form.password && form.password !== form.confirmPassword) {
+      setPasswordError("Passwords do not match");
+      return;
+    }
+    setPasswordError("");
     const url = editing ? `/api/admin/customers/${editing.id}` : "/api/admin/customers";
     const method = editing ? "PUT" : "POST";
     const payload = { ...form };
+    delete (payload as Record<string, string>).confirmPassword;
     if (editing && !form.password) delete (payload as Record<string, string>).password;
     await fetch(url, { method, headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
     setModalOpen(false);
@@ -115,10 +128,24 @@ export default function CustomersPage() {
           </div>
           <Input label="Emergency Contact" value={form.emergencyContact} onChange={(e) => set("emergencyContact", e.target.value)} required />
           <hr />
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <Input label="Username" value={form.username} onChange={(e) => set("username", e.target.value)} required={!editing} />
-            <Input label="Password" type="password" value={form.password} onChange={(e) => set("password", e.target.value)} required={!editing} placeholder={editing ? "Leave blank to keep" : ""} />
+            <PasswordInput
+              label="Password"
+              value={form.password}
+              onChange={(e) => set("password", e.target.value)}
+              required={!editing}
+              placeholder={editing ? "Leave blank to keep" : ""}
+            />
           </div>
+          <PasswordInput
+            label="Confirm Password"
+            value={form.confirmPassword}
+            onChange={(e) => set("confirmPassword", e.target.value)}
+            required={!editing}
+            error={passwordError}
+            placeholder={editing ? "Re-enter if changing password" : ""}
+          />
           <div className="flex justify-end gap-2 pt-2">
             <Button variant="secondary" type="button" onClick={() => setModalOpen(false)}>Cancel</Button>
             <Button type="submit">{editing ? "Update" : "Create"}</Button>
