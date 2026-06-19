@@ -5,6 +5,9 @@ import { CreditCard, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Select } from "@/components/ui/Select";
 import { Card } from "@/components/ui/Card";
+import { PageHeader } from "@/components/native/PageHeader";
+import { InfoRow } from "@/components/native/InfoRow";
+import { LoadingState } from "@/components/native/States";
 import { formatCurrency } from "@/lib/utils";
 
 interface PaymentData {
@@ -57,11 +60,7 @@ export default function PaymentsPage() {
       const res = await fetch("/api/customer/dashboard", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          rentalId: data.rental.id,
-          rentMonth: selectedMonth,
-          paymentMethod,
-        }),
+        body: JSON.stringify({ rentalId: data.rental.id, rentMonth: selectedMonth, paymentMethod }),
       });
       const payment = await res.json();
       if (res.ok) {
@@ -76,97 +75,81 @@ export default function PaymentsPage() {
     }
   };
 
-  if (loading) return <div className="text-gray-500">Loading...</div>;
+  if (loading) return <LoadingState />;
 
   if (success) {
     return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <Card className="max-w-md w-full text-center">
-          <CheckCircle className="mx-auto h-16 w-16 text-green-500 mb-4" />
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Payment Successful!</h2>
-          <p className="text-gray-500 mb-4">Transaction ID: <span className="font-mono">{success.transactionId}</span></p>
-          <div className="flex gap-3 justify-center">
-            <Button onClick={() => window.open(`/api/receipts/${success.paymentId}`, "_blank")}>
-              Download Receipt
-            </Button>
-            <Button variant="secondary" onClick={() => { setSuccess(null); window.location.reload(); }}>
-              Make Another Payment
-            </Button>
-          </div>
-        </Card>
+      <div className="flex flex-col items-center justify-center min-h-[60vh] px-4 text-center">
+        <CheckCircle className="h-20 w-20 text-emerald-500 mb-4" />
+        <h2 className="text-title text-foreground mb-2">Payment Successful!</h2>
+        <p className="text-caption text-gray-500 mb-6">Txn: {success.transactionId}</p>
+        <div className="flex flex-col gap-3 w-full max-w-xs">
+          <Button size="block" onClick={() => window.open(`/api/receipts/${success.paymentId}`, "_blank")}>
+            Download Receipt
+          </Button>
+          <Button size="block" variant="secondary" onClick={() => { setSuccess(null); window.location.reload(); }}>
+            Pay Again
+          </Button>
+        </div>
       </div>
     );
   }
 
   if (!data?.outstanding || data.outstanding.unpaidMonths.length === 0) {
     return (
-      <div className="space-y-6">
-        <h1 className="page-title">Pay Rent</h1>
+      <div>
+        <PageHeader title="Pay Rent" />
         <Card>
-          <p className="text-green-600 font-medium">All rent payments are up to date!</p>
+          <p className="text-emerald-600 font-semibold text-center py-4">All payments are up to date!</p>
         </Card>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="page-title">Pay Rent</h1>
-        <p className="text-gray-500">Make online payment for your rent</p>
-      </div>
+    <div className="space-y-5 pb-4">
+      <PageHeader title="Pay Rent" subtitle="Select month and pay online" />
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <Card title="Select Payment Details">
-          <div className="space-y-4">
-            <Select
-              label="Rent Month"
-              value={selectedMonth}
-              onChange={(e) => setSelectedMonth(e.target.value)}
-              options={data.outstanding.unpaidMonths.map((m) => ({
-                value: m.rentMonth,
-                label: `${m.rentMonth}${m.isOverdue ? " (Overdue)" : ""}`,
-              }))}
-            />
-            <Select
-              label="Payment Method"
-              value={paymentMethod}
-              onChange={(e) => setPaymentMethod(e.target.value)}
-              options={paymentMethods}
-            />
+      <Card title="Payment Details">
+        <div className="space-y-4">
+          <Select
+            label="Rent Month"
+            value={selectedMonth}
+            onChange={(e) => setSelectedMonth(e.target.value)}
+            options={data.outstanding.unpaidMonths.map((m) => ({
+              value: m.rentMonth,
+              label: `${m.rentMonth}${m.isOverdue ? " (Overdue)" : ""}`,
+            }))}
+          />
+          <Select
+            label="Payment Method"
+            value={paymentMethod}
+            onChange={(e) => setPaymentMethod(e.target.value)}
+            options={paymentMethods}
+          />
+        </div>
+      </Card>
+
+      {selectedDue && (
+        <Card title="Summary">
+          <div className="space-y-3">
+            <InfoRow label="Rent Amount" value={formatCurrency(selectedDue.rentAmount)} />
+            {selectedDue.fineAmount > 0 && (
+              <InfoRow label={`Fine (${selectedDue.lateDays} days)`} value={formatCurrency(selectedDue.fineAmount)} />
+            )}
+            <div className="border-t border-outline pt-3">
+              <div className="flex justify-between items-center">
+                <span className="text-[16px] font-bold">Total</span>
+                <span className="text-[22px] font-bold text-primary">{formatCurrency(selectedDue.totalPayable)}</span>
+              </div>
+            </div>
+            <Button size="block" onClick={handlePay} disabled={paying} className="mt-2">
+              <CreditCard className="h-5 w-5" />
+              {paying ? "Processing..." : `Pay ${formatCurrency(selectedDue.totalPayable)}`}
+            </Button>
           </div>
         </Card>
-
-        <Card title="Payment Summary">
-          {selectedDue ? (
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-500">Rent Amount</span>
-                  <span>{formatCurrency(selectedDue.rentAmount)}</span>
-                </div>
-                {selectedDue.fineAmount > 0 && (
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-500">Fine ({selectedDue.lateDays} days)</span>
-                    <span className="text-red-600">{formatCurrency(selectedDue.fineAmount)}</span>
-                  </div>
-                )}
-                <hr />
-                <div className="flex justify-between font-bold text-lg">
-                  <span>Total Payable</span>
-                  <span className="text-blue-600">{formatCurrency(selectedDue.totalPayable)}</span>
-                </div>
-              </div>
-              <Button className="w-full" onClick={handlePay} disabled={paying}>
-                <CreditCard className="h-4 w-4" />
-                {paying ? "Processing..." : `Pay ${formatCurrency(selectedDue.totalPayable)}`}
-              </Button>
-            </div>
-          ) : (
-            <p className="text-gray-500">Select a month to pay</p>
-          )}
-        </Card>
-      </div>
+      )}
     </div>
   );
 }

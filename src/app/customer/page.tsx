@@ -2,8 +2,12 @@
 
 import { useEffect, useState } from "react";
 import { AlertTriangle, IndianRupee } from "lucide-react";
-import { StatCard, Card } from "@/components/ui/Card";
-import { Badge } from "@/components/ui/Table";
+import { StatTile, Card } from "@/components/ui/Card";
+import { Badge } from "@/components/ui/Badge";
+import { PageHeader } from "@/components/native/PageHeader";
+import { ListCard, ListStack } from "@/components/native/ListCard";
+import { InfoRow } from "@/components/native/InfoRow";
+import { LoadingState } from "@/components/native/States";
 import { formatCurrency, formatDate, propertyTypeLabel } from "@/lib/utils";
 
 interface DashboardData {
@@ -15,10 +19,6 @@ interface DashboardData {
     id: string; monthlyRent: number; dueDate: number; rentStartDate: string;
     property: {
       name: string; address: string; type: string; propertyId: string;
-      utility?: {
-        ebServiceNumber: string | null; ebConsumerName: string | null;
-        waterConnectionNumber: string | null; waterConsumerName: string | null;
-      };
     };
   } | null;
   outstanding: {
@@ -41,88 +41,64 @@ export default function CustomerDashboard() {
       .finally(() => setLoading(false));
   }, []);
 
-  if (loading) return <div className="flex items-center justify-center h-64 text-gray-500">Loading...</div>;
-  if (!data) return <div className="text-red-500">Failed to load dashboard</div>;
+  if (loading) return <LoadingState />;
+  if (!data) return <div className="text-red-600 text-center py-10">Failed to load</div>;
 
   return (
-    <div className="space-y-8">
-      <div>
-        <h1 className="page-title">Welcome, {data.customer.name}</h1>
-        <p className="text-gray-500">Your rental dashboard</p>
-      </div>
+    <div className="space-y-5 pb-4">
+      <PageHeader title={`Hi, ${data.customer.name.split(" ")[0]}`} subtitle="Your rental overview" />
 
       {data.outstanding && (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-          <StatCard title="Outstanding Rent" value={formatCurrency(data.outstanding.totalRent)} icon={<IndianRupee className="h-6 w-6" />} color="bg-orange-50 text-orange-600" />
-          <StatCard title="Fine Amount" value={formatCurrency(data.outstanding.totalFine)} icon={<AlertTriangle className="h-6 w-6" />} color="bg-red-50 text-red-600" />
-          <StatCard title="Total Payable" value={formatCurrency(data.outstanding.totalPayable)} icon={<IndianRupee className="h-6 w-6" />} color="bg-blue-50 text-blue-600" />
+        <div className="grid grid-cols-1 gap-3">
+          <StatTile title="Outstanding Rent" value={formatCurrency(data.outstanding.totalRent)} icon={<IndianRupee className="h-6 w-6" />} accent="amber" />
+          <StatTile title="Fine Amount" value={formatCurrency(data.outstanding.totalFine)} icon={<AlertTriangle className="h-6 w-6" />} accent="red" />
+          <StatTile title="Total Payable" value={formatCurrency(data.outstanding.totalPayable)} icon={<IndianRupee className="h-6 w-6" />} accent="blue" />
         </div>
       )}
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <Card title="Your Information">
-          <dl className="space-y-3">
-            {[
-              ["Name", data.customer.name],
-              ["Mobile", data.customer.mobile],
-              ["Email", data.customer.email],
-              ["Address", data.customer.address],
-              ["Occupation", data.customer.occupation],
-              ["Emergency Contact", data.customer.emergencyContact],
-            ].map(([label, value]) => (
-              <div key={label} className="flex justify-between">
-                <dt className="text-sm text-gray-500">{label}</dt>
-                <dd className="text-sm font-medium text-gray-900">{value}</dd>
-              </div>
-            ))}
-          </dl>
-        </Card>
+      <Card title="Your Details">
+        <div className="space-y-1">
+          <InfoRow label="Mobile" value={data.customer.mobile} />
+          <InfoRow label="Email" value={data.customer.email} />
+          <InfoRow label="Address" value={data.customer.address} />
+          <InfoRow label="Occupation" value={data.customer.occupation} />
+          <InfoRow label="Emergency" value={data.customer.emergencyContact} />
+        </div>
+      </Card>
 
-        {data.rental ? (
-          <Card title="Property Information">
-            <dl className="space-y-3">
-              {[
-                ["Property", data.rental.property.name],
-                ["Property ID", data.rental.property.propertyId],
-                ["Type", propertyTypeLabel(data.rental.property.type)],
-                ["Address", data.rental.property.address],
-                ["Monthly Rent", formatCurrency(data.rental.monthlyRent)],
-                ["Due Date", `${data.rental.dueDate}th of every month`],
-                ["Rent Start", formatDate(data.rental.rentStartDate)],
-              ].map(([label, value]) => (
-                <div key={label} className="flex justify-between">
-                  <dt className="text-sm text-gray-500">{label}</dt>
-                  <dd className="text-sm font-medium text-gray-900">{value}</dd>
-                </div>
-              ))}
-            </dl>
-          </Card>
-        ) : (
-          <Card title="Property Information">
-            <p className="text-gray-500 text-sm">No active rental assigned</p>
-          </Card>
-        )}
-      </div>
+      {data.rental ? (
+        <Card title="Your Property">
+          <div className="space-y-1">
+            <InfoRow label="Property" value={data.rental.property.name} />
+            <InfoRow label="Type" value={propertyTypeLabel(data.rental.property.type)} />
+            <InfoRow label="Monthly Rent" value={formatCurrency(data.rental.monthlyRent)} />
+            <InfoRow label="Due Date" value={`${data.rental.dueDate}th every month`} />
+            <InfoRow label="Started" value={formatDate(data.rental.rentStartDate)} />
+            <InfoRow label="Address" value={data.rental.property.address} />
+          </div>
+        </Card>
+      ) : (
+        <Card title="Your Property">
+          <p className="text-caption text-gray-500">No active rental assigned</p>
+        </Card>
+      )}
 
       {data.outstanding && data.outstanding.unpaidMonths.length > 0 && (
         <Card title="Unpaid Months">
-          <div className="space-y-3">
+          <ListStack className="gap-2">
             {data.outstanding.unpaidMonths.map((m) => (
-              <div key={m.rentMonth} className="flex items-center justify-between rounded-lg border border-gray-200 p-4">
-                <div>
-                  <p className="font-medium">{m.rentMonth}</p>
-                  <p className="text-sm text-gray-500">
-                    Rent: {formatCurrency(m.rentAmount)}
-                    {m.fineAmount > 0 && ` | Fine: ${formatCurrency(m.fineAmount)} (${m.lateDays} days late)`}
-                  </p>
-                </div>
-                <div className="flex items-center gap-3">
-                  {m.isOverdue && <Badge variant="danger">Overdue</Badge>}
-                  <span className="font-bold text-gray-900">{formatCurrency(m.totalPayable)}</span>
-                </div>
-              </div>
+              <ListCard
+                key={m.rentMonth}
+                title={m.rentMonth}
+                subtitle={`Rent: ${formatCurrency(m.rentAmount)}${m.fineAmount > 0 ? ` · Fine: ${formatCurrency(m.fineAmount)}` : ""}`}
+                badge={m.isOverdue ? <Badge variant="danger">Overdue</Badge> : undefined}
+                badgeText={!m.isOverdue ? formatCurrency(m.totalPayable) : undefined}
+                badgeVariant="warning"
+              >
+                {m.isOverdue && <InfoRow label="Total Due" value={formatCurrency(m.totalPayable)} />}
+              </ListCard>
             ))}
-          </div>
+          </ListStack>
         </Card>
       )}
     </div>

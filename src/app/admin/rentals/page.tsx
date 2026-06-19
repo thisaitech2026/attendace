@@ -1,12 +1,16 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Plus, Trash2 } from "lucide-react";
+import { Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
-import { Card } from "@/components/ui/Card";
-import { Badge, Table, Modal } from "@/components/ui/Table";
+import { PageHeader } from "@/components/native/PageHeader";
+import { ListCard, ListStack } from "@/components/native/ListCard";
+import { InfoRow, InfoGrid } from "@/components/native/InfoRow";
+import { Fab } from "@/components/native/Fab";
+import { BottomSheet } from "@/components/native/BottomSheet";
+import { LoadingState, EmptyState } from "@/components/native/States";
 import { formatCurrency, formatDate } from "@/lib/utils";
 
 interface Rental {
@@ -47,13 +51,11 @@ export default function RentalsPage() {
     ]);
     setRentals(r);
     setCustomers(c);
-    setProperties(p.filter((prop: Property & { status: string }) => prop.status === "VACANT" || true));
+    setProperties(p);
     setLoading(false);
   };
 
   useEffect(() => { load(); }, []);
-
-  const openCreate = () => { setForm(emptyForm); setModalOpen(true); };
 
   const handlePropertyChange = (propertyId: string) => {
     const prop = properties.find((p) => p.id === propertyId);
@@ -86,7 +88,7 @@ export default function RentalsPage() {
   };
 
   const handleTerminate = async (id: string) => {
-    if (!confirm("Terminate this rental mapping?")) return;
+    if (!confirm("Terminate this rental?")) return;
     await fetch(`/api/admin/rentals/${id}`, { method: "DELETE" });
     load();
   };
@@ -94,44 +96,47 @@ export default function RentalsPage() {
   const set = (key: string, value: string) => setForm((f) => ({ ...f, [key]: value }));
 
   return (
-    <div className="space-y-6">
-      <div className="page-header">
-        <div>
-          <h1 className="page-title">Rental Mapping</h1>
-          <p className="text-gray-500">Map customers to properties</p>
-        </div>
-        <Button onClick={openCreate}><Plus className="h-4 w-4" /> Map Rental</Button>
-      </div>
+    <div className="pb-20">
+      <PageHeader title="Rentals" subtitle="Customer to property mappings" />
 
-      <Card>
-        {loading ? <p className="text-gray-500">Loading...</p> : (
-          <Table headers={["Customer", "Property", "Start Date", "Rent", "Due Day", "Fine/Day", "Status", "Actions"]}>
-            {rentals.map((r) => (
-              <tr key={r.id}>
-                <td className="px-4 py-3 text-sm font-medium">{r.customer.name}</td>
-                <td className="px-4 py-3 text-sm">{r.property.name} ({r.property.propertyId})</td>
-                <td className="px-4 py-3 text-sm">{formatDate(r.rentStartDate)}</td>
-                <td className="px-4 py-3 text-sm">{formatCurrency(r.monthlyRent)}</td>
-                <td className="px-4 py-3 text-sm">{r.dueDate}th</td>
-                <td className="px-4 py-3 text-sm">{formatCurrency(r.finePerDay)}</td>
-                <td className="px-4 py-3">
-                  <Badge variant={r.status === "ACTIVE" ? "success" : "default"}>{r.status}</Badge>
-                </td>
-                <td className="px-4 py-3">
-                  {r.status === "ACTIVE" && (
-                    <button onClick={() => handleTerminate(r.id)} className="text-red-600 hover:text-red-800">
-                      <Trash2 className="h-4 w-4" />
-                    </button>
-                  )}
-                </td>
-              </tr>
-            ))}
-          </Table>
-        )}
-      </Card>
+      {loading ? (
+        <LoadingState />
+      ) : rentals.length === 0 ? (
+        <EmptyState title="No rentals yet" message="Map a customer to a property" />
+      ) : (
+        <ListStack>
+          {rentals.map((r) => (
+            <ListCard
+              key={r.id}
+              title={r.customer.name}
+              subtitle={r.property.name}
+              badgeText={r.status}
+              badgeVariant={r.status === "ACTIVE" ? "success" : "default"}
+              actions={
+                r.status === "ACTIVE" ? (
+                  <Button size="sm" variant="danger" onClick={() => handleTerminate(r.id)}>
+                    <Trash2 className="h-4 w-4" /> Terminate
+                  </Button>
+                ) : undefined
+              }
+            >
+              <InfoGrid>
+                <InfoRow label="Property ID" value={r.property.propertyId} />
+                <InfoRow label="Start Date" value={formatDate(r.rentStartDate)} />
+                <InfoRow label="Monthly Rent" value={formatCurrency(r.monthlyRent)} />
+                <InfoRow label="Due Day" value={`${r.dueDate}th of month`} />
+                <InfoRow label="Fine / Day" value={formatCurrency(r.finePerDay)} />
+                <InfoRow label="Deposit" value={formatCurrency(r.depositAmount)} />
+              </InfoGrid>
+            </ListCard>
+          ))}
+        </ListStack>
+      )}
 
-      <Modal open={modalOpen} onClose={() => setModalOpen(false)} title="Map Customer to Property">
-        <form onSubmit={handleSubmit} className="space-y-4">
+      <Fab onClick={() => { setForm(emptyForm); setModalOpen(true); }} label="Map" />
+
+      <BottomSheet open={modalOpen} onClose={() => setModalOpen(false)} title="Map Customer to Property">
+        <form onSubmit={handleSubmit} className="space-y-4 pb-6">
           <Select label="Customer" value={form.customerId} onChange={(e) => set("customerId", e.target.value)} options={[
             { value: "", label: "Select customer" },
             ...customers.map((c) => ({ value: c.id, label: c.name })),
@@ -141,21 +146,17 @@ export default function RentalsPage() {
             ...properties.map((p) => ({ value: p.id, label: `${p.name} (${p.propertyId})` })),
           ]} />
           <Input label="Rent Start Date" type="date" value={form.rentStartDate} onChange={(e) => set("rentStartDate", e.target.value)} required />
-          <div className="form-grid-2">
-            <Input label="Monthly Rent" type="number" value={form.monthlyRent} onChange={(e) => set("monthlyRent", e.target.value)} required />
-            <Input label="Deposit Amount" type="number" value={form.depositAmount} onChange={(e) => set("depositAmount", e.target.value)} required />
-          </div>
-          <div className="form-grid-3">
-            <Input label="Due Date (day)" type="number" min="1" max="28" value={form.dueDate} onChange={(e) => set("dueDate", e.target.value)} required />
-            <Input label="Grace Period (days)" type="number" value={form.gracePeriod} onChange={(e) => set("gracePeriod", e.target.value)} required />
-            <Input label="Fine Per Day" type="number" value={form.finePerDay} onChange={(e) => set("finePerDay", e.target.value)} required />
-          </div>
-          <div className="flex justify-end gap-2 pt-2">
-            <Button variant="secondary" type="button" onClick={() => setModalOpen(false)}>Cancel</Button>
-            <Button type="submit">Create Mapping</Button>
+          <Input label="Monthly Rent" type="number" value={form.monthlyRent} onChange={(e) => set("monthlyRent", e.target.value)} required />
+          <Input label="Deposit Amount" type="number" value={form.depositAmount} onChange={(e) => set("depositAmount", e.target.value)} required />
+          <Input label="Due Date (day of month)" type="number" min="1" max="28" value={form.dueDate} onChange={(e) => set("dueDate", e.target.value)} required />
+          <Input label="Grace Period (days)" type="number" value={form.gracePeriod} onChange={(e) => set("gracePeriod", e.target.value)} required />
+          <Input label="Fine Per Day" type="number" value={form.finePerDay} onChange={(e) => set("finePerDay", e.target.value)} required />
+          <div className="flex gap-3 pt-2">
+            <Button variant="secondary" type="button" className="flex-1" onClick={() => setModalOpen(false)}>Cancel</Button>
+            <Button type="submit" className="flex-1">Create</Button>
           </div>
         </form>
-      </Modal>
+      </BottomSheet>
     </div>
   );
 }

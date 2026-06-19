@@ -8,18 +8,15 @@ interface SelectProps extends React.SelectHTMLAttributes<HTMLSelectElement> {
 export function Select({ label, options, className, id, ...props }: SelectProps) {
   const selectId = id || label?.toLowerCase().replace(/\s/g, "-");
   return (
-    <div className="space-y-1">
+    <div className="space-y-1.5">
       {label && (
-        <label htmlFor={selectId} className="block text-sm font-medium text-gray-700">
+        <label htmlFor={selectId} className="native-label">
           {label}
         </label>
       )}
       <select
         id={selectId}
-        className={cn(
-          "w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 bg-white",
-          className
-        )}
+        className={cn("native-input appearance-none bg-white", className)}
         {...props}
       >
         {options.map((opt) => (

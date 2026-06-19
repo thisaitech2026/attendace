@@ -3,6 +3,9 @@
 import { useEffect, useState } from "react";
 import { Zap, Droplets } from "lucide-react";
 import { Card } from "@/components/ui/Card";
+import { PageHeader } from "@/components/native/PageHeader";
+import { InfoRow } from "@/components/native/InfoRow";
+import { LoadingState } from "@/components/native/States";
 
 interface UtilityData {
   rental: {
@@ -29,55 +32,38 @@ export default function UtilitiesPage() {
       .finally(() => setLoading(false));
   }, []);
 
-  if (loading) return <div className="text-gray-500">Loading...</div>;
-  if (!data?.rental) return <div className="text-gray-500">No rental assigned</div>;
+  if (loading) return <LoadingState />;
+  if (!data?.rental) return <div className="text-gray-500 text-center py-10">No rental assigned</div>;
 
   const utility = data.rental.property.utility;
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="page-title">Utility Information</h1>
-        <p className="text-gray-500">EB and Water connection details for {data.rental.property.name}</p>
-      </div>
+    <div className="space-y-5 pb-4">
+      <PageHeader title="Utilities" subtitle={data.rental.property.name} />
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <Card title="Electricity (EB)">
-          <div className="flex items-start gap-4">
-            <div className="rounded-lg bg-yellow-50 p-3">
-              <Zap className="h-6 w-6 text-yellow-600" />
-            </div>
-            <dl className="space-y-3 flex-1">
-              <div>
-                <dt className="text-sm text-gray-500">EB Service Number</dt>
-                <dd className="text-lg font-mono font-medium">{utility?.ebServiceNumber || "Not available"}</dd>
-              </div>
-              <div>
-                <dt className="text-sm text-gray-500">Consumer Name</dt>
-                <dd className="text-lg font-medium">{utility?.ebConsumerName || "Not available"}</dd>
-              </div>
-            </dl>
+      <Card title="Electricity (EB)">
+        <div className="flex items-start gap-4">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-amber-50">
+            <Zap className="h-6 w-6 text-amber-600" />
           </div>
-        </Card>
+          <div className="flex-1 space-y-2">
+            <InfoRow label="Service Number" value={utility?.ebServiceNumber || "Not available"} />
+            <InfoRow label="Consumer Name" value={utility?.ebConsumerName || "Not available"} />
+          </div>
+        </div>
+      </Card>
 
-        <Card title="Water Connection">
-          <div className="flex items-start gap-4">
-            <div className="rounded-lg bg-blue-50 p-3">
-              <Droplets className="h-6 w-6 text-blue-600" />
-            </div>
-            <dl className="space-y-3 flex-1">
-              <div>
-                <dt className="text-sm text-gray-500">Water Connection Number</dt>
-                <dd className="text-lg font-mono font-medium">{utility?.waterConnectionNumber || "Not available"}</dd>
-              </div>
-              <div>
-                <dt className="text-sm text-gray-500">Consumer Name</dt>
-                <dd className="text-lg font-medium">{utility?.waterConsumerName || "Not available"}</dd>
-              </div>
-            </dl>
+      <Card title="Water Connection">
+        <div className="flex items-start gap-4">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-primary-container">
+            <Droplets className="h-6 w-6 text-primary" />
           </div>
-        </Card>
-      </div>
+          <div className="flex-1 space-y-2">
+            <InfoRow label="Connection Number" value={utility?.waterConnectionNumber || "Not available"} />
+            <InfoRow label="Consumer Name" value={utility?.waterConsumerName || "Not available"} />
+          </div>
+        </div>
+      </Card>
     </div>
   );
 }

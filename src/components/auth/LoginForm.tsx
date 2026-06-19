@@ -2,6 +2,7 @@
 
 import { Building2 } from "lucide-react";
 import { PasswordInput } from "@/components/ui/PasswordInput";
+import { Button } from "@/components/ui/Button";
 
 const demoAccounts = [
   { label: "Admin", username: "admin", password: "admin123" },
@@ -14,23 +15,18 @@ interface LoginFormProps {
 
 export function LoginForm({ error }: LoginFormProps) {
   return (
-    <>
-      <form action="/api/auth/login" method="POST" autoComplete="off" className="space-y-4">
-        <div className="space-y-1">
-          <label htmlFor="username" className="block text-sm font-medium text-gray-700">
-            Username
-          </label>
+    <div className="flex flex-col gap-6">
+      <form action="/api/auth/login" method="POST" autoComplete="off" className="flex flex-col gap-5">
+        <div>
+          <label htmlFor="username" className="native-label">Username</label>
           <input
             id="username"
             name="username"
             type="text"
             placeholder="Enter username"
             autoComplete="off"
-            autoCorrect="off"
-            autoCapitalize="none"
-            spellCheck={false}
             required
-            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            className="native-input"
           />
         </div>
 
@@ -44,49 +40,44 @@ export function LoginForm({ error }: LoginFormProps) {
         />
 
         {error && (
-          <div className="rounded-lg bg-red-50 p-3 text-sm text-red-600">{error}</div>
+          <div className="rounded-button bg-red-50 px-4 py-3 text-[14px] text-red-700">{error}</div>
         )}
 
-        <button
-          type="submit"
-          className="inline-flex w-full items-center justify-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-blue-700"
-        >
-          Sign In
-        </button>
+        <Button type="submit" size="block">Sign In</Button>
       </form>
 
-      <div className="mt-6 rounded-lg bg-gray-50 p-4 text-xs text-gray-500">
-        <p className="font-medium text-gray-700 mb-3">Quick login (one click):</p>
-        <div className="space-y-2">
+      <div>
+        <p className="native-section-title">Quick Login</p>
+        <div className="flex flex-col gap-2">
           {demoAccounts.map((account) => (
             <form key={account.username} action="/api/auth/login" method="POST">
               <input type="hidden" name="username" value={account.username} />
               <input type="hidden" name="password" value={account.password} />
               <button
                 type="submit"
-                className="flex w-full items-center justify-between rounded-lg border border-gray-200 bg-white px-3 py-2 text-left hover:border-blue-300 hover:bg-blue-50 transition-colors"
+                className="native-card flex w-full items-center justify-between active:scale-[0.99] transition-transform"
               >
-                <span className="font-medium text-gray-700">{account.label}</span>
-                <span className="font-mono text-gray-500">
-                  {account.username} / {account.password}
+                <span className="text-[15px] font-semibold text-foreground">{account.label}</span>
+                <span className="text-caption text-gray-500 font-mono">
+                  {account.username}
                 </span>
               </button>
             </form>
           ))}
         </div>
       </div>
-    </>
+    </div>
   );
 }
 
 export function LoginHeader() {
   return (
     <div className="mb-8 text-center">
-      <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-blue-100">
-        <Building2 className="h-8 w-8 text-blue-600" />
+      <div className="mx-auto mb-5 flex h-20 w-20 items-center justify-center rounded-3xl bg-primary-container">
+        <Building2 className="h-10 w-10 text-primary" />
       </div>
-      <h1 className="text-2xl font-bold text-gray-900">Rental Manager</h1>
-      <p className="mt-1 text-sm text-gray-500">House & Shop Management System</p>
+      <h1 className="text-[24px] font-bold text-foreground">Rental Manager</h1>
+      <p className="mt-2 text-caption text-gray-500">House & Shop Management</p>
     </div>
   );
 }

@@ -2,8 +2,11 @@
 
 import { useEffect, useState } from "react";
 import { Download } from "lucide-react";
-import { Card } from "@/components/ui/Card";
-import { Badge, Table } from "@/components/ui/Table";
+import { Button } from "@/components/ui/Button";
+import { PageHeader } from "@/components/native/PageHeader";
+import { ListCard, ListStack } from "@/components/native/ListCard";
+import { InfoRow, InfoGrid } from "@/components/native/InfoRow";
+import { LoadingState, EmptyState } from "@/components/native/States";
 import { formatCurrency, formatDate, paymentMethodLabel } from "@/lib/utils";
 
 interface Payment {
@@ -31,48 +34,42 @@ export default function PaymentHistoryPage() {
   }, []);
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="page-title">Payment History</h1>
-        <p className="text-gray-500">View all your past payments and download receipts</p>
-      </div>
+    <div className="pb-4">
+      <PageHeader title="Payment History" subtitle="Your past transactions" />
 
-      <Card>
-        {loading ? <p className="text-gray-500">Loading...</p> : payments.length === 0 ? (
-          <p className="text-gray-500">No payment history yet</p>
-        ) : (
-          <Table headers={["Transaction ID", "Date", "Rent Month", "Rent", "Fine", "Total", "Method", "Status", "Receipt"]}>
-            {payments.map((p) => (
-              <tr key={p.id}>
-                <td className="px-4 py-3 text-sm font-mono">{p.transactionId}</td>
-                <td className="px-4 py-3 text-sm">{formatDate(p.paymentDate)}</td>
-                <td className="px-4 py-3 text-sm">{p.rentMonth}</td>
-                <td className="px-4 py-3 text-sm">{formatCurrency(p.rentAmount)}</td>
-                <td className="px-4 py-3 text-sm">{formatCurrency(p.fineAmount)}</td>
-                <td className="px-4 py-3 text-sm font-medium">{formatCurrency(p.totalPaid)}</td>
-                <td className="px-4 py-3 text-sm">{paymentMethodLabel(p.paymentMethod)}</td>
-                <td className="px-4 py-3">
-                  <Badge variant={p.status === "SUCCESS" ? "success" : p.status === "FAILED" ? "danger" : "warning"}>
-                    {p.status}
-                  </Badge>
-                </td>
-                <td className="px-4 py-3">
-                  {p.status === "SUCCESS" && (
-                    <a
-                      href={`/api/receipts/${p.id}`}
-                      target="_blank"
-                      className="text-blue-600 hover:text-blue-800"
-                      title="Download Receipt"
-                    >
-                      <Download className="h-4 w-4" />
-                    </a>
-                  )}
-                </td>
-              </tr>
-            ))}
-          </Table>
-        )}
-      </Card>
+      {loading ? (
+        <LoadingState />
+      ) : payments.length === 0 ? (
+        <EmptyState title="No payments yet" message="Your payment history will appear here" />
+      ) : (
+        <ListStack>
+          {payments.map((p) => (
+            <ListCard
+              key={p.id}
+              title={p.rentMonth}
+              subtitle={p.rental.property.name}
+              badgeText={p.status}
+              badgeVariant={p.status === "SUCCESS" ? "success" : p.status === "FAILED" ? "danger" : "warning"}
+            >
+              <InfoGrid>
+                <InfoRow label="Amount" value={formatCurrency(p.totalPaid)} />
+                <InfoRow label="Date" value={formatDate(p.paymentDate)} />
+                <InfoRow label="Rent" value={formatCurrency(p.rentAmount)} />
+                <InfoRow label="Fine" value={formatCurrency(p.fineAmount)} />
+                <InfoRow label="Method" value={paymentMethodLabel(p.paymentMethod)} className="col-span-2" />
+                <InfoRow label="Txn ID" value={p.transactionId} className="col-span-2" />
+              </InfoGrid>
+              {p.status === "SUCCESS" && (
+                <a href={`/api/receipts/${p.id}`} target="_blank" rel="noopener noreferrer" className="mt-3 block">
+                  <Button size="sm" variant="secondary" className="w-full">
+                    <Download className="h-4 w-4" /> Download Receipt
+                  </Button>
+                </a>
+              )}
+            </ListCard>
+          ))}
+        </ListStack>
+      )}
     </div>
   );
 }

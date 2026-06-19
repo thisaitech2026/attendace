@@ -2,18 +2,23 @@
 
 import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/Card";
-import { Badge, Table } from "@/components/ui/Table";
+import { Badge } from "@/components/ui/Badge";
+import { PageHeader } from "@/components/native/PageHeader";
+import { ListCard, ListStack } from "@/components/native/ListCard";
+import { InfoRow, InfoGrid } from "@/components/native/InfoRow";
+import { LoadingState } from "@/components/native/States";
 import { formatCurrency, formatDate } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 
 const reportTypes = [
-  { key: "property", label: "Property Reports" },
-  { key: "occupancy", label: "Occupancy Reports" },
-  { key: "customer", label: "Customer Reports" },
-  { key: "daily", label: "Daily Collections" },
-  { key: "monthly", label: "Monthly Collections" },
-  { key: "due", label: "Due Reports" },
-  { key: "fine", label: "Fine Reports" },
-  { key: "outstanding", label: "Outstanding Reports" },
+  { key: "property", label: "Properties" },
+  { key: "occupancy", label: "Occupancy" },
+  { key: "customer", label: "Customers" },
+  { key: "daily", label: "Daily" },
+  { key: "monthly", label: "Monthly" },
+  { key: "due", label: "Due" },
+  { key: "fine", label: "Fines" },
+  { key: "outstanding", label: "Outstanding" },
 ];
 
 export default function ReportsPage() {
@@ -30,74 +35,77 @@ export default function ReportsPage() {
   }, [activeType]);
 
   const renderReport = () => {
-    if (loading) return <p className="text-gray-500">Loading report...</p>;
-    if (!data) return <p className="text-red-500">Failed to load</p>;
+    if (loading) return <LoadingState message="Loading report..." />;
+    if (!data) return <p className="text-red-600 text-center py-6">Failed to load</p>;
 
     switch (activeType) {
       case "property":
         return (
-          <Table headers={["ID", "Name", "Type", "Status", "Rent", "Tenant"]}>
+          <ListStack>
             {(data as Array<{ id: string; propertyId: string; name: string; type: string; status: string; monthlyRent: number; rentals: Array<{ customer: { name: string } }> }>).map((p) => (
-              <tr key={p.id}>
-                <td className="px-4 py-3 text-sm font-mono">{p.propertyId}</td>
-                <td className="px-4 py-3 text-sm">{p.name}</td>
-                <td className="px-4 py-3 text-sm">{p.type}</td>
-                <td className="px-4 py-3"><Badge variant={p.status === "OCCUPIED" ? "success" : "warning"}>{p.status}</Badge></td>
-                <td className="px-4 py-3 text-sm">{formatCurrency(p.monthlyRent)}</td>
-                <td className="px-4 py-3 text-sm">{p.rentals[0]?.customer.name || "-"}</td>
-              </tr>
+              <ListCard key={p.id} title={p.name} subtitle={p.propertyId} badgeText={p.status} badgeVariant={p.status === "OCCUPIED" ? "success" : "warning"}>
+                <InfoGrid>
+                  <InfoRow label="Type" value={p.type} />
+                  <InfoRow label="Rent" value={formatCurrency(p.monthlyRent)} />
+                  <InfoRow label="Tenant" value={p.rentals[0]?.customer.name || "Vacant"} className="col-span-2" />
+                </InfoGrid>
+              </ListCard>
             ))}
-          </Table>
+          </ListStack>
         );
       case "occupancy": {
         const d = data as { occupied: number; vacant: number; byType: Array<{ type: string; status: string; _count: number }> };
         return (
           <div className="space-y-4">
-            <div className="form-grid-2">
-              <div className="rounded-lg bg-green-50 p-4"><p className="text-sm text-green-600">Occupied</p><p className="text-2xl font-bold">{d.occupied}</p></div>
-              <div className="rounded-lg bg-yellow-50 p-4"><p className="text-sm text-yellow-600">Vacant</p><p className="text-2xl font-bold">{d.vacant}</p></div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="native-card bg-emerald-50 text-center py-4">
+                <p className="text-caption text-emerald-600">Occupied</p>
+                <p className="text-[24px] font-bold text-emerald-800">{d.occupied}</p>
+              </div>
+              <div className="native-card bg-amber-50 text-center py-4">
+                <p className="text-caption text-amber-600">Vacant</p>
+                <p className="text-[24px] font-bold text-amber-800">{d.vacant}</p>
+              </div>
             </div>
-            <Table headers={["Type", "Status", "Count"]}>
+            <ListStack>
               {d.byType.map((item, i) => (
-                <tr key={i}>
-                  <td className="px-4 py-3 text-sm">{item.type}</td>
-                  <td className="px-4 py-3 text-sm">{item.status}</td>
-                  <td className="px-4 py-3 text-sm font-medium">{item._count}</td>
-                </tr>
+                <ListCard key={i} title={item.type} badgeText={`${item._count}`} badgeVariant="info">
+                  <InfoRow label="Status" value={item.status} />
+                </ListCard>
               ))}
-            </Table>
+            </ListStack>
           </div>
         );
       }
       case "customer":
         return (
-          <Table headers={["Name", "Mobile", "Email", "Property", "Username"]}>
+          <ListStack>
             {(data as Array<{ id: string; name: string; mobile: string; email: string; rentals: Array<{ property: { name: string } }>; user: { username: string } }>).map((c) => (
-              <tr key={c.id}>
-                <td className="px-4 py-3 text-sm font-medium">{c.name}</td>
-                <td className="px-4 py-3 text-sm">{c.mobile}</td>
-                <td className="px-4 py-3 text-sm">{c.email}</td>
-                <td className="px-4 py-3 text-sm">{c.rentals[0]?.property.name || "-"}</td>
-                <td className="px-4 py-3 text-sm font-mono">{c.user?.username}</td>
-              </tr>
+              <ListCard key={c.id} title={c.name} subtitle={c.user?.username} badgeVariant="info" badgeText="Customer">
+                <InfoGrid>
+                  <InfoRow label="Mobile" value={c.mobile} />
+                  <InfoRow label="Email" value={c.email} />
+                  <InfoRow label="Property" value={c.rentals[0]?.property.name || "None"} className="col-span-2" />
+                </InfoGrid>
+              </ListCard>
             ))}
-          </Table>
+          </ListStack>
         );
       case "daily": {
         const d = data as { payments: Array<{ id: string; transactionId: string; totalPaid: number; paymentDate: string; rental: { customer: { name: string } } }>; total: number; date: string };
         return (
           <div className="space-y-4">
-            <p className="text-sm text-gray-500">Date: {d.date} | Total: <span className="font-bold text-green-600">{formatCurrency(d.total)}</span></p>
-            <Table headers={["Txn ID", "Customer", "Amount", "Date"]}>
+            <div className="native-card bg-emerald-50 text-center py-3">
+              <p className="text-caption text-emerald-600">{d.date}</p>
+              <p className="text-[20px] font-bold text-emerald-800">{formatCurrency(d.total)}</p>
+            </div>
+            <ListStack>
               {d.payments.map((p) => (
-                <tr key={p.id}>
-                  <td className="px-4 py-3 text-sm font-mono">{p.transactionId}</td>
-                  <td className="px-4 py-3 text-sm">{p.rental.customer.name}</td>
-                  <td className="px-4 py-3 text-sm">{formatCurrency(p.totalPaid)}</td>
-                  <td className="px-4 py-3 text-sm">{formatDate(p.paymentDate)}</td>
-                </tr>
+                <ListCard key={p.id} title={p.rental.customer.name} subtitle={p.transactionId} badgeText={formatCurrency(p.totalPaid)} badgeVariant="success">
+                  <InfoRow label="Date" value={formatDate(p.paymentDate)} />
+                </ListCard>
               ))}
-            </Table>
+            </ListStack>
           </div>
         );
       }
@@ -105,49 +113,58 @@ export default function ReportsPage() {
         const d = data as { payments: Array<{ id: string; transactionId: string; totalPaid: number; fineAmount: number; rental: { customer: { name: string } } }>; total: number; fineTotal: number; month: string };
         return (
           <div className="space-y-4">
-            <p className="text-sm text-gray-500">Month: {d.month} | Total: <span className="font-bold text-green-600">{formatCurrency(d.total)}</span> | Fines: <span className="font-bold text-red-600">{formatCurrency(d.fineTotal)}</span></p>
-            <Table headers={["Txn ID", "Customer", "Amount", "Fine"]}>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="native-card bg-emerald-50 text-center py-3">
+                <p className="text-caption text-emerald-600">{d.month}</p>
+                <p className="text-[18px] font-bold text-emerald-800">{formatCurrency(d.total)}</p>
+              </div>
+              <div className="native-card bg-red-50 text-center py-3">
+                <p className="text-caption text-red-600">Fines</p>
+                <p className="text-[18px] font-bold text-red-800">{formatCurrency(d.fineTotal)}</p>
+              </div>
+            </div>
+            <ListStack>
               {d.payments.map((p) => (
-                <tr key={p.id}>
-                  <td className="px-4 py-3 text-sm font-mono">{p.transactionId}</td>
-                  <td className="px-4 py-3 text-sm">{p.rental.customer.name}</td>
-                  <td className="px-4 py-3 text-sm">{formatCurrency(p.totalPaid)}</td>
-                  <td className="px-4 py-3 text-sm">{formatCurrency(p.fineAmount)}</td>
-                </tr>
+                <ListCard key={p.id} title={p.rental.customer.name} subtitle={p.transactionId}>
+                  <InfoGrid>
+                    <InfoRow label="Paid" value={formatCurrency(p.totalPaid)} />
+                    <InfoRow label="Fine" value={formatCurrency(p.fineAmount)} />
+                  </InfoGrid>
+                </ListCard>
               ))}
-            </Table>
+            </ListStack>
           </div>
         );
       }
       case "due":
         return (
-          <Table headers={["Customer", "Property", "Outstanding", "Fine", "Unpaid Months"]}>
+          <ListStack>
             {(data as Array<{ rental: { customer: { name: string }; property: { name: string } }; totalPayable: number; totalFine: number; unpaidMonths: Array<{ rentMonth: string }> }>).map((d, i) => (
-              <tr key={i}>
-                <td className="px-4 py-3 text-sm">{d.rental.customer.name}</td>
-                <td className="px-4 py-3 text-sm">{d.rental.property.name}</td>
-                <td className="px-4 py-3 text-sm font-medium text-red-600">{formatCurrency(d.totalPayable)}</td>
-                <td className="px-4 py-3 text-sm">{formatCurrency(d.totalFine)}</td>
-                <td className="px-4 py-3 text-sm">{d.unpaidMonths.map((m) => m.rentMonth).join(", ")}</td>
-              </tr>
+              <ListCard key={i} title={d.rental.customer.name} subtitle={d.rental.property.name} badge={<Badge variant="danger">Due</Badge>}>
+                <InfoGrid>
+                  <InfoRow label="Outstanding" value={formatCurrency(d.totalPayable)} />
+                  <InfoRow label="Fine" value={formatCurrency(d.totalFine)} />
+                  <InfoRow label="Unpaid Months" value={d.unpaidMonths.map((m) => m.rentMonth).join(", ")} className="col-span-2" />
+                </InfoGrid>
+              </ListCard>
             ))}
-          </Table>
+          </ListStack>
         );
       case "fine": {
         const d = data as { payments: Array<{ id: string; transactionId: string; fineAmount: number; paymentDate: string; rental: { customer: { name: string } } }>; total: number };
         return (
           <div className="space-y-4">
-            <p className="text-sm">Total Fine Collections: <span className="font-bold text-red-600">{formatCurrency(d.total)}</span></p>
-            <Table headers={["Txn ID", "Customer", "Fine", "Date"]}>
+            <div className="native-card bg-red-50 text-center py-3">
+              <p className="text-caption text-red-600">Total Fines Collected</p>
+              <p className="text-[20px] font-bold text-red-800">{formatCurrency(d.total)}</p>
+            </div>
+            <ListStack>
               {d.payments.map((p) => (
-                <tr key={p.id}>
-                  <td className="px-4 py-3 text-sm font-mono">{p.transactionId}</td>
-                  <td className="px-4 py-3 text-sm">{p.rental.customer.name}</td>
-                  <td className="px-4 py-3 text-sm">{formatCurrency(p.fineAmount)}</td>
-                  <td className="px-4 py-3 text-sm">{formatDate(p.paymentDate)}</td>
-                </tr>
+                <ListCard key={p.id} title={p.rental.customer.name} subtitle={p.transactionId} badgeText={formatCurrency(p.fineAmount)} badgeVariant="danger">
+                  <InfoRow label="Date" value={formatDate(p.paymentDate)} />
+                </ListCard>
               ))}
-            </Table>
+            </ListStack>
           </div>
         );
       }
@@ -155,18 +172,20 @@ export default function ReportsPage() {
         const d = data as { outstanding: Array<{ rental: { customer: { name: string }; property: { name: string } }; totalPayable: number; totalRent: number; totalFine: number }>; grandTotal: number };
         return (
           <div className="space-y-4">
-            <p className="text-sm">Grand Total Outstanding: <span className="font-bold text-red-600">{formatCurrency(d.grandTotal)}</span></p>
-            <Table headers={["Customer", "Property", "Rent Due", "Fine", "Total"]}>
+            <div className="native-card bg-red-50 text-center py-3">
+              <p className="text-caption text-red-600">Grand Total Outstanding</p>
+              <p className="text-[20px] font-bold text-red-800">{formatCurrency(d.grandTotal)}</p>
+            </div>
+            <ListStack>
               {d.outstanding.map((o, i) => (
-                <tr key={i}>
-                  <td className="px-4 py-3 text-sm">{o.rental.customer.name}</td>
-                  <td className="px-4 py-3 text-sm">{o.rental.property.name}</td>
-                  <td className="px-4 py-3 text-sm">{formatCurrency(o.totalRent)}</td>
-                  <td className="px-4 py-3 text-sm">{formatCurrency(o.totalFine)}</td>
-                  <td className="px-4 py-3 text-sm font-medium text-red-600">{formatCurrency(o.totalPayable)}</td>
-                </tr>
+                <ListCard key={i} title={o.rental.customer.name} subtitle={o.rental.property.name} badgeText={formatCurrency(o.totalPayable)} badgeVariant="danger">
+                  <InfoGrid>
+                    <InfoRow label="Rent Due" value={formatCurrency(o.totalRent)} />
+                    <InfoRow label="Fine" value={formatCurrency(o.totalFine)} />
+                  </InfoGrid>
+                </ListCard>
               ))}
-            </Table>
+            </ListStack>
           </div>
         );
       }
@@ -176,20 +195,18 @@ export default function ReportsPage() {
   };
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="page-title">Reports</h1>
-        <p className="text-gray-500">Generate and view system reports</p>
-      </div>
+    <div className="space-y-4 pb-4">
+      <PageHeader title="Reports" subtitle="View system reports" />
 
       <div className="flex flex-wrap gap-2">
         {reportTypes.map((rt) => (
           <button
             key={rt.key}
             onClick={() => setActiveType(rt.key)}
-            className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
-              activeType === rt.key ? "bg-blue-600 text-white" : "bg-white text-gray-700 border border-gray-300 hover:bg-gray-50"
-            }`}
+            className={cn(
+              "rounded-full px-4 py-2 text-[13px] font-semibold transition-colors min-h-[40px]",
+              activeType === rt.key ? "bg-primary text-white" : "bg-white text-gray-600 border border-outline"
+            )}
           >
             {rt.label}
           </button>

@@ -5,8 +5,12 @@ import {
   Building2, Home, Store, Users, AlertTriangle,
   IndianRupee, TrendingUp,
 } from "lucide-react";
-import { StatCard, Card } from "@/components/ui/Card";
-import { Badge, Table } from "@/components/ui/Table";
+import { StatTile, Card } from "@/components/ui/Card";
+import { Badge } from "@/components/ui/Badge";
+import { PageHeader } from "@/components/native/PageHeader";
+import { ListCard, ListStack } from "@/components/native/ListCard";
+import { InfoRow, InfoGrid } from "@/components/native/InfoRow";
+import { LoadingState } from "@/components/native/States";
 import { formatCurrency, formatDate } from "@/lib/utils";
 
 interface DashboardData {
@@ -24,14 +28,12 @@ interface DashboardData {
     paymentDate: string;
     totalPaid: number;
     status: string;
-    paymentMethod: string;
     rental: { customer: { name: string }; property: { name: string } };
   }>;
   overdueAccounts: Array<{
     rental: { customer: { name: string }; property: { name: string } };
     totalPayable: number;
     totalFine: number;
-    unpaidMonths: Array<{ rentMonth: string }>;
   }>;
 }
 
@@ -46,70 +48,68 @@ export default function AdminDashboard() {
       .finally(() => setLoading(false));
   }, []);
 
-  if (loading) return <div className="flex items-center justify-center h-64 text-gray-500">Loading dashboard...</div>;
-  if (!data) return <div className="text-red-500">Failed to load dashboard</div>;
+  if (loading) return <LoadingState message="Loading dashboard..." />;
+  if (!data) return <div className="text-red-600 text-center py-10">Failed to load dashboard</div>;
 
   return (
-    <div className="space-y-8">
-      <div>
-        <h1 className="page-title">Admin Dashboard</h1>
-        <p className="text-gray-500">Overview of your rental management system</p>
+    <div className="space-y-5 pb-4">
+      <PageHeader title="Dashboard" subtitle="Rental overview" />
+
+      <div className="grid grid-cols-2 gap-3">
+        <StatTile title="Properties" value={data.totalProperties} icon={<Building2 className="h-6 w-6" />} />
+        <StatTile title="Occupied" value={data.occupiedProperties} icon={<Users className="h-6 w-6" />} accent="green" />
+        <StatTile title="Houses" value={data.totalHouses} icon={<Home className="h-6 w-6" />} accent="purple" />
+        <StatTile title="Shops" value={data.totalShops} icon={<Store className="h-6 w-6" />} accent="amber" />
+        <StatTile title="Collections" value={formatCurrency(data.monthlyCollections)} icon={<IndianRupee className="h-6 w-6" />} accent="green" />
+        <StatTile title="Due Amount" value={formatCurrency(data.dueAmounts)} icon={<AlertTriangle className="h-6 w-6" />} accent="red" />
+        <StatTile title="Vacant" value={data.vacantProperties} icon={<Building2 className="h-6 w-6" />} accent="gray" />
+        <StatTile title="Fines" value={formatCurrency(data.fineCollections)} icon={<TrendingUp className="h-6 w-6" />} accent="amber" />
       </div>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard title="Total Properties" value={data.totalProperties} icon={<Building2 className="h-6 w-6" />} />
-        <StatCard title="Total Houses" value={data.totalHouses} icon={<Home className="h-6 w-6" />} color="bg-green-50 text-green-600" />
-        <StatCard title="Total Shops" value={data.totalShops} icon={<Store className="h-6 w-6" />} color="bg-purple-50 text-purple-600" />
-        <StatCard title="Occupied" value={data.occupiedProperties} icon={<Users className="h-6 w-6" />} color="bg-orange-50 text-orange-600" />
-      </div>
+      <Card title="Recent Payments">
+        {data.recentPayments.length === 0 ? (
+          <p className="text-caption text-gray-500">No payments yet</p>
+        ) : (
+          <ListStack className="gap-2">
+            {data.recentPayments.map((p) => (
+              <ListCard
+                key={p.id}
+                title={p.rental.customer.name}
+                subtitle={p.rental.property.name}
+                badgeText={p.status}
+                badgeVariant={p.status === "SUCCESS" ? "success" : p.status === "FAILED" ? "danger" : "warning"}
+              >
+                <InfoGrid>
+                  <InfoRow label="Amount" value={formatCurrency(p.totalPaid)} />
+                  <InfoRow label="Date" value={formatDate(p.paymentDate)} />
+                </InfoGrid>
+              </ListCard>
+            ))}
+          </ListStack>
+        )}
+      </Card>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard title="Vacant Properties" value={data.vacantProperties} icon={<Building2 className="h-6 w-6" />} color="bg-gray-50 text-gray-600" />
-        <StatCard title="Monthly Collections" value={formatCurrency(data.monthlyCollections)} icon={<IndianRupee className="h-6 w-6" />} color="bg-green-50 text-green-600" />
-        <StatCard title="Due Amounts" value={formatCurrency(data.dueAmounts)} icon={<AlertTriangle className="h-6 w-6" />} color="bg-red-50 text-red-600" />
-        <StatCard title="Fine Collections" value={formatCurrency(data.fineCollections)} icon={<TrendingUp className="h-6 w-6" />} color="bg-yellow-50 text-yellow-600" />
-      </div>
-
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <Card title="Recent Payments">
-          {data.recentPayments.length === 0 ? (
-            <p className="text-gray-500 text-sm">No payments yet</p>
-          ) : (
-            <Table headers={["Customer", "Property", "Amount", "Date", "Status"]}>
-              {data.recentPayments.map((p) => (
-                <tr key={p.id}>
-                  <td className="px-4 py-3 text-sm">{p.rental.customer.name}</td>
-                  <td className="px-4 py-3 text-sm">{p.rental.property.name}</td>
-                  <td className="px-4 py-3 text-sm font-medium">{formatCurrency(p.totalPaid)}</td>
-                  <td className="px-4 py-3 text-sm">{formatDate(p.paymentDate)}</td>
-                  <td className="px-4 py-3">
-                    <Badge variant={p.status === "SUCCESS" ? "success" : p.status === "FAILED" ? "danger" : "warning"}>
-                      {p.status}
-                    </Badge>
-                  </td>
-                </tr>
-              ))}
-            </Table>
-          )}
-        </Card>
-
-        <Card title="Overdue Accounts">
-          {data.overdueAccounts.length === 0 ? (
-            <p className="text-gray-500 text-sm">No overdue accounts</p>
-          ) : (
-            <Table headers={["Customer", "Property", "Due Amount", "Fine"]}>
-              {data.overdueAccounts.map((a, i) => (
-                <tr key={i}>
-                  <td className="px-4 py-3 text-sm">{a.rental.customer.name}</td>
-                  <td className="px-4 py-3 text-sm">{a.rental.property.name}</td>
-                  <td className="px-4 py-3 text-sm font-medium text-red-600">{formatCurrency(a.totalPayable)}</td>
-                  <td className="px-4 py-3 text-sm">{formatCurrency(a.totalFine)}</td>
-                </tr>
-              ))}
-            </Table>
-          )}
-        </Card>
-      </div>
+      <Card title="Overdue Accounts">
+        {data.overdueAccounts.length === 0 ? (
+          <p className="text-caption text-gray-500">No overdue accounts</p>
+        ) : (
+          <ListStack className="gap-2">
+            {data.overdueAccounts.map((a, i) => (
+              <ListCard
+                key={i}
+                title={a.rental.customer.name}
+                subtitle={a.rental.property.name}
+                badge={<Badge variant="danger">Overdue</Badge>}
+              >
+                <InfoGrid>
+                  <InfoRow label="Due Amount" value={formatCurrency(a.totalPayable)} />
+                  <InfoRow label="Fine" value={formatCurrency(a.totalFine)} />
+                </InfoGrid>
+              </ListCard>
+            ))}
+          </ListStack>
+        )}
+      </Card>
     </div>
   );
 }
