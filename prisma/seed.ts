@@ -1,9 +1,13 @@
 import { PrismaClient } from "../src/generated/prisma/client";
 import { PrismaBetterSqlite3 } from "@prisma/adapter-better-sqlite3";
 import bcrypt from "bcryptjs";
+import path from "path";
 
+const dbPath = path.join(process.cwd(), "dev.db");
 const adapter = new PrismaBetterSqlite3({
-  url: process.env.DATABASE_URL || "file:./dev.db",
+  url: process.env.DATABASE_URL?.startsWith("file:")
+    ? process.env.DATABASE_URL
+    : `file:${dbPath}`,
 });
 const prisma = new PrismaClient({ adapter });
 
@@ -13,7 +17,7 @@ async function main() {
   const adminPassword = await bcrypt.hash("admin123", 12);
   await prisma.user.upsert({
     where: { username: "admin" },
-    update: {},
+    update: { password: adminPassword, role: "ADMIN" },
     create: {
       username: "admin",
       password: adminPassword,
@@ -25,7 +29,11 @@ async function main() {
 
   const customer1 = await prisma.customer.upsert({
     where: { id: "seed-customer-1" },
-    update: {},
+    update: {
+      name: "Rajesh Kumar",
+      mobile: "9876543210",
+      email: "rajesh@email.com",
+    },
     create: {
       id: "seed-customer-1",
       name: "Rajesh Kumar",
@@ -65,6 +73,11 @@ async function main() {
         },
       },
     },
+  });
+
+  await prisma.user.updateMany({
+    where: { username: { in: ["rajesh", "priya"] } },
+    data: { password: customerPassword },
   });
 
   const properties = [

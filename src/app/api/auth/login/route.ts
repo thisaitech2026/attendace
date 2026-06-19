@@ -3,14 +3,20 @@ import { authenticateUser } from "@/lib/auth";
 
 export async function POST(request: NextRequest) {
   try {
-    const { username, password } = await request.json();
+    const body = await request.json();
+    const username = String(body.username || "").trim();
+    const password = String(body.password || "");
+
     if (!username || !password) {
       return NextResponse.json({ error: "Username and password required" }, { status: 400 });
     }
 
     const result = await authenticateUser(username, password);
     if (!result) {
-      return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
+      return NextResponse.json(
+        { error: "Invalid username or password. Use admin/admin123 or rajesh/customer123" },
+        { status: 401 }
+      );
     }
 
     const response = NextResponse.json({
@@ -18,16 +24,22 @@ export async function POST(request: NextRequest) {
       redirect: result.user.role === "ADMIN" ? "/admin" : "/customer",
     });
 
+    const isSecure = request.nextUrl.protocol === "https:";
+
     response.cookies.set("auth-token", result.token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
+      secure: isSecure,
       sameSite: "lax",
       maxAge: 60 * 60 * 24 * 7,
       path: "/",
     });
 
     return response;
-  } catch {
-    return NextResponse.json({ error: "Login failed" }, { status: 500 });
+  } catch (error) {
+    console.error("Login error:", error);
+    return NextResponse.json(
+      { error: "Login failed. Run: npm run db:setup" },
+      { status: 500 }
+    );
   }
 }
