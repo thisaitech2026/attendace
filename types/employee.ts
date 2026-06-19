@@ -118,4 +118,5 @@ export interface EmployeeProfileUpdate {
   phone: string;
   address: string;
   emergencyContact: string;
+  avatar?: string;
 }

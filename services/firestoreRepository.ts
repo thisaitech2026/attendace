@@ -22,7 +22,6 @@ import {
   MOCK_SALARY,
   getInitialAttendance,
 } from '@/data/mockData';
-import { getEmployeeAvatarUri } from '@/components/ui/EmployeeAvatar';
 import { firestore } from '@/services/firebase';
 import type { ChatMessage } from '@/types/chat';
 import type {
@@ -166,8 +165,7 @@ export async function loadEmployees(): Promise<Employee[]> {
     if (employee.avatar) return employee;
 
     const mockAvatar = mockById[employee.employeeId]?.avatar;
-    const avatar = mockAvatar ?? getEmployeeAvatarUri(employee);
-    return avatar ? { ...employee, avatar } : employee;
+    return mockAvatar ? { ...employee, avatar: mockAvatar } : employee;
   });
 }
 

@@ -5,8 +5,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
+import { EditableProfileAvatar } from '@/components/ui/EditableProfileAvatar';
 import { InfoRow } from '@/components/ui/InfoRow';
-import { ProfileSummary } from '@/components/ui/ProfileHeader';
 import { useApp } from '@/contexts/AppContext';
 import Colors from '@/constants/Colors';
 import { useColorScheme } from '@/components/useColorScheme';
@@ -21,6 +21,7 @@ export default function ProfileScreen() {
   const [address, setAddress] = useState('');
   const [emergencyContact, setEmergencyContact] = useState('');
   const [saving, setSaving] = useState(false);
+  const [avatarSaving, setAvatarSaving] = useState(false);
 
   useEffect(() => {
     if (!employee) return;
@@ -34,6 +35,15 @@ export default function ProfileScreen() {
   const handleLogout = async () => {
     const confirmed = await showConfirm('Sign Out', 'Are you sure you want to sign out?');
     if (confirmed) await logout();
+  };
+
+  const handleAvatarChange = async (avatarUri: string) => {
+    setAvatarSaving(true);
+    try {
+      await updateProfile({ phone, address, emergencyContact, avatar: avatarUri });
+    } finally {
+      setAvatarSaving(false);
+    }
   };
 
   const handleSave = async () => {
@@ -56,14 +66,29 @@ export default function ProfileScreen() {
       keyboardShouldPersistTaps="handled"
     >
       <Card style={styles.headerCard}>
-        <ProfileSummary
-          firstName={employee.firstName}
-          lastName={employee.lastName}
-          position={employee.position}
-          employeeId={employee.employeeId}
-          avatar={employee.avatar}
-          size={52}
-        />
+        <View style={styles.headerRow}>
+          <EditableProfileAvatar
+            firstName={employee.firstName}
+            lastName={employee.lastName}
+            avatar={employee.avatar}
+            size={72}
+            onAvatarChange={handleAvatarChange}
+          />
+          <View style={styles.headerInfo}>
+            <Text style={[styles.name, { color: colors.text }]}>
+              {employee.firstName} {employee.lastName}
+            </Text>
+            <Text style={[styles.position, { color: colors.textSecondary }]} numberOfLines={2}>
+              {employee.position}
+            </Text>
+            <Text style={[styles.employeeId, { color: colors.textMuted }]}>{employee.employeeId}</Text>
+          </View>
+        </View>
+        {avatarSaving ? (
+          <Text style={[styles.avatarHint, { color: colors.textMuted }]}>Saving photo...</Text>
+        ) : (
+          <Text style={[styles.avatarHint, { color: colors.textMuted }]}>Tap + to add your profile photo</Text>
+        )}
       </Card>
 
       <Text style={[styles.sectionLabel, { color: colors.textMuted }]}>EDIT PROFILE</Text>
@@ -125,7 +150,13 @@ export default function ProfileScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   content: { paddingHorizontal: 20, paddingTop: 12 },
-  headerCard: { marginBottom: 20, paddingVertical: 16, paddingHorizontal: 14 },
+  headerCard: { marginBottom: 20, paddingVertical: 18, paddingHorizontal: 16 },
+  headerRow: { flexDirection: 'row', alignItems: 'center', gap: 16 },
+  headerInfo: { flex: 1 },
+  name: { fontSize: 22, fontWeight: '800', letterSpacing: -0.4 },
+  position: { fontSize: 14, fontWeight: '500', marginTop: 4 },
+  employeeId: { fontSize: 12, fontWeight: '600', marginTop: 6 },
+  avatarHint: { fontSize: 12, fontWeight: '500', marginTop: 14, textAlign: 'center' },
   sectionLabel: { fontSize: 11, fontWeight: '700', letterSpacing: 1, marginBottom: 8, marginLeft: 4 },
   editCard: { marginBottom: 20, padding: 16 },
   fieldLabel: { fontSize: 11, fontWeight: '700', marginBottom: 8, marginTop: 4, letterSpacing: 0.8 },

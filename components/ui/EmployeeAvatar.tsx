@@ -1,4 +1,5 @@
 import { Image, StyleSheet, Text, View, type StyleProp, type ViewStyle } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 
 interface EmployeeAvatarProps {
   firstName: string;
@@ -12,25 +13,20 @@ interface EmployeeAvatarProps {
   backgroundColor?: string;
   textColor?: string;
   fontSize?: number;
+  empty?: boolean;
   style?: StyleProp<ViewStyle>;
 }
 
 export function getEmployeeAvatarUri(employee: {
   avatar?: string;
-  employeeId?: string;
-  email?: string;
 }): string | undefined {
-  if (employee.avatar) return employee.avatar;
-  const seed = employee.employeeId ?? employee.email;
-  if (!seed) return undefined;
-  return `https://i.pravatar.cc/150?u=${encodeURIComponent(seed)}`;
+  return employee.avatar || undefined;
 }
 
 export function EmployeeAvatar({
   firstName,
   lastName,
   avatar,
-  employeeId,
   size = 46,
   borderRadius = 16,
   borderWidth = 2,
@@ -38,10 +34,12 @@ export function EmployeeAvatar({
   backgroundColor,
   textColor,
   fontSize = 17,
+  empty = false,
   style,
 }: EmployeeAvatarProps) {
   const initials = `${firstName[0] ?? ''}${lastName[0] ?? ''}`.toUpperCase();
-  const photoUri = avatar ?? (employeeId ? `https://i.pravatar.cc/150?u=${encodeURIComponent(employeeId)}` : undefined);
+  const photoUri = avatar || undefined;
+  const iconSize = Math.max(18, Math.round(size * 0.38));
 
   return (
     <View
@@ -60,6 +58,8 @@ export function EmployeeAvatar({
     >
       {photoUri ? (
         <Image source={{ uri: photoUri }} style={[styles.image, { borderRadius: Math.max(0, borderRadius - borderWidth) }]} />
+      ) : empty ? (
+        <Ionicons name="person-outline" size={iconSize} color={textColor ?? '#94A3B8'} />
       ) : (
         <Text style={[styles.initials, { color: textColor, fontSize }]}>{initials}</Text>
       )}
