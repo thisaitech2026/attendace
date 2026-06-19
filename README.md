@@ -1,5 +1,7 @@
 # Rental House & Shop Management System
 
+Repository: **https://github.com/thisaitech2026/Rentalhouse**
+
 A comprehensive full-stack application for managing rental houses and shops with Admin and Customer panels.
 
 ## Features
