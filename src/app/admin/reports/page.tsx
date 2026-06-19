@@ -7,6 +7,7 @@ import { PageHeader } from "@/components/native/PageHeader";
 import { ListCard, ListStack } from "@/components/native/ListCard";
 import { InfoRow, InfoGrid } from "@/components/native/InfoRow";
 import { LoadingState } from "@/components/native/States";
+import { SummaryBox } from "@/components/native/SummaryBox";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { cn } from "@/lib/utils";
 
@@ -36,7 +37,7 @@ export default function ReportsPage() {
 
   const renderReport = () => {
     if (loading) return <LoadingState message="Loading report..." />;
-    if (!data) return <p className="text-red-600 text-center py-6">Failed to load</p>;
+    if (!data) return <p className="text-red-400 text-center py-6">Failed to load</p>;
 
     switch (activeType) {
       case "property":
@@ -58,14 +59,8 @@ export default function ReportsPage() {
         return (
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-3">
-              <div className="native-card bg-emerald-50 text-center py-4">
-                <p className="text-caption text-emerald-600">Occupied</p>
-                <p className="text-[24px] font-bold text-emerald-800">{d.occupied}</p>
-              </div>
-              <div className="native-card bg-amber-50 text-center py-4">
-                <p className="text-caption text-amber-600">Vacant</p>
-                <p className="text-[24px] font-bold text-amber-800">{d.vacant}</p>
-              </div>
+              <SummaryBox label="Occupied" value={d.occupied} variant="success" />
+              <SummaryBox label="Vacant" value={d.vacant} variant="warning" />
             </div>
             <ListStack>
               {d.byType.map((item, i) => (
@@ -95,10 +90,7 @@ export default function ReportsPage() {
         const d = data as { payments: Array<{ id: string; transactionId: string; totalPaid: number; paymentDate: string; rental: { customer: { name: string } } }>; total: number; date: string };
         return (
           <div className="space-y-4">
-            <div className="native-card bg-emerald-50 text-center py-3">
-              <p className="text-caption text-emerald-600">{d.date}</p>
-              <p className="text-[20px] font-bold text-emerald-800">{formatCurrency(d.total)}</p>
-            </div>
+            <SummaryBox label={d.date} value={formatCurrency(d.total)} variant="success" />
             <ListStack>
               {d.payments.map((p) => (
                 <ListCard key={p.id} title={p.rental.customer.name} subtitle={p.transactionId} badgeText={formatCurrency(p.totalPaid)} badgeVariant="success">
@@ -114,14 +106,8 @@ export default function ReportsPage() {
         return (
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-3">
-              <div className="native-card bg-emerald-50 text-center py-3">
-                <p className="text-caption text-emerald-600">{d.month}</p>
-                <p className="text-[18px] font-bold text-emerald-800">{formatCurrency(d.total)}</p>
-              </div>
-              <div className="native-card bg-red-50 text-center py-3">
-                <p className="text-caption text-red-600">Fines</p>
-                <p className="text-[18px] font-bold text-red-800">{formatCurrency(d.fineTotal)}</p>
-              </div>
+              <SummaryBox label={d.month} value={formatCurrency(d.total)} variant="success" />
+              <SummaryBox label="Fines" value={formatCurrency(d.fineTotal)} variant="danger" />
             </div>
             <ListStack>
               {d.payments.map((p) => (
@@ -154,10 +140,7 @@ export default function ReportsPage() {
         const d = data as { payments: Array<{ id: string; transactionId: string; fineAmount: number; paymentDate: string; rental: { customer: { name: string } } }>; total: number };
         return (
           <div className="space-y-4">
-            <div className="native-card bg-red-50 text-center py-3">
-              <p className="text-caption text-red-600">Total Fines Collected</p>
-              <p className="text-[20px] font-bold text-red-800">{formatCurrency(d.total)}</p>
-            </div>
+            <SummaryBox label="Total Fines Collected" value={formatCurrency(d.total)} variant="danger" />
             <ListStack>
               {d.payments.map((p) => (
                 <ListCard key={p.id} title={p.rental.customer.name} subtitle={p.transactionId} badgeText={formatCurrency(p.fineAmount)} badgeVariant="danger">
@@ -172,10 +155,7 @@ export default function ReportsPage() {
         const d = data as { outstanding: Array<{ rental: { customer: { name: string }; property: { name: string } }; totalPayable: number; totalRent: number; totalFine: number }>; grandTotal: number };
         return (
           <div className="space-y-4">
-            <div className="native-card bg-red-50 text-center py-3">
-              <p className="text-caption text-red-600">Grand Total Outstanding</p>
-              <p className="text-[20px] font-bold text-red-800">{formatCurrency(d.grandTotal)}</p>
-            </div>
+            <SummaryBox label="Grand Total Outstanding" value={formatCurrency(d.grandTotal)} variant="danger" />
             <ListStack>
               {d.outstanding.map((o, i) => (
                 <ListCard key={i} title={o.rental.customer.name} subtitle={o.rental.property.name} badgeText={formatCurrency(o.totalPayable)} badgeVariant="danger">
@@ -205,7 +185,9 @@ export default function ReportsPage() {
             onClick={() => setActiveType(rt.key)}
             className={cn(
               "rounded-full px-4 py-2 text-[13px] font-semibold transition-colors min-h-[40px]",
-              activeType === rt.key ? "bg-primary text-white" : "bg-white text-gray-600 border border-outline"
+              activeType === rt.key
+                ? "bg-gradient-premium text-white shadow-glow border border-white/10"
+                : "bg-surface-elevated text-muted border border-border hover:border-border-glow hover:text-foreground"
             )}
           >
             {rt.label}

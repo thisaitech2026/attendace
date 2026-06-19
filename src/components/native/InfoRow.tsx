@@ -2,8 +2,8 @@ import { cn } from "@/lib/utils";
 
 export function InfoRow({ label, value, className }: { label: string; value: React.ReactNode; className?: string }) {
   return (
-    <div className={cn("flex flex-col gap-0.5 py-2", className)}>
-      <span className="text-caption text-gray-500">{label}</span>
+    <div className={cn("flex flex-col gap-1 py-2", className)}>
+      <span className="text-[11px] font-semibold uppercase tracking-wider text-muted">{label}</span>
       <span className="text-[15px] font-medium text-foreground break-words">{value}</span>
     </div>
   );

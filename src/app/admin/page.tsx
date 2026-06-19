@@ -7,7 +7,6 @@ import {
 } from "lucide-react";
 import { StatTile, Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
-import { PageHeader } from "@/components/native/PageHeader";
 import { ListCard, ListStack } from "@/components/native/ListCard";
 import { InfoRow, InfoGrid } from "@/components/native/InfoRow";
 import { LoadingState } from "@/components/native/States";
@@ -49,11 +48,18 @@ export default function AdminDashboard() {
   }, []);
 
   if (loading) return <LoadingState message="Loading dashboard..." />;
-  if (!data) return <div className="text-red-600 text-center py-10">Failed to load dashboard</div>;
+  if (!data) return <div className="text-red-400 text-center py-10">Failed to load dashboard</div>;
 
   return (
     <div className="space-y-5 pb-4">
-      <PageHeader title="Dashboard" subtitle="Rental overview" />
+      <div className="glass-card relative overflow-hidden !p-5 bg-gradient-card">
+        <div className="absolute top-0 right-0 h-32 w-32 rounded-full bg-primary/20 blur-3xl" />
+        <div className="relative">
+          <p className="text-[11px] font-bold uppercase tracking-[0.15em] text-primary-light">Overview</p>
+          <h1 className="text-title text-foreground mt-1">Dashboard</h1>
+          <p className="text-caption text-muted mt-1">{data.totalProperties} properties · {data.occupiedProperties} occupied</p>
+        </div>
+      </div>
 
       <div className="grid grid-cols-2 gap-3">
         <StatTile title="Properties" value={data.totalProperties} icon={<Building2 className="h-6 w-6" />} />
@@ -68,7 +74,7 @@ export default function AdminDashboard() {
 
       <Card title="Recent Payments">
         {data.recentPayments.length === 0 ? (
-          <p className="text-caption text-gray-500">No payments yet</p>
+          <p className="text-caption text-muted">No payments yet</p>
         ) : (
           <ListStack className="gap-2">
             {data.recentPayments.map((p) => (
@@ -91,7 +97,7 @@ export default function AdminDashboard() {
 
       <Card title="Overdue Accounts">
         {data.overdueAccounts.length === 0 ? (
-          <p className="text-caption text-gray-500">No overdue accounts</p>
+          <p className="text-caption text-muted">No overdue accounts</p>
         ) : (
           <ListStack className="gap-2">
             {data.overdueAccounts.map((a, i) => (

@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import { AlertTriangle, IndianRupee } from "lucide-react";
 import { StatTile, Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
-import { PageHeader } from "@/components/native/PageHeader";
 import { ListCard, ListStack } from "@/components/native/ListCard";
 import { InfoRow } from "@/components/native/InfoRow";
 import { LoadingState } from "@/components/native/States";
@@ -42,11 +41,18 @@ export default function CustomerDashboard() {
   }, []);
 
   if (loading) return <LoadingState />;
-  if (!data) return <div className="text-red-600 text-center py-10">Failed to load</div>;
+  if (!data) return <div className="text-red-400 text-center py-10">Failed to load</div>;
 
   return (
     <div className="space-y-5 pb-4">
-      <PageHeader title={`Hi, ${data.customer.name.split(" ")[0]}`} subtitle="Your rental overview" />
+      <div className="glass-card relative overflow-hidden !p-5 bg-gradient-card">
+        <div className="absolute top-0 right-0 h-24 w-24 rounded-full bg-accent/20 blur-2xl" />
+        <div className="relative">
+          <p className="text-[11px] font-bold uppercase tracking-[0.15em] text-accent">Welcome back</p>
+          <h1 className="text-title text-foreground mt-1">Hi, {data.customer.name.split(" ")[0]}</h1>
+          <p className="text-caption text-muted mt-1">Your rental overview</p>
+        </div>
+      </div>
 
       {data.outstanding && (
         <div className="grid grid-cols-1 gap-3">
@@ -79,7 +85,7 @@ export default function CustomerDashboard() {
         </Card>
       ) : (
         <Card title="Your Property">
-          <p className="text-caption text-gray-500">No active rental assigned</p>
+          <p className="text-caption text-muted">No active rental assigned</p>
         </Card>
       )}
 

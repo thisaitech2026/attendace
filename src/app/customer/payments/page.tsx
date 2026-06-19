@@ -80,9 +80,9 @@ export default function PaymentsPage() {
   if (success) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] px-4 text-center">
-        <CheckCircle className="h-20 w-20 text-emerald-500 mb-4" />
+        <CheckCircle className="h-20 w-20 text-emerald-400 mb-4 drop-shadow-lg" />
         <h2 className="text-title text-foreground mb-2">Payment Successful!</h2>
-        <p className="text-caption text-gray-500 mb-6">Txn: {success.transactionId}</p>
+        <p className="text-caption text-muted mb-6">Txn: {success.transactionId}</p>
         <div className="flex flex-col gap-3 w-full max-w-xs">
           <Button size="block" onClick={() => window.open(`/api/receipts/${success.paymentId}`, "_blank")}>
             Download Receipt
@@ -100,7 +100,7 @@ export default function PaymentsPage() {
       <div>
         <PageHeader title="Pay Rent" />
         <Card>
-          <p className="text-emerald-600 font-semibold text-center py-4">All payments are up to date!</p>
+          <p className="text-emerald-300 font-semibold text-center py-4">All payments are up to date!</p>
         </Card>
       </div>
     );

@@ -14,20 +14,23 @@ export function BottomSheet({
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col justify-end">
-      <div className="absolute inset-0 bg-black/50" onClick={onClose} />
-      <div className="relative z-10 flex max-h-[92dvh] flex-col rounded-t-3xl bg-white safe-bottom">
-        <div className="flex items-center justify-between border-b border-outline px-5 py-4">
-          <h2 className="text-[18px] font-semibold text-foreground">{title}</h2>
+    <div className="fixed inset-0 z-50 flex flex-col justify-end animate-fade-in">
+      <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={onClose} />
+      <div className="relative z-10 flex max-h-[92dvh] flex-col rounded-t-[28px] border border-border border-b-0 bg-surface-elevated safe-bottom shadow-2xl animate-slide-up">
+        <div className="flex justify-center pt-3 pb-1">
+          <div className="h-1 w-10 rounded-full bg-white/20" />
+        </div>
+        <div className="flex items-center justify-between px-5 py-3 border-b border-border">
+          <h2 className="text-[18px] font-bold text-foreground tracking-tight">{title}</h2>
           <button
             onClick={onClose}
-            className="flex h-10 w-10 items-center justify-center rounded-full text-gray-500 hover:bg-gray-100"
+            className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/5 text-muted transition hover:bg-white/10 hover:text-foreground"
             aria-label="Close"
           >
             <X className="h-5 w-5" />
           </button>
         </div>
-        <div className="flex-1 overflow-y-auto overscroll-contain px-5 py-4">{children}</div>
+        <div className="flex-1 overflow-y-auto overscroll-contain px-5 py-5">{children}</div>
       </div>
     </div>
   );

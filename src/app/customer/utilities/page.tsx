@@ -33,7 +33,7 @@ export default function UtilitiesPage() {
   }, []);
 
   if (loading) return <LoadingState />;
-  if (!data?.rental) return <div className="text-gray-500 text-center py-10">No rental assigned</div>;
+  if (!data?.rental) return <div className="text-muted text-center py-10">No rental assigned</div>;
 
   const utility = data.rental.property.utility;
 
@@ -43,8 +43,8 @@ export default function UtilitiesPage() {
 
       <Card title="Electricity (EB)">
         <div className="flex items-start gap-4">
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-amber-50">
-            <Zap className="h-6 w-6 text-amber-600" />
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-amber-500/15 ring-1 ring-amber-500/30">
+            <Zap className="h-6 w-6 text-amber-300" />
           </div>
           <div className="flex-1 space-y-2">
             <InfoRow label="Service Number" value={utility?.ebServiceNumber || "Not available"} />
@@ -55,8 +55,8 @@ export default function UtilitiesPage() {
 
       <Card title="Water Connection">
         <div className="flex items-start gap-4">
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-primary-container">
-            <Droplets className="h-6 w-6 text-primary" />
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-primary/15 ring-1 ring-primary/30">
+            <Droplets className="h-6 w-6 text-accent" />
           </div>
           <div className="flex-1 space-y-2">
             <InfoRow label="Connection Number" value={utility?.waterConnectionNumber || "Not available"} />

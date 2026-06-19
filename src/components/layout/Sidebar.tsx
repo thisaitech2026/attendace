@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
   LayoutDashboard, Building2, Users, Link2, FileText,
-  LogOut, Home, CreditCard, History, Zap,
+  LogOut, Home, CreditCard, History, Zap, Sparkles,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -37,27 +37,33 @@ export function AppLayout({ children, role }: { children: React.ReactNode; role:
 
   return (
     <div className="app-container relative">
-      <header className="sticky top-0 z-40 flex h-14 items-center justify-between border-b border-outline bg-primary px-4 text-white safe-top">
-        <div className="flex items-center gap-2 min-w-0">
-          <Building2 className="h-6 w-6 shrink-0" />
-          <div className="min-w-0">
-            <p className="text-[15px] font-bold truncate">Rental Manager</p>
-            <p className="text-[11px] text-blue-100">{role === "ADMIN" ? "Admin" : "Customer"}</p>
+      <header className="premium-header sticky top-0 z-40">
+        <div className="relative z-10 flex h-[60px] items-center justify-between px-5">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-premium shadow-glow">
+              <Sparkles className="h-5 w-5 text-white" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-[15px] font-bold text-white truncate tracking-tight">Rental Manager</p>
+              <p className="text-[11px] font-medium text-indigo-200/70">{role === "ADMIN" ? "Admin Console" : "My Portal"}</p>
+            </div>
           </div>
+          <button
+            onClick={handleLogout}
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-white/80 backdrop-blur-sm transition active:scale-95 hover:bg-white/10"
+            aria-label="Logout"
+          >
+            <LogOut className="h-[18px] w-[18px]" />
+          </button>
         </div>
-        <button
-          onClick={handleLogout}
-          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/15 active:bg-white/25"
-          aria-label="Logout"
-        >
-          <LogOut className="h-5 w-5" />
-        </button>
       </header>
 
-      <main className="min-h-[calc(100dvh-56px-64px)] px-4 py-4 pb-6">{children}</main>
+      <main className="relative z-10 min-h-[calc(100dvh-60px-80px)] animate-fade-in px-4 py-5 pb-8">
+        {children}
+      </main>
 
-      <nav className="fixed bottom-0 left-1/2 z-40 w-full max-w-md -translate-x-1/2 border-t border-outline bg-white safe-bottom">
-        <div className="flex items-stretch">
+      <nav className="fixed bottom-0 left-1/2 z-40 w-full max-w-md -translate-x-1/2 px-3 pb-3 safe-bottom">
+        <div className="flex items-stretch rounded-[22px] border border-border bg-surface-glass p-1.5 shadow-nav backdrop-blur-2xl">
           {links.map((link) => {
             const Icon = link.icon;
             const active = pathname === link.href;
@@ -66,12 +72,16 @@ export function AppLayout({ children, role }: { children: React.ReactNode; role:
                 key={link.href}
                 href={link.href}
                 className={cn(
-                  "flex min-h-[64px] flex-1 flex-col items-center justify-center gap-1 py-2 transition-colors",
-                  active ? "text-primary" : "text-gray-400"
+                  "relative flex min-h-[56px] flex-1 flex-col items-center justify-center gap-0.5 rounded-[16px] py-1.5 transition-all duration-300",
+                  active
+                    ? "bg-gradient-premium text-white shadow-glow"
+                    : "text-muted hover:text-foreground"
                 )}
               >
-                <Icon className={cn("h-6 w-6", active && "stroke-[2.5px]")} />
-                <span className="text-[11px] font-semibold">{link.label}</span>
+                <Icon className={cn("h-[22px] w-[22px]", active && "drop-shadow-sm")} />
+                <span className={cn("text-[10px] font-bold tracking-wide", active ? "text-white" : "")}>
+                  {link.label}
+                </span>
               </Link>
             );
           })}
