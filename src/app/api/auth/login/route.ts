@@ -3,10 +3,10 @@ import { authenticateUser } from "@/lib/auth";
 import { redirectResponse, isSecureRequest } from "@/lib/redirect";
 
 function setAuthCookie(response: NextResponse, request: NextRequest, token: string) {
-  const isSecure = isSecureRequest(request);
+  const isProduction = process.env.NODE_ENV === "production";
   response.cookies.set("auth-token", token, {
     httpOnly: true,
-    secure: isSecure,
+    secure: isProduction && isSecureRequest(request),
     sameSite: "lax",
     maxAge: 60 * 60 * 24 * 7,
     path: "/",
