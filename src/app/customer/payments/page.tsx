@@ -81,8 +81,8 @@ export default function PaymentsPage() {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] px-4 text-center">
         <CheckCircle className="h-20 w-20 text-emerald-400 mb-4 drop-shadow-lg" />
-        <h2 className="text-title text-foreground mb-2">Payment Successful!</h2>
-        <p className="text-caption text-muted mb-6">Txn: {success.transactionId}</p>
+        <h2 className="text-xl font-bold text-foreground mb-2">Payment Successful!</h2>
+        <p className="text-sm text-muted mb-6 break-all">Txn: {success.transactionId}</p>
         <div className="flex flex-col gap-3 w-full max-w-xs">
           <Button size="block" onClick={() => window.open(`/api/receipts/${success.paymentId}`, "_blank")}>
             Download Receipt
@@ -137,10 +137,10 @@ export default function PaymentsPage() {
             {selectedDue.fineAmount > 0 && (
               <InfoRow label={`Fine (${selectedDue.lateDays} days)`} value={formatCurrency(selectedDue.fineAmount)} />
             )}
-            <div className="border-t border-outline pt-3">
-              <div className="flex justify-between items-center">
-                <span className="text-[16px] font-bold">Total</span>
-                <span className="text-[22px] font-bold text-primary">{formatCurrency(selectedDue.totalPayable)}</span>
+            <div className="border-t pt-3" style={{ borderColor: "var(--border)" }}>
+              <div className="flex justify-between items-center gap-3">
+                <span className="text-base font-bold">Total</span>
+                <span className="text-xl font-bold text-primary-light break-words">{formatCurrency(selectedDue.totalPayable)}</span>
               </div>
             </div>
             <Button size="block" onClick={handlePay} disabled={paying} className="mt-2">

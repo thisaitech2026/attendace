@@ -58,7 +58,7 @@ export default function ReportsPage() {
         const d = data as { occupied: number; vacant: number; byType: Array<{ type: string; status: string; _count: number }> };
         return (
           <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 gap-3">
               <SummaryBox label="Occupied" value={d.occupied} variant="success" />
               <SummaryBox label="Vacant" value={d.vacant} variant="warning" />
             </div>
@@ -105,7 +105,7 @@ export default function ReportsPage() {
         const d = data as { payments: Array<{ id: string; transactionId: string; totalPaid: number; fineAmount: number; rental: { customer: { name: string } } }>; total: number; fineTotal: number; month: string };
         return (
           <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 gap-3">
               <SummaryBox label={d.month} value={formatCurrency(d.total)} variant="success" />
               <SummaryBox label="Fines" value={formatCurrency(d.fineTotal)} variant="danger" />
             </div>
@@ -184,10 +184,8 @@ export default function ReportsPage() {
             key={rt.key}
             onClick={() => setActiveType(rt.key)}
             className={cn(
-              "rounded-full px-4 py-2 text-[13px] font-semibold transition-colors min-h-[40px]",
-              activeType === rt.key
-                ? "bg-gradient-premium text-white shadow-glow border border-white/10"
-                : "bg-surface-elevated text-muted border border-border hover:border-border-glow hover:text-foreground"
+              "filter-chip",
+              activeType === rt.key && "filter-chip-active"
             )}
           >
             {rt.label}

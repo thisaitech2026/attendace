@@ -16,7 +16,8 @@ export function Select({ label, options, className, id, ...props }: SelectProps)
       )}
       <select
         id={selectId}
-        className={cn("native-input appearance-none bg-white", className)}
+        className={cn("native-input appearance-none", className)}
+        style={{ background: "var(--surface)" }}
         {...props}
       >
         {options.map((opt) => (

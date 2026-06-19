@@ -96,7 +96,7 @@ export default function RentalsPage() {
   const set = (key: string, value: string) => setForm((f) => ({ ...f, [key]: value }));
 
   return (
-    <div className="pb-20">
+    <div className="page-content-fab">
       <PageHeader title="Rentals" subtitle="Customer to property mappings" />
 
       {loading ? (
@@ -114,7 +114,7 @@ export default function RentalsPage() {
               badgeVariant={r.status === "ACTIVE" ? "success" : "default"}
               actions={
                 r.status === "ACTIVE" ? (
-                  <Button size="sm" variant="danger" onClick={() => handleTerminate(r.id)}>
+                  <Button size="sm" variant="danger" className="w-full" onClick={() => handleTerminate(r.id)}>
                     <Trash2 className="h-4 w-4" /> Terminate
                   </Button>
                 ) : undefined

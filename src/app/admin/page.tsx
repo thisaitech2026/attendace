@@ -51,17 +51,16 @@ export default function AdminDashboard() {
   if (!data) return <div className="text-red-400 text-center py-10">Failed to load dashboard</div>;
 
   return (
-    <div className="space-y-5 pb-4">
-      <div className="glass-card relative overflow-hidden !p-5 bg-gradient-card">
-        <div className="absolute top-0 right-0 h-32 w-32 rounded-full bg-primary/20 blur-3xl" />
-        <div className="relative">
-          <p className="text-[11px] font-bold uppercase tracking-[0.15em] text-primary-light">Overview</p>
-          <h1 className="text-title text-foreground mt-1">Dashboard</h1>
-          <p className="text-caption text-muted mt-1">{data.totalProperties} properties · {data.occupiedProperties} occupied</p>
-        </div>
+    <div className="space-y-5">
+      <div className="glass-card">
+        <p className="text-sm text-muted">Overview</p>
+        <h1 className="text-xl font-bold text-foreground mt-1 leading-snug">Dashboard</h1>
+        <p className="text-sm text-muted mt-2 leading-relaxed">
+          {data.totalProperties} properties · {data.occupiedProperties} occupied
+        </p>
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 gap-3">
         <StatTile title="Properties" value={data.totalProperties} icon={<Building2 className="h-6 w-6" />} />
         <StatTile title="Occupied" value={data.occupiedProperties} icon={<Users className="h-6 w-6" />} accent="green" />
         <StatTile title="Houses" value={data.totalHouses} icon={<Home className="h-6 w-6" />} accent="purple" />
@@ -74,7 +73,7 @@ export default function AdminDashboard() {
 
       <Card title="Recent Payments">
         {data.recentPayments.length === 0 ? (
-          <p className="text-caption text-muted">No payments yet</p>
+          <p className="text-sm text-muted">No payments yet</p>
         ) : (
           <ListStack className="gap-2">
             {data.recentPayments.map((p) => (
@@ -97,7 +96,7 @@ export default function AdminDashboard() {
 
       <Card title="Overdue Accounts">
         {data.overdueAccounts.length === 0 ? (
-          <p className="text-caption text-muted">No overdue accounts</p>
+          <p className="text-sm text-muted">No overdue accounts</p>
         ) : (
           <ListStack className="gap-2">
             {data.overdueAccounts.map((a, i) => (

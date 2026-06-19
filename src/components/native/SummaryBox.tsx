@@ -23,9 +23,9 @@ export function SummaryBox({
   };
 
   return (
-    <div className={cn("glass-card text-center py-4 border", styles[variant])}>
-      <p className={cn("text-caption font-semibold uppercase tracking-wider", labelColors[variant])}>{label}</p>
-      <p className="text-[20px] font-extrabold text-foreground mt-1 tracking-tight">{value}</p>
+    <div className={cn("glass-card py-4 border", styles[variant])}>
+      <p className={cn("text-sm font-medium", labelColors[variant])}>{label}</p>
+      <p className="text-xl font-bold text-foreground mt-1 leading-snug break-words">{value}</p>
     </div>
   );
 }

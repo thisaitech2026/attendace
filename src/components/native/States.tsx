@@ -7,7 +7,7 @@ export function LoadingState({ message = "Loading..." }: { message?: string }) {
         <div className="absolute inset-0 rounded-full bg-primary/30 blur-xl animate-pulse-glow" />
         <Loader2 className="relative h-10 w-10 animate-spin text-primary-light" />
       </div>
-      <p className="mt-4 text-caption text-muted font-medium">{message}</p>
+      <p className="mt-4 text-sm text-muted font-medium">{message}</p>
     </div>
   );
 }
@@ -35,7 +35,7 @@ export function EmptyState({ title, message }: { title: string; message?: string
         <span className="text-2xl opacity-40">📭</span>
       </div>
       <p className="text-[16px] font-bold text-foreground">{title}</p>
-      {message && <p className="mt-2 text-caption text-muted max-w-[240px] mx-auto">{message}</p>}
+      {message && <p className="mt-2 text-sm text-muted max-w-xs mx-auto leading-relaxed">{message}</p>}
     </div>
   );
 }

@@ -97,7 +97,7 @@ export default function PropertiesPage() {
   const set = (key: string, value: string) => setForm((f) => ({ ...f, [key]: value }));
 
   return (
-    <div className="pb-20">
+    <div className="page-content-fab">
       <PageHeader title="Properties" subtitle={`${properties.length} total properties`} />
 
       {loading ? (
@@ -114,14 +114,14 @@ export default function PropertiesPage() {
               badgeText={p.status}
               badgeVariant={p.status === "OCCUPIED" ? "success" : "warning"}
               actions={
-                <>
-                  <Button size="sm" variant="secondary" onClick={() => openEdit(p)}>
+                <div className="flex flex-col gap-2 w-full sm:flex-row">
+                  <Button size="sm" variant="secondary" className="w-full sm:flex-1" onClick={() => openEdit(p)}>
                     <Pencil className="h-4 w-4" /> Edit
                   </Button>
-                  <Button size="sm" variant="danger" onClick={() => handleDelete(p.id)}>
+                  <Button size="sm" variant="danger" className="w-full sm:flex-1" onClick={() => handleDelete(p.id)}>
                     <Trash2 className="h-4 w-4" /> Delete
                   </Button>
-                </>
+                </div>
               }
             >
               <InfoGrid>

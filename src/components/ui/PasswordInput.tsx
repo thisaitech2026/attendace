@@ -30,7 +30,7 @@ export function PasswordInput({ label, error, className, id, ...props }: Passwor
         <button
           type="button"
           onClick={() => setVisible((v) => !v)}
-          className="absolute inset-y-0 right-0 flex items-center px-4 text-gray-400 active:text-gray-600"
+          className="absolute inset-y-0 right-0 flex items-center px-4 text-muted active:text-foreground"
           aria-label={visible ? "Hide password" : "Show password"}
           tabIndex={-1}
         >

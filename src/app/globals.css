@@ -3,16 +3,16 @@
 @tailwind utilities;
 
 :root {
-  --background: #080b12;
+  --background: #0c1018;
   --foreground: #f1f5f9;
-  --surface: #111827;
-  --surface-elevated: #1a2234;
-  --surface-glass: rgba(17, 24, 39, 0.75);
-  --border: rgba(255, 255, 255, 0.08);
-  --border-glow: rgba(99, 102, 241, 0.35);
-  --muted: #94a3b8;
+  --surface: #151b28;
+  --surface-elevated: #1c2433;
+  --border: rgba(255, 255, 255, 0.1);
+  --muted: #9ca3af;
   --safe-top: env(safe-area-inset-top, 0px);
   --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --nav-height: 72px;
+  --header-height: 56px;
 }
 
 * {
@@ -26,11 +26,12 @@ html {
 body {
   color: var(--foreground);
   background: var(--background);
-  font-size: 15px;
-  line-height: 1.6;
+  font-size: 16px;
+  line-height: 1.5;
   overscroll-behavior: none;
   -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  overflow-x: clip;
+  word-wrap: break-word;
 }
 
 .safe-top {
@@ -43,31 +44,54 @@ body {
 
 @layer components {
   .app-container {
-    @apply relative mx-auto min-h-screen w-full max-w-md overflow-hidden bg-background shadow-2xl shadow-black/50;
+    @apply relative mx-auto min-h-screen w-full max-w-md bg-background;
   }
 
-  .app-container::before {
-    content: "";
-    @apply pointer-events-none fixed inset-0 max-w-md mx-auto bg-gradient-mesh opacity-60;
+  .page-content {
+    padding-bottom: calc(var(--nav-height) + var(--safe-bottom) + 20px);
+  }
+
+  /* Extra clearance for floating action button — nav padding is on main */
+  .page-content-fab {
+    padding-bottom: 56px;
+  }
+
+  .filter-chip {
+    @apply rounded-full border px-4 py-2 text-sm font-medium transition-colors;
+    border-color: var(--border);
+    background: var(--surface-elevated);
+    color: var(--muted);
+    min-height: 40px;
+  }
+
+  .filter-chip-active {
+    @apply border-primary/50 text-white;
+    background: #6366f1;
   }
 
   .glass-card {
-    @apply rounded-card border border-border p-4 shadow-card backdrop-blur-xl;
-    background: linear-gradient(135deg, rgba(255,255,255,0.04) 0%, transparent 50%), rgba(26, 34, 52, 0.85);
+    @apply rounded-2xl border p-5;
+    border-color: var(--border);
+    background: var(--surface-elevated);
   }
 
   .native-input {
-    @apply w-full rounded-button border border-border px-4 py-3.5 text-[15px] text-foreground placeholder:text-muted backdrop-blur-sm transition-all duration-200;
-    background: rgba(17, 24, 39, 0.8);
-    @apply focus:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary/25;
+    @apply w-full rounded-xl border px-4 py-3 text-base text-foreground;
+    border-color: var(--border);
+    background: var(--surface);
+    min-height: 48px;
+  }
+
+  .native-input::placeholder {
+    color: var(--muted);
   }
 
   .native-input:focus {
-    background: rgba(26, 34, 52, 0.95);
+    @apply outline-none ring-2 ring-primary/40 border-primary/50;
   }
 
   .native-label {
-    @apply mb-2 block text-[11px] font-semibold uppercase tracking-[0.12em] text-muted;
+    @apply mb-2 block text-sm font-medium text-foreground;
   }
 
   .native-card {
@@ -75,33 +99,13 @@ body {
   }
 
   .native-section-title {
-    @apply mb-3 px-1 text-[11px] font-bold uppercase tracking-[0.14em] text-muted;
+    @apply mb-3 text-sm font-semibold text-muted;
   }
 
-  .gradient-text {
-    @apply bg-gradient-premium bg-clip-text text-transparent;
+  .app-header {
+    @apply sticky top-0 z-40 border-b safe-top;
+    height: var(--header-height);
+    border-color: var(--border);
+    background: linear-gradient(180deg, #1a1f35 0%, #12182a 100%);
   }
-
-  .premium-header {
-    @apply relative overflow-hidden border-b safe-top;
-    border-color: rgba(255, 255, 255, 0.08);
-    background: linear-gradient(135deg, #1e1b4b 0%, #312e81 40%, #0f172a 100%);
-  }
-
-  .premium-header::after {
-    content: "";
-    @apply absolute inset-0 bg-gradient-mesh opacity-40;
-  }
-
-  .skeleton {
-    @apply rounded-card bg-surface-elevated animate-pulse;
-    background: linear-gradient(90deg, rgba(255,255,255,0.03) 25%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.03) 75%);
-    background-size: 200% 100%;
-    animation: shimmer 1.5s infinite;
-  }
-}
-
-@keyframes shimmer {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
 }
