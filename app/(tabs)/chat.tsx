@@ -13,6 +13,7 @@ import { format, parseISO } from 'date-fns';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ScreenHeader } from '@/components/ui/ScreenHeader';
+import { EmployeeAvatar } from '@/components/ui/EmployeeAvatar';
 import { useApp } from '@/contexts/AppContext';
 import Colors from '@/constants/Colors';
 import { CHAT_CATEGORY_LABELS } from '@/constants/tabPictures';
@@ -33,7 +34,7 @@ const CATEGORY_COLORS: Record<ChatCategory, string> = {
 };
 
 export default function ChatScreen() {
-  const { employee, chatMessages, sendMessage } = useApp();
+  const { employee, chatMessages, sendMessage, allEmployees } = useApp();
   const scheme = useColorScheme() ?? 'light';
   const colors = Colors[scheme];
   const insets = useSafeAreaInsets();
@@ -60,18 +61,25 @@ export default function ChatScreen() {
 
   const renderMessage = ({ item }: { item: (typeof chatMessages)[0] }) => {
     const isMe = item.employeeId === employee?.employeeId;
-    const initials = item.senderName
-      .split(' ')
-      .map((n) => n[0])
-      .join('')
-      .slice(0, 2);
+    const sender = allEmployees.find((member) => member.employeeId === item.employeeId);
+    const nameParts = item.senderName.trim().split(/\s+/);
+    const firstName = sender?.firstName ?? nameParts[0] ?? '';
+    const lastName = sender?.lastName ?? nameParts.slice(1).join(' ');
 
     return (
       <View style={[styles.messageRow, isMe && styles.messageRowMe]}>
         {!isMe ? (
-          <View style={[styles.avatar, { backgroundColor: colors.primaryLight }]}>
-            <Text style={[styles.avatarText, { color: colors.primary }]}>{initials}</Text>
-          </View>
+          <EmployeeAvatar
+            firstName={firstName}
+            lastName={lastName}
+            avatar={sender?.avatar}
+            size={34}
+            borderRadius={12}
+            borderWidth={0}
+            backgroundColor={colors.primaryLight}
+            textColor={colors.primary}
+            fontSize={12}
+          />
         ) : null}
         <View style={[styles.bubble, isMe ? { backgroundColor: colors.primary } : { backgroundColor: colors.card, borderColor: colors.borderLight }]}>
           {!isMe ? (
@@ -162,8 +170,6 @@ const styles = StyleSheet.create({
   messageList: { paddingHorizontal: 16, paddingBottom: 12, paddingTop: 8 },
   messageRow: { flexDirection: 'row', marginBottom: 14, alignItems: 'flex-end', gap: 8 },
   messageRowMe: { justifyContent: 'flex-end' },
-  avatar: { width: 34, height: 34, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
-  avatarText: { fontSize: 12, fontWeight: '800' },
   bubble: {
     maxWidth: '78%',
     borderRadius: 18,

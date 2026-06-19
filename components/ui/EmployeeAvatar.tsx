@@ -17,10 +17,24 @@ interface EmployeeAvatarProps {
   style?: StyleProp<ViewStyle>;
 }
 
+export function isPlaceholderAvatar(avatar?: string): boolean {
+  if (!avatar) return false;
+  return (
+    avatar.includes('unsplash.com') ||
+    avatar.includes('pravatar.cc') ||
+    avatar.includes('ui-avatars.com')
+  );
+}
+
+export function sanitizeEmployeeAvatar(avatar?: string): string | undefined {
+  if (!avatar || isPlaceholderAvatar(avatar)) return undefined;
+  return avatar;
+}
+
 export function getEmployeeAvatarUri(employee: {
   avatar?: string;
 }): string | undefined {
-  return employee.avatar || undefined;
+  return sanitizeEmployeeAvatar(employee.avatar);
 }
 
 export function EmployeeAvatar({
@@ -34,11 +48,10 @@ export function EmployeeAvatar({
   backgroundColor,
   textColor,
   fontSize = 17,
-  empty = false,
+  empty = true,
   style,
 }: EmployeeAvatarProps) {
-  const initials = `${firstName[0] ?? ''}${lastName[0] ?? ''}`.toUpperCase();
-  const photoUri = avatar || undefined;
+  const photoUri = sanitizeEmployeeAvatar(avatar);
   const iconSize = Math.max(18, Math.round(size * 0.38));
 
   return (
@@ -61,7 +74,9 @@ export function EmployeeAvatar({
       ) : empty ? (
         <Ionicons name="person-outline" size={iconSize} color={textColor ?? '#94A3B8'} />
       ) : (
-        <Text style={[styles.initials, { color: textColor, fontSize }]}>{initials}</Text>
+        <Text style={[styles.initials, { color: textColor, fontSize }]}>
+          {`${firstName[0] ?? ''}${lastName[0] ?? ''}`.toUpperCase()}
+        </Text>
       )}
     </View>
   );

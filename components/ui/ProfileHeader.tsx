@@ -52,8 +52,8 @@ export function ProfileSummary({
         borderRadius={16}
         borderWidth={2}
         borderColor={colors.primary}
-        backgroundColor={colors.primaryLight}
-        textColor={colors.primary}
+        backgroundColor={colors.background}
+        textColor={colors.textMuted}
         fontSize={size > 50 ? 20 : 17}
         style={styles.avatar}
       />

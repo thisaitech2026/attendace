@@ -79,8 +79,8 @@ export default function AdminEmployeesScreen() {
                   size={42}
                   borderRadius={14}
                   borderWidth={0}
-                  backgroundColor={colors.primaryLight}
-                  textColor={colors.primary}
+                  backgroundColor={colors.background}
+                  textColor={colors.textMuted}
                   fontSize={14}
                 />
                 <View style={styles.info}>

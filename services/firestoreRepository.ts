@@ -23,6 +23,7 @@ import {
   getInitialAttendance,
 } from '@/data/mockData';
 import { firestore } from '@/services/firebase';
+import { sanitizeEmployeeAvatar } from '@/components/ui/EmployeeAvatar';
 import type { ChatMessage } from '@/types/chat';
 import type {
   AppUser,
@@ -158,14 +159,11 @@ export async function saveUsers(users: AppUser[]): Promise<void> {
 export async function loadEmployees(): Promise<Employee[]> {
   await ensureFirestoreSeed();
   const snapshot = await getDocs(employeesCollection());
-  const mockById = Object.fromEntries(MOCK_EMPLOYEES.map((employee) => [employee.employeeId, employee]));
 
   return snapshot.docs.map((item) => {
     const employee = item.data() as Employee;
-    if (employee.avatar) return employee;
-
-    const mockAvatar = mockById[employee.employeeId]?.avatar;
-    return mockAvatar ? { ...employee, avatar: mockAvatar } : employee;
+    const avatar = sanitizeEmployeeAvatar(employee.avatar);
+    return avatar === employee.avatar ? employee : { ...employee, avatar };
   });
 }
 
