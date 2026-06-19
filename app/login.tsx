@@ -17,7 +17,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
-import { DEMO_LOGINS, useApp } from '@/contexts/AppContext';
+import { useApp } from '@/contexts/AppContext';
 import Colors from '@/constants/Colors';
 import { APP_NAME } from '@/constants/config';
 import type { UserRole } from '@/types/employee';
@@ -34,8 +34,8 @@ export default function LoginScreen() {
   const [role, setRole] = useState<UserRole>('employee');
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
-  const [email, setEmail] = useState(DEMO_LOGINS.employee.email);
-  const [password, setPassword] = useState(DEMO_LOGINS.employee.password);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -44,8 +44,6 @@ export default function LoginScreen() {
 
   const switchRole = (next: UserRole) => {
     setRole(next);
-    setEmail(DEMO_LOGINS[next].email);
-    setPassword(DEMO_LOGINS[next].password);
     setConfirmPassword('');
     setError('');
   };
@@ -58,8 +56,6 @@ export default function LoginScreen() {
     setShowConfirmPassword(false);
     if (next === 'signin') {
       setRole('employee');
-      setEmail(DEMO_LOGINS.employee.email);
-      setPassword(DEMO_LOGINS.employee.password);
     } else {
       setRole('employee');
       setFirstName('');
@@ -203,6 +199,8 @@ export default function LoginScreen() {
               value={email}
               onChangeText={setEmail}
               autoCapitalize="none"
+              autoComplete="off"
+              textContentType="none"
               keyboardType="email-address"
               placeholder="you@company.com"
               placeholderTextColor={colors.textMuted}
@@ -215,6 +213,7 @@ export default function LoginScreen() {
               visible={showPassword}
               onToggleVisible={() => setShowPassword((prev) => !prev)}
               colors={colors}
+              autoComplete="off"
             />
 
             {isRegister ? (
@@ -226,6 +225,7 @@ export default function LoginScreen() {
                   visible={showConfirmPassword}
                   onToggleVisible={() => setShowConfirmPassword((prev) => !prev)}
                   colors={colors}
+                  autoComplete="off"
                 />
               </>
             ) : null}
@@ -246,13 +246,6 @@ export default function LoginScreen() {
               </Text>
             </Pressable>
           </Card>
-
-          {!isRegister ? (
-            <Text style={[styles.demo, { color: colors.textMuted }]}>
-              Employee: john.doe@company.com / password123{'\n'}
-              Admin/HR: hr.admin@company.com / admin123
-            </Text>
-          ) : null}
         </ScrollView>
       </KeyboardAvoidingView>
     </View>
@@ -265,12 +258,14 @@ function PasswordField({
   visible,
   onToggleVisible,
   colors,
+  autoComplete = 'off',
 }: {
   value: string;
   onChangeText: (value: string) => void;
   visible: boolean;
   onToggleVisible: () => void;
   colors: (typeof Colors)['light'];
+  autoComplete?: 'off' | 'new-password' | 'password';
 }) {
   return (
     <View
@@ -288,6 +283,8 @@ function PasswordField({
         placeholderTextColor={colors.textMuted}
         autoCapitalize="none"
         autoCorrect={false}
+        autoComplete={autoComplete}
+        textContentType={visible ? 'none' : 'password'}
       />
       <Pressable
         onPress={onToggleVisible}
@@ -357,5 +354,4 @@ const styles = StyleSheet.create({
   button: { marginTop: 24 },
   switchMode: { marginTop: 16, alignItems: 'center', paddingVertical: 4 },
   switchModeText: { fontSize: 14, fontWeight: '700' },
-  demo: { textAlign: 'center', marginTop: 20, fontSize: 12, fontWeight: '500', lineHeight: 18 },
 });
