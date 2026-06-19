@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -41,11 +41,39 @@ export default function LoginScreen() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [fieldsReady, setFieldsReady] = useState(Platform.OS !== 'web');
+
+  useEffect(() => {
+    if (Platform.OS !== 'web') return;
+    setEmail('');
+    setPassword('');
+    setConfirmPassword('');
+  }, [mode]);
+
+  useEffect(() => {
+    if (Platform.OS !== 'web') return;
+    const timer = setTimeout(() => {
+      setEmail('');
+      setPassword('');
+    }, 50);
+    return () => clearTimeout(timer);
+  }, []);
+
+  const enableFields = () => {
+    if (!fieldsReady) setFieldsReady(true);
+  };
+
+  const clearCredentialFields = () => {
+    setEmail('');
+    setPassword('');
+    setConfirmPassword('');
+  };
 
   const switchRole = (next: UserRole) => {
     setRole(next);
     setConfirmPassword('');
     setError('');
+    clearCredentialFields();
   };
 
   const switchMode = (next: AuthMode) => {
@@ -54,6 +82,8 @@ export default function LoginScreen() {
     setConfirmPassword('');
     setShowPassword(false);
     setShowConfirmPassword(false);
+    setFieldsReady(Platform.OS !== 'web');
+    clearCredentialFields();
     if (next === 'signin') {
       setRole('employee');
     } else {
@@ -193,13 +223,22 @@ export default function LoginScreen() {
             ) : null}
 
             <Text style={[styles.label, { color: colors.textMuted }]}>EMAIL</Text>
+            {Platform.OS === 'web' ? (
+              <View style={styles.autofillTrap} pointerEvents="none" accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+                <TextInput autoComplete="username" textContentType="username" style={styles.hiddenInput} />
+                <TextInput autoComplete="current-password" secureTextEntry style={styles.hiddenInput} />
+              </View>
+            ) : null}
             <TextInput
               style={[styles.input, { color: colors.text, borderColor: colors.borderLight, backgroundColor: colors.background }]}
               value={email}
               onChangeText={setEmail}
               autoCapitalize="none"
-              autoComplete="off"
+              autoComplete={isRegister ? 'email' : 'off'}
               textContentType="none"
+              importantForAutofill="no"
+              readOnly={!fieldsReady}
+              onFocus={enableFields}
               keyboardType="email-address"
               placeholder="you@company.com"
               placeholderTextColor={colors.textMuted}
@@ -212,7 +251,9 @@ export default function LoginScreen() {
               visible={showPassword}
               onToggleVisible={() => setShowPassword((prev) => !prev)}
               colors={colors}
-              autoComplete="off"
+              autoComplete={isRegister ? 'new-password' : 'new-password'}
+              readOnly={!fieldsReady}
+              onFocus={enableFields}
             />
 
             {isRegister ? (
@@ -224,7 +265,9 @@ export default function LoginScreen() {
                   visible={showConfirmPassword}
                   onToggleVisible={() => setShowConfirmPassword((prev) => !prev)}
                   colors={colors}
-                  autoComplete="off"
+                  autoComplete="new-password"
+                  readOnly={!fieldsReady}
+                  onFocus={enableFields}
                 />
               </>
             ) : null}
@@ -257,7 +300,9 @@ function PasswordField({
   visible,
   onToggleVisible,
   colors,
-  autoComplete = 'off',
+  autoComplete = 'new-password',
+  readOnly = false,
+  onFocus,
 }: {
   value: string;
   onChangeText: (value: string) => void;
@@ -265,6 +310,8 @@ function PasswordField({
   onToggleVisible: () => void;
   colors: (typeof Colors)['light'];
   autoComplete?: 'off' | 'new-password' | 'password';
+  readOnly?: boolean;
+  onFocus?: () => void;
 }) {
   return (
     <View
@@ -283,7 +330,10 @@ function PasswordField({
         autoCapitalize="none"
         autoCorrect={false}
         autoComplete={autoComplete}
-        textContentType={visible ? 'none' : 'password'}
+        textContentType="none"
+        importantForAutofill="no"
+        readOnly={readOnly}
+        onFocus={onFocus}
       />
       <Pressable
         onPress={onToggleVisible}
@@ -352,4 +402,16 @@ const styles = StyleSheet.create({
   button: { marginTop: 24 },
   switchMode: { marginTop: 16, alignItems: 'center', paddingVertical: 4 },
   switchModeText: { fontSize: 14, fontWeight: '700' },
+  autofillTrap: {
+    position: 'absolute',
+    width: 1,
+    height: 1,
+    opacity: 0,
+    overflow: 'hidden',
+  },
+  hiddenInput: {
+    width: 1,
+    height: 1,
+    opacity: 0,
+  },
 });
