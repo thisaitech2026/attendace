@@ -1,23 +1,15 @@
 import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
 
 /**
- * Build a browser-safe redirect URL.
- * The dev server binds to 0.0.0.0, but browsers cannot open that host.
- * Prefer proxy/client host headers when present.
+ * Same-origin redirect using a relative path.
+ * Absolute redirects break in cloud previews when Host headers differ
+ * from the URL shown in the browser (e.g. localhost vs *.agent.cvm.dev).
  */
-export function getRedirectUrl(request: NextRequest, path: string): URL {
-  const forwardedHost = request.headers.get("x-forwarded-host");
-  const hostHeader = request.headers.get("host");
-  const host = forwardedHost?.split(",")[0].trim() || hostHeader || "localhost:3000";
-
-  const forwardedProto = request.headers.get("x-forwarded-proto");
-  const protocol = forwardedProto
-    ? `${forwardedProto}:`
-    : request.nextUrl.protocol;
-
-  const safeHost = host.replace(/^0\.0\.0\.0(?=:|$)/, "localhost");
-
-  return new URL(path, `${protocol}//${safeHost}`);
+export function redirectResponse(path: string, status = 303): NextResponse {
+  const response = new NextResponse(null, { status });
+  response.headers.set("Location", path);
+  return response;
 }
 
 export function isSecureRequest(request: NextRequest): boolean {

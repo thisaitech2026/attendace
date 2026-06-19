@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { authenticateUser } from "@/lib/auth";
-import { getRedirectUrl, isSecureRequest } from "@/lib/redirect";
+import { redirectResponse, isSecureRequest } from "@/lib/redirect";
 
 function setAuthCookie(response: NextResponse, request: NextRequest, token: string) {
   const isSecure = isSecureRequest(request);
@@ -33,10 +33,7 @@ export async function POST(request: NextRequest) {
       if (contentType.includes("application/json")) {
         return NextResponse.json({ error: "Username and password required" }, { status: 400 });
       }
-      return NextResponse.redirect(
-        getRedirectUrl(request, "/login?error=missing"),
-        { status: 303 }
-      );
+      return redirectResponse("/login?error=missing");
     }
 
     const result = await authenticateUser(username, password);
@@ -47,10 +44,7 @@ export async function POST(request: NextRequest) {
           { status: 401 }
         );
       }
-      return NextResponse.redirect(
-        getRedirectUrl(request, "/login?error=invalid"),
-        { status: 303 }
-      );
+      return redirectResponse("/login?error=invalid");
     }
 
     const redirectPath = result.user.role === "ADMIN" ? "/admin" : "/customer";
@@ -64,9 +58,7 @@ export async function POST(request: NextRequest) {
       return response;
     }
 
-    const response = NextResponse.redirect(getRedirectUrl(request, redirectPath), {
-      status: 303,
-    });
+    const response = redirectResponse(redirectPath);
     setAuthCookie(response, request, result.token);
     return response;
   } catch (error) {
@@ -78,9 +70,6 @@ export async function POST(request: NextRequest) {
         { status: 500 }
       );
     }
-    return NextResponse.redirect(
-      getRedirectUrl(request, "/login?error=server"),
-      { status: 303 }
-    );
+    return redirectResponse("/login?error=server");
   }
 }
