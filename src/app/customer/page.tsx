@@ -47,7 +47,7 @@ export default function CustomerDashboard() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Welcome, {data.customer.name}</h1>
+        <h1 className="page-title">Welcome, {data.customer.name}</h1>
         <p className="text-gray-500">Your rental dashboard</p>
       </div>
 

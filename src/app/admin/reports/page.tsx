@@ -53,7 +53,7 @@ export default function ReportsPage() {
         const d = data as { occupied: number; vacant: number; byType: Array<{ type: string; status: string; _count: number }> };
         return (
           <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="form-grid-2">
               <div className="rounded-lg bg-green-50 p-4"><p className="text-sm text-green-600">Occupied</p><p className="text-2xl font-bold">{d.occupied}</p></div>
               <div className="rounded-lg bg-yellow-50 p-4"><p className="text-sm text-yellow-600">Vacant</p><p className="text-2xl font-bold">{d.vacant}</p></div>
             </div>
@@ -178,7 +178,7 @@ export default function ReportsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Reports</h1>
+        <h1 className="page-title">Reports</h1>
         <p className="text-gray-500">Generate and view system reports</p>
       </div>
 

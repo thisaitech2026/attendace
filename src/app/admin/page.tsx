@@ -52,7 +52,7 @@ export default function AdminDashboard() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Admin Dashboard</h1>
+        <h1 className="page-title">Admin Dashboard</h1>
         <p className="text-gray-500">Overview of your rental management system</p>
       </div>
 

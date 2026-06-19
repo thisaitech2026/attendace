@@ -84,9 +84,9 @@ export default function CustomersPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="page-header">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Customer Management</h1>
+          <h1 className="page-title">Customer Management</h1>
           <p className="text-gray-500">Create and manage customer accounts</p>
         </div>
         <Button onClick={openCreate}><Plus className="h-4 w-4" /> Add Customer</Button>
@@ -117,12 +117,12 @@ export default function CustomersPage() {
       <Modal open={modalOpen} onClose={() => setModalOpen(false)} title={editing ? "Edit Customer" : "Add Customer"}>
         <form onSubmit={handleSubmit} className="space-y-4">
           <Input label="Customer Name" value={form.name} onChange={(e) => set("name", e.target.value)} required />
-          <div className="grid grid-cols-2 gap-4">
+          <div className="form-grid-2">
             <Input label="Mobile Number" value={form.mobile} onChange={(e) => set("mobile", e.target.value)} required />
             <Input label="Email" type="email" value={form.email} onChange={(e) => set("email", e.target.value)} required />
           </div>
           <Input label="Address" value={form.address} onChange={(e) => set("address", e.target.value)} required />
-          <div className="grid grid-cols-2 gap-4">
+          <div className="form-grid-2">
             <Input label="Aadhaar Number" value={form.aadhaar} onChange={(e) => set("aadhaar", e.target.value)} required />
             <Input label="Occupation" value={form.occupation} onChange={(e) => set("occupation", e.target.value)} required />
           </div>

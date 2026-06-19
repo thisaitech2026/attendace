@@ -33,7 +33,7 @@ export default function PaymentHistoryPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Payment History</h1>
+        <h1 className="page-title">Payment History</h1>
         <p className="text-gray-500">View all your past payments and download receipts</p>
       </div>
 

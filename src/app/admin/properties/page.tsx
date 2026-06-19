@@ -96,9 +96,9 @@ export default function PropertiesPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="page-header">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Property Management</h1>
+          <h1 className="page-title">Property Management</h1>
           <p className="text-gray-500">Manage houses, apartments, villas, and shops</p>
         </div>
         <Button onClick={openCreate}><Plus className="h-4 w-4" /> Add Property</Button>
@@ -131,13 +131,13 @@ export default function PropertiesPage() {
 
       <Modal open={modalOpen} onClose={() => setModalOpen(false)} title={editing ? "Edit Property" : "Add Property"}>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
+          <div className="form-grid-2">
             <Input label="Property ID" value={form.propertyId} onChange={(e) => set("propertyId", e.target.value)} required />
             <Input label="Property Name" value={form.name} onChange={(e) => set("name", e.target.value)} required />
           </div>
           <Input label="Address" value={form.address} onChange={(e) => set("address", e.target.value)} required />
           <Input label="Description" value={form.description} onChange={(e) => set("description", e.target.value)} />
-          <div className="grid grid-cols-2 gap-4">
+          <div className="form-grid-2">
             <Select label="Type" value={form.type} onChange={(e) => set("type", e.target.value)} options={[
               { value: "HOUSE", label: "House" }, { value: "APARTMENT", label: "Apartment" },
               { value: "VILLA", label: "Villa" }, { value: "SHOP", label: "Shop" },
@@ -147,13 +147,13 @@ export default function PropertiesPage() {
               { value: "VACANT", label: "Vacant" }, { value: "OCCUPIED", label: "Occupied" },
             ]} />
           </div>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="form-grid-2">
             <Input label="Monthly Rent" type="number" value={form.monthlyRent} onChange={(e) => set("monthlyRent", e.target.value)} required />
             <Input label="Security Deposit" type="number" value={form.securityDeposit} onChange={(e) => set("securityDeposit", e.target.value)} required />
           </div>
           <hr className="my-2" />
           <p className="text-sm font-medium text-gray-700">Utility Information</p>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="form-grid-2">
             <Input label="EB Service Number" value={form.ebServiceNumber} onChange={(e) => set("ebServiceNumber", e.target.value)} />
             <Input label="EB Consumer Name" value={form.ebConsumerName} onChange={(e) => set("ebConsumerName", e.target.value)} />
             <Input label="Water Connection Number" value={form.waterConnectionNumber} onChange={(e) => set("waterConnectionNumber", e.target.value)} />

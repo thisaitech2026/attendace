@@ -101,7 +101,7 @@ export default function PaymentsPage() {
   if (!data?.outstanding || data.outstanding.unpaidMonths.length === 0) {
     return (
       <div className="space-y-6">
-        <h1 className="text-2xl font-bold text-gray-900">Pay Rent</h1>
+        <h1 className="page-title">Pay Rent</h1>
         <Card>
           <p className="text-green-600 font-medium">All rent payments are up to date!</p>
         </Card>
@@ -112,7 +112,7 @@ export default function PaymentsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Pay Rent</h1>
+        <h1 className="page-title">Pay Rent</h1>
         <p className="text-gray-500">Make online payment for your rent</p>
       </div>
 

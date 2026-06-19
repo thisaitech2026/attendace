@@ -95,9 +95,9 @@ export default function RentalsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="page-header">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Rental Mapping</h1>
+          <h1 className="page-title">Rental Mapping</h1>
           <p className="text-gray-500">Map customers to properties</p>
         </div>
         <Button onClick={openCreate}><Plus className="h-4 w-4" /> Map Rental</Button>
@@ -141,11 +141,11 @@ export default function RentalsPage() {
             ...properties.map((p) => ({ value: p.id, label: `${p.name} (${p.propertyId})` })),
           ]} />
           <Input label="Rent Start Date" type="date" value={form.rentStartDate} onChange={(e) => set("rentStartDate", e.target.value)} required />
-          <div className="grid grid-cols-2 gap-4">
+          <div className="form-grid-2">
             <Input label="Monthly Rent" type="number" value={form.monthlyRent} onChange={(e) => set("monthlyRent", e.target.value)} required />
             <Input label="Deposit Amount" type="number" value={form.depositAmount} onChange={(e) => set("depositAmount", e.target.value)} required />
           </div>
-          <div className="grid grid-cols-3 gap-4">
+          <div className="form-grid-3">
             <Input label="Due Date (day)" type="number" min="1" max="28" value={form.dueDate} onChange={(e) => set("dueDate", e.target.value)} required />
             <Input label="Grace Period (days)" type="number" value={form.gracePeriod} onChange={(e) => set("gracePeriod", e.target.value)} required />
             <Input label="Fine Per Day" type="number" value={form.finePerDay} onChange={(e) => set("finePerDay", e.target.value)} required />

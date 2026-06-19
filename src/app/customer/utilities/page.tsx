@@ -37,7 +37,7 @@ export default function UtilitiesPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Utility Information</h1>
+        <h1 className="page-title">Utility Information</h1>
         <p className="text-gray-500">EB and Water connection details for {data.rental.property.name}</p>
       </div>
 
