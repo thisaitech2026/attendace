@@ -1,0 +1,111 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: #0c1018;
+  --foreground: #f1f5f9;
+  --surface: #151b28;
+  --surface-elevated: #1c2433;
+  --border: rgba(255, 255, 255, 0.1);
+  --muted: #9ca3af;
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --nav-height: 72px;
+  --header-height: 56px;
+}
+
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  color: var(--foreground);
+  background: var(--background);
+  font-size: 16px;
+  line-height: 1.5;
+  overscroll-behavior: none;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: clip;
+  word-wrap: break-word;
+}
+
+.safe-top {
+  padding-top: var(--safe-top);
+}
+
+.safe-bottom {
+  padding-bottom: var(--safe-bottom);
+}
+
+@layer components {
+  .app-container {
+    @apply relative mx-auto min-h-screen w-full max-w-md bg-background;
+  }
+
+  .page-content {
+    padding-bottom: calc(var(--nav-height) + var(--safe-bottom) + 20px);
+  }
+
+  /* Extra clearance for floating action button — nav padding is on main */
+  .page-content-fab {
+    padding-bottom: 56px;
+  }
+
+  .filter-chip {
+    @apply rounded-full border px-4 py-2 text-sm font-medium transition-colors;
+    border-color: var(--border);
+    background: var(--surface-elevated);
+    color: var(--muted);
+    min-height: 40px;
+  }
+
+  .filter-chip-active {
+    @apply border-primary/50 text-white;
+    background: #6366f1;
+  }
+
+  .glass-card {
+    @apply rounded-2xl border p-5;
+    border-color: var(--border);
+    background: var(--surface-elevated);
+  }
+
+  .native-input {
+    @apply w-full rounded-xl border px-4 py-3 text-base text-foreground;
+    border-color: var(--border);
+    background: var(--surface);
+    min-height: 48px;
+  }
+
+  .native-input::placeholder {
+    color: var(--muted);
+  }
+
+  .native-input:focus {
+    @apply outline-none ring-2 ring-primary/40 border-primary/50;
+  }
+
+  .native-label {
+    @apply mb-2 block text-sm font-medium text-foreground;
+  }
+
+  .native-card {
+    @apply glass-card;
+  }
+
+  .native-section-title {
+    @apply mb-3 text-sm font-semibold text-muted;
+  }
+
+  .app-header {
+    @apply sticky top-0 z-40 border-b safe-top;
+    height: var(--header-height);
+    border-color: var(--border);
+    background: linear-gradient(180deg, #1a1f35 0%, #12182a 100%);
+  }
+}
