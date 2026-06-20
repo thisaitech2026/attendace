@@ -1,0 +1,260 @@
+import { Alert, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { format, parseISO } from 'date-fns';
+import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
+import { SymbolView } from 'expo-symbols';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useState } from 'react';
+
+import { Card } from '@/components/ui/Card';
+import { ProfileHeader } from '@/components/ui/ProfileHeader';
+import { SectionHeader } from '@/components/ui/QuickAction';
+import { StatusBadge } from '@/components/ui/StatusBadge';
+import { useApp } from '@/contexts/AppContext';
+import { APP_NAME } from '@/constants/config';
+import Colors from '@/constants/Colors';
+import { verifyOfficeWifi } from '@/services/wifiService';
+import { formatDisplayTime } from '@/utils/formatTime';
+import { useColorScheme } from '@/components/useColorScheme';
+
+function showPunchAlert(title: string, message: string) {
+  if (Platform.OS === 'web') {
+    window.alert(`${title}\n\n${message}`);
+    return;
+  }
+  Alert.alert(title, message);
+}
+
+export default function DashboardScreen() {
+  const { employee, attendance, logout, doPunchIn, doPunchOut } = useApp();
+  const scheme = useColorScheme() ?? 'light';
+  const colors = Colors[scheme];
+  const insets = useSafeAreaInsets();
+  const [punchLoading, setPunchLoading] = useState(false);
+
+  const today = attendance[0];
+
+  const canPunchIn = today && !today.punchIn;
+  const canPunchOut = today && today.punchIn && !today.punchOut;
+  const punchComplete = Boolean(today?.punchOut);
+
+  const punchStatus = today?.punchIn ? (today.punchOut ? 'Done' : 'Active') : 'Away';
+  const punchTone = today?.punchIn ? (today.punchOut ? 'success' : 'primary') : 'warning';
+
+  const punchButtonTitle = punchLoading
+    ? 'Please wait...'
+    : punchComplete
+      ? 'Done for today'
+      : canPunchOut
+        ? 'Punch Out'
+        : 'Punch In Now';
+
+  const heroHint = punchComplete
+    ? 'Attendance completed for today'
+    : canPunchOut
+      ? 'Tap below to punch out'
+      : 'Tap below to punch in';
+
+  const handleHeroPunch = async () => {
+    if (punchLoading || punchComplete) return;
+
+    if (canPunchIn) {
+      setPunchLoading(true);
+      try {
+        const result = await verifyOfficeWifi();
+        if (result.valid) {
+          await doPunchIn('wifi', result.ssid);
+        } else {
+          await doPunchIn('manual', null);
+        }
+      } catch (e) {
+        showPunchAlert('Error', e instanceof Error ? e.message : 'Punch in failed');
+      } finally {
+        setPunchLoading(false);
+      }
+      return;
+    }
+
+    if (canPunchOut) {
+      setPunchLoading(true);
+      try {
+        const result = await verifyOfficeWifi();
+        const method = result.valid ? 'wifi' : 'manual';
+        const record = await doPunchOut(method);
+        if (record) {
+          showPunchAlert(
+            'Punched Out',
+            `Recorded at ${formatDisplayTime(record.punchOut)}${record.hoursWorked ? ` · ${record.hoursWorked}h worked` : ''}`
+          );
+        }
+      } catch (e) {
+        showPunchAlert('Error', e instanceof Error ? e.message : 'Punch out failed');
+      } finally {
+        setPunchLoading(false);
+      }
+    }
+  };
+
+  const handleLogout = () => {
+    if (Platform.OS === 'web') {
+      if (window.confirm('Are you sure you want to log out?')) {
+        logout();
+      }
+      return;
+    }
+    Alert.alert('Log Out', 'Are you sure you want to log out?', [
+      { text: 'Cancel', style: 'cancel' },
+      { text: 'Log Out', style: 'destructive', onPress: logout },
+    ]);
+  };
+
+  return (
+    <ScrollView
+      style={[styles.container, { backgroundColor: colors.background }]}
+      contentContainerStyle={[styles.content, { paddingTop: insets.top + 12 }]}
+      showsVerticalScrollIndicator={false}
+    >
+      <View style={styles.topBar}>
+        <Text style={[styles.appTitle, { color: colors.text }]}>{APP_NAME}</Text>
+        <Pressable
+          onPress={handleLogout}
+          style={({ pressed }) => [
+            styles.logoutBtn,
+            {
+              backgroundColor: colors.dangerLight,
+              borderColor: colors.danger,
+              opacity: pressed ? 0.85 : 1,
+            },
+          ]}
+          accessibilityRole="button"
+          accessibilityLabel="Log out"
+        >
+          <Ionicons name="log-out-outline" size={18} color={colors.danger} />
+          <Text style={[styles.logoutText, { color: colors.danger }]}>Log out</Text>
+        </Pressable>
+      </View>
+
+      {employee ? (
+        <ProfileHeader
+          firstName={employee.firstName}
+          lastName={employee.lastName}
+          position={employee.position}
+          employeeId={employee.employeeId}
+          avatar={employee.avatar}
+        />
+      ) : null}
+
+      <Card noPadding style={styles.heroCard}>
+        <LinearGradient
+          colors={[colors.gradientStart, colors.gradientEnd]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.gradient}
+          pointerEvents="box-none"
+        >
+          <View style={styles.heroTop} pointerEvents="box-none">
+            <View>
+              <Text style={styles.heroLabel}>Today's attendance</Text>
+              <Text style={styles.heroStatus}>{punchStatus}</Text>
+              {today?.punchIn ? (
+                <Text style={styles.heroTime}>
+                  {formatDisplayTime(today.punchIn)}
+                  {today.punchOut ? ` → ${formatDisplayTime(today.punchOut)}` : ' · still working'}
+                </Text>
+              ) : (
+                <Text style={styles.heroTime}>{heroHint}</Text>
+              )}
+            </View>
+            <StatusBadge label={punchStatus} tone={punchTone} light />
+          </View>
+          <Pressable
+            onPress={handleHeroPunch}
+            disabled={punchLoading || punchComplete}
+            style={({ pressed }) => [
+              styles.heroBtn,
+              {
+                opacity: punchLoading || punchComplete ? 0.7 : pressed ? 0.88 : 1,
+                transform: [{ scale: pressed && !punchLoading && !punchComplete ? 0.98 : 1 }],
+              },
+            ]}
+            accessibilityRole="button"
+            accessibilityLabel={punchButtonTitle}
+          >
+            <Text style={[styles.heroBtnText, { color: colors.primary }]}>{punchButtonTitle}</Text>
+          </Pressable>
+        </LinearGradient>
+      </Card>
+
+      <SectionHeader title="Recent activity" action={{ label: 'See all', href: '/(tabs)/attendance' }} />
+      {attendance.slice(0, 4).map((record) => (
+        <Card key={record.id} style={styles.historyCard}>
+          <View style={styles.historyRow}>
+            <View style={[styles.dateIcon, { backgroundColor: colors.primaryLight }]}>
+              <SymbolView name={{ ios: 'calendar', android: 'event', web: 'event' }} tintColor={colors.primary} size={14} />
+            </View>
+            <View style={styles.historyBody}>
+              <Text style={[styles.historyDate, { color: colors.text }]}>
+                {format(parseISO(record.date), 'EEE, MMM d')}
+              </Text>
+              <Text style={[styles.historyDetail, { color: colors.textSecondary }]}>
+                {record.punchIn
+                  ? `${formatDisplayTime(record.punchIn)} – ${formatDisplayTime(record.punchOut)}`
+                  : 'No punch recorded'}
+                {record.hoursWorked > 0 ? ` · ${record.hoursWorked}h` : ''}
+              </Text>
+            </View>
+            <StatusBadge
+              label={record.status}
+              tone={record.status === 'present' ? 'success' : record.status === 'late' ? 'warning' : 'neutral'}
+            />
+          </View>
+        </Card>
+      ))}
+    </ScrollView>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: { flex: 1 },
+  content: { paddingHorizontal: 20, paddingBottom: 40 },
+  topBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 16,
+  },
+  appTitle: { fontSize: 20, fontWeight: '800', letterSpacing: -0.3 },
+  logoutBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 12,
+    borderWidth: 1,
+  },
+  logoutText: { fontSize: 13, fontWeight: '700' },
+  heroCard: { marginBottom: 16 },
+  gradient: { padding: 20, borderRadius: 20 },
+  heroTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
+  heroLabel: { color: 'rgba(255,255,255,0.75)', fontSize: 12, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.8 },
+  heroStatus: { color: '#FFF', fontSize: 28, fontWeight: '800', marginTop: 6, letterSpacing: -0.5 },
+  heroTime: { color: 'rgba(255,255,255,0.85)', fontSize: 13, marginTop: 6, fontWeight: '500' },
+  heroBtn: {
+    marginTop: 18,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 14,
+    paddingVertical: 15,
+    paddingHorizontal: 22,
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 2,
+  },
+  heroBtnText: { fontSize: 15, fontWeight: '700', letterSpacing: 0.2 },
+  historyCard: { marginBottom: 10, paddingVertical: 14, paddingHorizontal: 14 },
+  historyRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  dateIcon: { width: 32, height: 32, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
+  historyBody: { flex: 1 },
+  historyDate: { fontSize: 15, fontWeight: '700' },
+  historyDetail: { fontSize: 12, marginTop: 3, fontWeight: '500' },
+});
