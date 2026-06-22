@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   FlatList,
   KeyboardAvoidingView,
@@ -19,6 +19,30 @@ import Colors from '@/constants/Colors';
 import { CHAT_CATEGORY_LABELS } from '@/constants/tabPictures';
 import type { ChatCategory } from '@/types/chat';
 import { useColorScheme } from '@/components/useColorScheme';
+
+// Mobile-web fix: VisualViewport API tells us how much of the layout viewport
+// the on-screen keyboard is covering. KeyboardAvoidingView is a no-op on web,
+// so we use this to pin the composer above the keyboard.
+function useKeyboardOffsetWeb(): number {
+  const [offset, setOffset] = useState(0);
+  useEffect(() => {
+    if (Platform.OS !== 'web') return;
+    if (typeof window === 'undefined' || !window.visualViewport) return;
+    const vv = window.visualViewport;
+    const update = () => {
+      const next = Math.max(0, window.innerHeight - vv.height - vv.offsetTop);
+      setOffset(next);
+    };
+    update();
+    vv.addEventListener('resize', update);
+    vv.addEventListener('scroll', update);
+    return () => {
+      vv.removeEventListener('resize', update);
+      vv.removeEventListener('scroll', update);
+    };
+  }, []);
+  return offset;
+}
 
 const QUICK_MESSAGES: { label: string; text: string; category: ChatCategory }[] = [
   { label: 'Sick leave', text: 'I will be on sick leave today. Not feeling well.', category: 'sick-leave' },
@@ -42,6 +66,14 @@ export default function ChatScreen() {
 
   const [text, setText] = useState('');
   const [sending, setSending] = useState(false);
+  const webKbOffset = useKeyboardOffsetWeb();
+  const webComposerFixed = Platform.OS === 'web' && webKbOffset > 0;
+
+  useEffect(() => {
+    if (webComposerFixed) {
+      setTimeout(() => listRef.current?.scrollToEnd({ animated: true }), 50);
+    }
+  }, [webComposerFixed]);
 
   const handleSend = useCallback(
     async (messageText?: string, messageCategory: ChatCategory = 'general') => {
@@ -114,12 +146,29 @@ export default function ChatScreen() {
         data={chatMessages}
         keyExtractor={(item) => item.id}
         renderItem={renderMessage}
-        contentContainerStyle={styles.messageList}
+        contentContainerStyle={[
+          styles.messageList,
+          webComposerFixed && { paddingBottom: 160 },
+        ]}
         onContentSizeChange={() => listRef.current?.scrollToEnd({ animated: false })}
         showsVerticalScrollIndicator={false}
       />
 
-      <View style={[styles.composer, { backgroundColor: colors.card, borderTopColor: colors.borderLight, paddingBottom: insets.bottom + 4 }]}>
+      <View
+        style={[
+          styles.composer,
+          { backgroundColor: colors.card, borderTopColor: colors.borderLight, paddingBottom: insets.bottom + 4 },
+          webComposerFixed &&
+            ({
+              position: 'fixed',
+              left: 0,
+              right: 0,
+              bottom: webKbOffset,
+              zIndex: 100,
+              paddingBottom: 8,
+            } as unknown as object),
+        ]}
+      >
         <View style={styles.quickRow}>
           {QUICK_MESSAGES.map((quick) => (
             <Pressable
