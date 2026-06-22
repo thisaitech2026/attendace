@@ -1,9 +1,9 @@
 export const firebaseConfig = {
-  apiKey: 'AIzaSyCCtR9Ibooq1b9W6IgYqRivC64NgWc_NII',
-  authDomain: 'thisaihris.firebaseapp.com',
-  projectId: 'thisaihris',
-  storageBucket: 'thisaihris.firebasestorage.app',
-  messagingSenderId: '816888597122',
-  appId: '1:816888597122:web:d766f5a304b6ec9709829b',
-  measurementId: 'G-T5LSSM9ERS',
+  apiKey: 'AIzaSyBUpWFXxZPdFDAoWjPDO0qYd5nSJMCk_P0',
+  authDomain: 'thisaiforce.firebaseapp.com',
+  projectId: 'thisaiforce',
+  storageBucket: 'thisaiforce.firebasestorage.app',
+  messagingSenderId: '53931148336',
+  appId: '1:53931148336:web:3f5e0f75c918a903e319f5',
+  measurementId: 'G-ECZQXB05VE',
 };
