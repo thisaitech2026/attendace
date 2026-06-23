@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { Card } from '@/components/ui/Card';
@@ -7,6 +8,8 @@ import { useApp } from '@/contexts/AppContext';
 import Colors from '@/constants/Colors';
 import { formatCurrency } from '@/services/employeeService';
 import { useColorScheme } from '@/components/useColorScheme';
+import { applyLeaveDeductionToSlip } from '@/utils/salary';
+import { LEAVE_DEDUCTION_PER_DAY } from '@/constants/config';
 
 const SALARY_STAT_COLORS = {
   total: {
@@ -27,11 +30,17 @@ const SALARY_STAT_COLORS = {
 } as const;
 
 export default function SalaryScreen() {
-  const { salarySlips } = useApp();
+  const { salarySlips, leaveRequests } = useApp();
   const scheme = useColorScheme() ?? 'light';
   const colors = Colors[scheme];
 
-  const latest = salarySlips[0];
+  const adjustedSlips = useMemo(
+    () => salarySlips.map((slip) => applyLeaveDeductionToSlip(slip, leaveRequests)),
+    [salarySlips, leaveRequests]
+  );
+
+  const latestAdjusted = adjustedSlips[0];
+  const latest = latestAdjusted?.slip;
   const paidSlips = salarySlips.filter((s) => s.status === 'paid');
   const pendingSlips = salarySlips.filter((s) => s.status === 'pending');
   const totalSalary = latest?.basic ?? 0;
@@ -50,10 +59,19 @@ export default function SalaryScreen() {
           <Text style={styles.heroLabel}>Latest Net Pay</Text>
           {latest ? <StatusSymbolBadge status={latest.status} compact /> : null}
         </View>
-        <Text style={styles.heroAmount}>{latest ? formatCurrency(latest.netPay) : '—'}</Text>
+        <Text style={styles.heroAmount}>
+          {latestAdjusted ? formatCurrency(latestAdjusted.adjustedNetPay) : '—'}
+        </Text>
         <Text style={styles.heroPeriod}>
           {latest ? `${latest.month} ${latest.year}` : 'No payslips'}
         </Text>
+        {latestAdjusted && latestAdjusted.leaveDeduction.days > 0 ? (
+          <Text style={styles.heroLeaveNote}>
+            -{formatCurrency(latestAdjusted.leaveDeduction.amount)} leave deduction (
+            {latestAdjusted.leaveDeduction.days} day
+            {latestAdjusted.leaveDeduction.days > 1 ? 's' : ''} × {formatCurrency(LEAVE_DEDUCTION_PER_DAY)})
+          </Text>
+        ) : null}
         <View style={styles.heroStats}>
           <View style={[styles.heroStatBox, { backgroundColor: SALARY_STAT_COLORS.total.box }]}>
             <Text style={[styles.heroStatLabel, { color: SALARY_STAT_COLORS.total.label }]}>Basic Salary</Text>
@@ -70,14 +88,14 @@ export default function SalaryScreen() {
           <View style={[styles.heroStatBox, { backgroundColor: SALARY_STAT_COLORS.deductions.box }]}>
             <Text style={[styles.heroStatLabel, { color: SALARY_STAT_COLORS.deductions.label }]}>Deductions</Text>
             <Text style={[styles.heroStatValue, { color: SALARY_STAT_COLORS.deductions.value }]}>
-              {latest ? `-${formatCurrency(latest.deductions)}` : '—'}
+              {latestAdjusted ? `-${formatCurrency(latestAdjusted.totalDeductions)}` : '—'}
             </Text>
           </View>
         </View>
       </Card>
 
       <Text style={[styles.sectionTitle, { color: colors.text }]}>Payslip History</Text>
-      {salarySlips.map((slip) => (
+      {adjustedSlips.map(({ slip, leaveDeduction, adjustedNetPay }) => (
         <Card key={slip.id} noPadding style={styles.slipCard}>
           <View style={styles.slipInner}>
           <View style={styles.slipHeader}>
@@ -99,10 +117,20 @@ export default function SalaryScreen() {
             <Text style={[styles.slipLabel, { color: colors.textSecondary }]}>Deductions</Text>
             <Text style={[styles.slipValue, { color: colors.danger }]}>-{formatCurrency(slip.deductions)}</Text>
           </View>
+          {leaveDeduction.days > 0 ? (
+            <View style={styles.slipRow}>
+              <Text style={[styles.slipLabel, { color: colors.textSecondary }]}>
+                Leave deduction ({leaveDeduction.days} day{leaveDeduction.days > 1 ? 's' : ''} × {formatCurrency(leaveDeduction.rate)})
+              </Text>
+              <Text style={[styles.slipValue, { color: colors.danger }]}>
+                -{formatCurrency(leaveDeduction.amount)}
+              </Text>
+            </View>
+          ) : null}
           <View style={[styles.slipDivider, { backgroundColor: colors.border }]} />
           <View style={styles.slipRow}>
             <Text style={[styles.slipTotalLabel, { color: colors.text }]}>Net Pay</Text>
-            <Text style={[styles.slipTotal, { color: colors.primary }]}>{formatCurrency(slip.netPay)}</Text>
+            <Text style={[styles.slipTotal, { color: colors.primary }]}>{formatCurrency(adjustedNetPay)}</Text>
           </View>
           <Text style={[styles.paymentDate, { color: colors.textSecondary }]}>
             Payment date: {slip.paymentDate}
@@ -129,6 +157,12 @@ const styles = StyleSheet.create({
   heroLabel: { color: 'rgba(255,255,255,0.8)', fontSize: 11, fontWeight: '500', flex: 1 },
   heroAmount: { color: '#FFF', fontSize: 28, fontWeight: '800', marginTop: 4, marginBottom: 2 },
   heroPeriod: { color: 'rgba(255,255,255,0.8)', fontSize: 12 },
+  heroLeaveNote: {
+    color: '#FECACA',
+    fontSize: 11,
+    fontWeight: '600',
+    marginTop: 6,
+  },
   heroStats: { flexDirection: 'row', marginTop: 12, gap: 6 },
   heroStatBox: {
     flex: 1,

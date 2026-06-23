@@ -11,6 +11,9 @@ export const OFFICE_IP_PREFIX = '192.168.100.';
 /** Approved office WiFi SSIDs for attendance punch-in/out. */
 export const ALLOWED_WIFI_SSIDS = [OFFICE_WIFI_SSID];
 
+/** Per-day salary reduction applied for each leave day in a payslip's month. */
+export const LEAVE_DEDUCTION_PER_DAY = 200;
+
 export const INITIAL_USERS: AppUser[] = [
   {
     email: 'john.doe@company.com',
