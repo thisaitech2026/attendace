@@ -11,10 +11,12 @@ import { ProfileHeader } from '@/components/ui/ProfileHeader';
 import { SectionHeader } from '@/components/ui/QuickAction';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { useApp } from '@/contexts/AppContext';
-import { APP_NAME } from '@/constants/config';
+import { APP_NAME, OFFICE_WIFI_SSID } from '@/constants/config';
 import Colors from '@/constants/Colors';
+import { useOfficeWifi } from '@/hooks/useOfficeWifi';
 import { verifyOfficeWifi } from '@/services/wifiService';
 import { formatDisplayTime } from '@/utils/formatTime';
+import { isWorkFromHomeEmployee } from '@/utils/punchPolicy';
 import { useColorScheme } from '@/components/useColorScheme';
 
 function showPunchAlert(title: string, message: string) {
@@ -31,6 +33,8 @@ export default function DashboardScreen() {
   const colors = Colors[scheme];
   const insets = useSafeAreaInsets();
   const [punchLoading, setPunchLoading] = useState(false);
+  const { wifiValid, wifiMessage, isChecking } = useOfficeWifi();
+  const wfhEmployee = isWorkFromHomeEmployee(employee);
 
   const today = attendance[0];
 
@@ -47,25 +51,59 @@ export default function DashboardScreen() {
       ? 'Done for today'
       : canPunchOut
         ? 'Punch Out'
-        : 'Punch In Now';
+        : wfhEmployee
+          ? 'Manual punch on Attendance tab'
+          : isChecking
+            ? 'Checking WiFi...'
+            : wifiValid
+              ? 'Punch In'
+              : `Connect to ${OFFICE_WIFI_SSID} WiFi`;
 
   const heroHint = punchComplete
     ? 'Attendance completed for today'
     : canPunchOut
       ? 'Tap below to punch out'
-      : 'Tap below to punch in';
+      : wfhEmployee
+        ? 'Work from home — use the Attendance tab for manual punch'
+        : wifiValid
+          ? `${wifiMessage} · tap Punch In to record via office WiFi`
+          : isChecking
+            ? 'Checking office WiFi...'
+            : wifiMessage;
 
   const handleHeroPunch = async () => {
     if (punchLoading || punchComplete) return;
 
     if (canPunchIn) {
+      if (wfhEmployee) {
+        showPunchAlert(
+          'Work From Home',
+          'Manual punch is on the Attendance tab. Your punch will be sent to HR for approval.'
+        );
+        return;
+      }
+
+      if (!wifiValid) {
+        showPunchAlert(
+          'Office WiFi Required',
+          `Connect to the ${OFFICE_WIFI_SSID} network to punch in. Office WiFi is required — manual punch is not available on the home screen.`
+        );
+        return;
+      }
+
       setPunchLoading(true);
       try {
         const result = await verifyOfficeWifi();
-        if (result.valid) {
-          await doPunchIn('wifi', result.ssid);
-        } else {
-          await doPunchIn('manual', null);
+        if (!result.valid) {
+          showPunchAlert('WiFi Verification Failed', result.message);
+          return;
+        }
+        const record = await doPunchIn('wifi', result.ssid);
+        if (record) {
+          showPunchAlert(
+            'Punched In',
+            `Recorded via office WiFi (${result.ssid}) at ${formatDisplayTime(record.punchIn)}`
+          );
         }
       } catch (e) {
         showPunchAlert('Error', e instanceof Error ? e.message : 'Punch in failed');
@@ -79,7 +117,14 @@ export default function DashboardScreen() {
       setPunchLoading(true);
       try {
         const result = await verifyOfficeWifi();
-        const method = result.valid ? 'wifi' : 'manual';
+        if (!wfhEmployee && !result.valid) {
+          showPunchAlert(
+            'Office WiFi Required',
+            `Connect to ${OFFICE_WIFI_SSID} WiFi to punch out from the home screen.`
+          );
+          return;
+        }
+        const method = wfhEmployee ? 'manual' : 'wifi';
         const record = await doPunchOut(method);
         if (record) {
           showPunchAlert(
@@ -169,12 +214,33 @@ export default function DashboardScreen() {
           </View>
           <Pressable
             onPress={handleHeroPunch}
-            disabled={punchLoading || punchComplete}
+            disabled={
+              punchLoading ||
+              punchComplete ||
+              (Boolean(canPunchIn) && (wfhEmployee || (!wifiValid && !isChecking)))
+            }
             style={({ pressed }) => [
               styles.heroBtn,
               {
-                opacity: punchLoading || punchComplete ? 0.7 : pressed ? 0.88 : 1,
-                transform: [{ scale: pressed && !punchLoading && !punchComplete ? 0.98 : 1 }],
+                opacity:
+                  punchLoading ||
+                  punchComplete ||
+                  (Boolean(canPunchIn) && (wfhEmployee || (!wifiValid && !isChecking)))
+                    ? 0.7
+                    : pressed
+                      ? 0.88
+                      : 1,
+                transform: [
+                  {
+                    scale:
+                      pressed &&
+                      !punchLoading &&
+                      !punchComplete &&
+                      !(canPunchIn && (wfhEmployee || !wifiValid))
+                        ? 0.98
+                        : 1,
+                  },
+                ],
               },
             ]}
             accessibilityRole="button"

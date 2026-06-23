@@ -21,6 +21,7 @@ export const MOCK_EMPLOYEES: Employee[] = [
     joinDate: '2021-03-15',
     address: '123 Tech Street, San Francisco, CA 94102',
     emergencyContact: 'Jane Doe — +1 (555) 987-6543',
+    workFromHome: false,
   },
   {
     id: '2',
@@ -35,6 +36,7 @@ export const MOCK_EMPLOYEES: Employee[] = [
     joinDate: '2019-08-01',
     address: '456 People Ave, Austin, TX 78701',
     emergencyContact: 'Robert Smith — +1 (555) 876-5432',
+    workFromHome: true,
   },
 ];
 

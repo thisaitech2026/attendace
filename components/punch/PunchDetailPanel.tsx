@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useState } from 'react';
 import {
   Alert,
   Platform,
@@ -16,12 +16,14 @@ import { Card } from '@/components/ui/Card';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { useApp } from '@/contexts/AppContext';
 import Colors from '@/constants/Colors';
-import { getCurrentWifiInfo, verifyOfficeWifi } from '@/services/wifiService';
+import { useOfficeWifi } from '@/hooks/useOfficeWifi';
+import { verifyOfficeWifi } from '@/services/wifiService';
 import {
   formatPunchAlertMessage,
   formatPunchAlertTitle,
   formatPunchPreviewLines,
 } from '@/utils/punchDetails';
+import { isOfficeEmployee, isWorkFromHomeEmployee } from '@/utils/punchPolicy';
 import { useColorScheme } from '@/components/useColorScheme';
 
 function showAlert(title: string, message: string, onOk?: () => void) {
@@ -42,26 +44,16 @@ export function PunchDetailPanel({ onClose }: PunchDetailPanelProps) {
   const scheme = useColorScheme() ?? 'light';
   const colors = Colors[scheme];
 
-  const [wifiValid, setWifiValid] = useState(false);
-  const [wifiMessage, setWifiMessage] = useState('Checking network...');
   const [loading, setLoading] = useState(false);
+  const { wifiValid, wifiMessage } = useOfficeWifi();
+  const officeEmployee = isOfficeEmployee(employee);
+  const wfhEmployee = isWorkFromHomeEmployee(employee);
 
   const today = attendance[0];
   const canPunchIn = today && !today.punchIn;
   const canPunchOut = today && today.punchIn && !today.punchOut;
   const employeeName = employee ? `${employee.firstName} ${employee.lastName}` : undefined;
   const detailLines = formatPunchPreviewLines(today, employee);
-
-  const checkWifi = useCallback(async () => {
-    await getCurrentWifiInfo();
-    const result = await verifyOfficeWifi();
-    setWifiValid(result.valid);
-    setWifiMessage(result.message);
-  }, []);
-
-  useEffect(() => {
-    checkWifi();
-  }, [checkWifi]);
 
   const showPunchResult = (record: typeof today) => {
     if (!record) return;
@@ -99,7 +91,7 @@ export function PunchDetailPanel({ onClose }: PunchDetailPanelProps) {
     setLoading(true);
     try {
       const result = await verifyOfficeWifi();
-      const method = result.valid ? 'wifi' : 'manual';
+      const method = wfhEmployee ? 'manual' : result.valid ? 'wifi' : 'manual';
       const record = await doPunchOut(method);
       if (record) showPunchResult(record);
     } catch (e) {
@@ -134,8 +126,12 @@ export function PunchDetailPanel({ onClose }: PunchDetailPanelProps) {
         </Card>
 
         <Card style={[styles.wifiCard, { borderColor: wifiValid ? colors.success : colors.border }]}>
-          <Text style={[styles.sectionLabel, { color: colors.textSecondary }]}>Office WiFi</Text>
-          <Text style={[styles.wifiMsg, { color: colors.text }]}>{wifiMessage}</Text>
+          <Text style={[styles.sectionLabel, { color: colors.textSecondary }]}>
+            {wfhEmployee ? 'Work From Home' : 'Office WiFi'}
+          </Text>
+          <Text style={[styles.wifiMsg, { color: colors.text }]}>
+            {wfhEmployee ? 'Manual punch only — requires HR approval' : wifiMessage}
+          </Text>
         </Card>
 
         <Card style={styles.todayCard}>
@@ -189,16 +185,16 @@ export function PunchDetailPanel({ onClose }: PunchDetailPanelProps) {
         </Card>
 
         <View style={styles.actions}>
-          {canPunchIn ? (
-            <>
-              <Button
-                title="Punch In via WiFi"
-                onPress={handleWifiPunchIn}
-                loading={loading}
-                disabled={!wifiValid}
-              />
-              <Button title="Manual Punch In" variant="outline" onPress={handleManualPunchIn} loading={loading} />
-            </>
+          {canPunchIn && officeEmployee ? (
+            <Button
+              title="Punch In via Office WiFi"
+              onPress={handleWifiPunchIn}
+              loading={loading}
+              disabled={!wifiValid}
+            />
+          ) : null}
+          {canPunchIn && wfhEmployee ? (
+            <Button title="Manual Punch In (WFH)" onPress={handleManualPunchIn} loading={loading} />
           ) : null}
           {canPunchOut ? (
             <Button title="Punch Out Now" variant="danger" onPress={handlePunchOut} loading={loading} />

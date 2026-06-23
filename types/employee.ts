@@ -14,6 +14,8 @@ export interface Employee {
   avatar?: string;
   address: string;
   emergencyContact: string;
+  /** When true, employee punches manually from the Attendance tab (WFH). */
+  workFromHome?: boolean;
 }
 
 export interface AttendanceRecord {

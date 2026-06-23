@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useState } from 'react';
 import { RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { format, parseISO } from 'date-fns';
 
@@ -8,41 +8,31 @@ import { ScreenHeader } from '@/components/ui/ScreenHeader';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { useApp } from '@/contexts/AppContext';
 import Colors from '@/constants/Colors';
-import { getCurrentWifiInfo, verifyOfficeWifi } from '@/services/wifiService';
+import { useOfficeWifi } from '@/hooks/useOfficeWifi';
+import { verifyOfficeWifi } from '@/services/wifiService';
 import { formatDisplayTime } from '@/utils/formatTime';
+import { isOfficeEmployee, isWorkFromHomeEmployee } from '@/utils/punchPolicy';
 import { showAlert } from '@/utils/uiAlert';
 import { useColorScheme } from '@/components/useColorScheme';
 
 export default function AttendanceScreen() {
-  const { attendance, doPunchIn, doPunchOut, refreshData } = useApp();
+  const { employee, attendance, doPunchIn, doPunchOut, refreshData } = useApp();
   const scheme = useColorScheme() ?? 'light';
   const colors = Colors[scheme];
 
-  const [wifiValid, setWifiValid] = useState(false);
-  const [wifiMessage, setWifiMessage] = useState('Checking network...');
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const { wifiValid, wifiMessage, isChecking, refresh: refreshWifi } = useOfficeWifi();
+  const officeEmployee = isOfficeEmployee(employee);
+  const wfhEmployee = isWorkFromHomeEmployee(employee);
 
   const today = attendance[0];
   const canPunchIn = today && !today.punchIn;
   const canPunchOut = today && today.punchIn && !today.punchOut;
 
-  const checkWifi = useCallback(async () => {
-    await getCurrentWifiInfo();
-    const result = await verifyOfficeWifi();
-    setWifiValid(result.valid);
-    setWifiMessage(result.message);
-  }, []);
-
-  useEffect(() => {
-    checkWifi();
-    const interval = setInterval(checkWifi, 10000);
-    return () => clearInterval(interval);
-  }, [checkWifi]);
-
   const onRefresh = async () => {
     setRefreshing(true);
-    await Promise.all([refreshData(), checkWifi()]);
+    await Promise.all([refreshData(), refreshWifi()]);
     setRefreshing(false);
   };
 
@@ -77,7 +67,7 @@ export default function AttendanceScreen() {
     setLoading(true);
     try {
       const result = await verifyOfficeWifi();
-      const method = result.valid ? 'wifi' : 'manual';
+      const method = wfhEmployee ? 'manual' : result.valid ? 'wifi' : 'manual';
       await doPunchOut(method);
       showAlert('Punched Out', `Recorded at ${format(new Date(), 'h:mm a')}`);
     } catch (e) {
@@ -99,8 +89,16 @@ export default function AttendanceScreen() {
         <View style={styles.wifiHeader}>
           <Text style={styles.wifiIcon}>{wifiValid ? '✅' : '📶'}</Text>
           <View style={styles.wifiInfo}>
-            <Text style={[styles.wifiTitle, { color: colors.text }]}>Office WiFi</Text>
-            <Text style={[styles.wifiMsg, { color: colors.textSecondary }]}>{wifiMessage}</Text>
+            <Text style={[styles.wifiTitle, { color: colors.text }]}>
+              {wfhEmployee ? 'Work From Home' : 'Office WiFi'}
+            </Text>
+            <Text style={[styles.wifiMsg, { color: colors.textSecondary }]}>
+              {wfhEmployee
+                ? 'Manual punch only — requires HR approval'
+                : isChecking
+                  ? 'Checking network...'
+                  : wifiMessage}
+            </Text>
           </View>
         </View>
       </Card>
@@ -142,22 +140,20 @@ export default function AttendanceScreen() {
       </Card>
 
       <View style={styles.actions}>
-        {canPunchIn && (
-          <>
-            <Button
-              title="Punch In via WiFi"
-              onPress={handleWifiPunchIn}
-              loading={loading}
-              disabled={!wifiValid}
-            />
-            <Button
-              title="Manual Punch In"
-              variant="outline"
-              onPress={handleManualPunchIn}
-              loading={loading}
-              style={styles.manualBtn}
-            />
-          </>
+        {canPunchIn && officeEmployee && (
+          <Button
+            title="Punch In via Office WiFi"
+            onPress={handleWifiPunchIn}
+            loading={loading}
+            disabled={!wifiValid}
+          />
+        )}
+        {canPunchIn && wfhEmployee && (
+          <Button
+            title="Manual Punch In (WFH)"
+            onPress={handleManualPunchIn}
+            loading={loading}
+          />
         )}
         {canPunchOut && (
           <Button title="Punch Out" variant="danger" onPress={handlePunchOut} loading={loading} />
