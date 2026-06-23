@@ -4,7 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { SymbolView } from 'expo-symbols';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useCallback, useState } from 'react';
+import { useState } from 'react';
 
 import { Card } from '@/components/ui/Card';
 import { ProfileHeader } from '@/components/ui/ProfileHeader';
@@ -13,11 +13,10 @@ import { StatusBadge } from '@/components/ui/StatusBadge';
 import { useApp } from '@/contexts/AppContext';
 import { APP_NAME, OFFICE_WIFI_SSID } from '@/constants/config';
 import Colors from '@/constants/Colors';
-import { useAutoWifiPunchIn } from '@/hooks/useAutoWifiPunchIn';
 import { useOfficeWifi } from '@/hooks/useOfficeWifi';
 import { verifyOfficeWifi } from '@/services/wifiService';
 import { formatDisplayTime } from '@/utils/formatTime';
-import { isOfficeEmployee, isWorkFromHomeEmployee } from '@/utils/punchPolicy';
+import { isWorkFromHomeEmployee } from '@/utils/punchPolicy';
 import { useColorScheme } from '@/components/useColorScheme';
 
 function showPunchAlert(title: string, message: string) {
@@ -34,8 +33,7 @@ export default function DashboardScreen() {
   const colors = Colors[scheme];
   const insets = useSafeAreaInsets();
   const [punchLoading, setPunchLoading] = useState(false);
-  const { wifiValid, wifiMessage, wifiSsid, isChecking } = useOfficeWifi();
-  const officeEmployee = isOfficeEmployee(employee);
+  const { wifiValid, wifiMessage, isChecking } = useOfficeWifi();
   const wfhEmployee = isWorkFromHomeEmployee(employee);
 
   const today = attendance[0];
@@ -46,29 +44,6 @@ export default function DashboardScreen() {
 
   const punchStatus = today?.punchIn ? (today.punchOut ? 'Done' : 'Active') : 'Away';
   const punchTone = today?.punchIn ? (today.punchOut ? 'success' : 'primary') : 'warning';
-
-  const handleAutoPunchIn = useCallback(
-    async (ssid: string | null) => {
-      setPunchLoading(true);
-      try {
-        await doPunchIn('wifi', ssid);
-      } catch (e) {
-        showPunchAlert('Error', e instanceof Error ? e.message : 'Punch in failed');
-        throw e;
-      } finally {
-        setPunchLoading(false);
-      }
-    },
-    [doPunchIn]
-  );
-
-  useAutoWifiPunchIn({
-    enabled: Boolean(canPunchIn && officeEmployee),
-    wifiValid,
-    wifiSsid,
-    isChecking,
-    onPunchIn: handleAutoPunchIn,
-  });
 
   const punchButtonTitle = punchLoading
     ? 'Please wait...'
@@ -81,7 +56,7 @@ export default function DashboardScreen() {
           : isChecking
             ? 'Checking WiFi...'
             : wifiValid
-              ? 'Punch In via Office WiFi'
+              ? 'Punch In'
               : `Connect to ${OFFICE_WIFI_SSID} WiFi`;
 
   const heroHint = punchComplete
@@ -91,7 +66,7 @@ export default function DashboardScreen() {
       : wfhEmployee
         ? 'Work from home — use the Attendance tab for manual punch'
         : wifiValid
-          ? `${wifiMessage} · punches in automatically on office WiFi`
+          ? `${wifiMessage} · tap Punch In to record via office WiFi`
           : isChecking
             ? 'Checking office WiFi...'
             : wifiMessage;
@@ -111,7 +86,7 @@ export default function DashboardScreen() {
       if (!wifiValid) {
         showPunchAlert(
           'Office WiFi Required',
-          `Connect to the ${OFFICE_WIFI_SSID} network to punch in. Punch-in happens automatically once you are on office WiFi.`
+          `Connect to the ${OFFICE_WIFI_SSID} network to punch in. Office WiFi is required — manual punch is not available on the home screen.`
         );
         return;
       }
@@ -123,7 +98,13 @@ export default function DashboardScreen() {
           showPunchAlert('WiFi Verification Failed', result.message);
           return;
         }
-        await doPunchIn('wifi', result.ssid);
+        const record = await doPunchIn('wifi', result.ssid);
+        if (record) {
+          showPunchAlert(
+            'Punched In',
+            `Recorded via office WiFi (${result.ssid}) at ${formatDisplayTime(record.punchIn)}`
+          );
+        }
       } catch (e) {
         showPunchAlert('Error', e instanceof Error ? e.message : 'Punch in failed');
       } finally {
@@ -136,7 +117,14 @@ export default function DashboardScreen() {
       setPunchLoading(true);
       try {
         const result = await verifyOfficeWifi();
-        const method = wfhEmployee ? 'manual' : result.valid ? 'wifi' : 'manual';
+        if (!wfhEmployee && !result.valid) {
+          showPunchAlert(
+            'Office WiFi Required',
+            `Connect to ${OFFICE_WIFI_SSID} WiFi to punch out from the home screen.`
+          );
+          return;
+        }
+        const method = wfhEmployee ? 'manual' : 'wifi';
         const record = await doPunchOut(method);
         if (record) {
           showPunchAlert(
