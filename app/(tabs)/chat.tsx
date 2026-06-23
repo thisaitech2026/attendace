@@ -73,22 +73,26 @@ export default function ChatScreen() {
             firstName={firstName}
             lastName={lastName}
             avatar={sender?.avatar}
-            size={34}
-            borderRadius={12}
+            size={24}
+            borderRadius={8}
             borderWidth={0}
             backgroundColor={colors.primaryLight}
             textColor={colors.primary}
-            fontSize={12}
+            fontSize={9}
           />
         ) : null}
         <View style={[styles.bubble, isMe ? { backgroundColor: colors.primary } : { backgroundColor: colors.card, borderColor: colors.borderLight }]}>
-          {!isMe ? (
-            <Text style={[styles.sender, { color: colors.primary }]}>{item.senderName}</Text>
-          ) : null}
-          <View style={[styles.categoryTag, { backgroundColor: `${CATEGORY_COLORS[item.category]}22` }]}>
-            <Text style={[styles.categoryText, { color: CATEGORY_COLORS[item.category] }]}>
-              {CHAT_CATEGORY_LABELS[item.category]}
-            </Text>
+          <View style={styles.metaRow}>
+            {!isMe ? (
+              <Text style={[styles.sender, { color: colors.primary }]} numberOfLines={1}>
+                {item.senderName}
+              </Text>
+            ) : null}
+            <View style={[styles.categoryTag, { backgroundColor: `${CATEGORY_COLORS[item.category]}22` }]}>
+              <Text style={[styles.categoryText, { color: CATEGORY_COLORS[item.category] }]}>
+                {CHAT_CATEGORY_LABELS[item.category]}
+              </Text>
+            </View>
           </View>
           <Text style={[styles.messageText, { color: isMe ? '#FFF' : colors.text }]}>{item.text}</Text>
           <Text style={[styles.time, { color: isMe ? 'rgba(255,255,255,0.7)' : colors.textMuted }]}>
@@ -105,8 +109,8 @@ export default function ChatScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       keyboardVerticalOffset={Platform.OS === 'ios' ? 88 : 0}
     >
-      <View style={[styles.headerWrap, { paddingTop: insets.top + 8 }]}>
-        <ScreenHeader title="Team Chat" inset={false} />
+      <View style={[styles.headerWrap, { paddingTop: insets.top + 4 }]}>
+        <ScreenHeader title="Team Chat" inset={false} compact />
       </View>
 
       <FlatList
@@ -166,31 +170,34 @@ export default function ChatScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  headerWrap: { paddingHorizontal: 20, paddingBottom: 4 },
-  messageList: { paddingHorizontal: 16, paddingBottom: 12, paddingTop: 8 },
-  messageRow: { flexDirection: 'row', marginBottom: 14, alignItems: 'flex-end', gap: 8 },
+  headerWrap: { paddingHorizontal: 16, paddingBottom: 0 },
+  messageList: { paddingHorizontal: 12, paddingBottom: 4, paddingTop: 2 },
+  messageSeparator: { height: 3 },
+  messageRow: { flexDirection: 'row', alignItems: 'flex-end', gap: 4 },
   messageRowMe: { justifyContent: 'flex-end' },
   bubble: {
-    maxWidth: '78%',
-    borderRadius: 18,
-    padding: 12,
+    maxWidth: '82%',
+    borderRadius: 10,
+    paddingHorizontal: 8,
+    paddingVertical: 5,
     borderWidth: 1,
   },
-  sender: { fontSize: 12, fontWeight: '700', marginBottom: 4 },
-  categoryTag: { alignSelf: 'flex-start', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 8, marginBottom: 6 },
-  categoryText: { fontSize: 10, fontWeight: '700' },
-  messageText: { fontSize: 15, lineHeight: 21, fontWeight: '500' },
-  time: { fontSize: 10, marginTop: 6, alignSelf: 'flex-end', fontWeight: '500' },
-  composer: { borderTopWidth: 1, paddingTop: 4, paddingHorizontal: 10 },
-  quickRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 5, marginBottom: 4 },
-  quickChip: { paddingHorizontal: 8, paddingVertical: 4, borderRadius: 12, borderWidth: 1 },
-  quickText: { fontSize: 10, fontWeight: '600' },
-  inputRow: { flexDirection: 'row', alignItems: 'center', gap: 5 },
+  metaRow: { flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 4, marginBottom: 2 },
+  sender: { fontSize: 10, fontWeight: '700', flexShrink: 1 },
+  categoryTag: { paddingHorizontal: 5, paddingVertical: 1, borderRadius: 4 },
+  categoryText: { fontSize: 8, fontWeight: '700' },
+  messageText: { fontSize: 13, lineHeight: 17, fontWeight: '500' },
+  time: { fontSize: 8, marginTop: 1, alignSelf: 'flex-end', fontWeight: '500' },
+  composer: { borderTopWidth: 1, paddingTop: 4, paddingHorizontal: 8 },
+  quickRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 3, marginBottom: 4 },
+  quickChip: { paddingHorizontal: 7, paddingVertical: 2, borderRadius: 8, borderWidth: 1 },
+  quickText: { fontSize: 9, fontWeight: '600' },
+  inputRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   input: {
     flex: 1,
     borderWidth: 1,
-    borderRadius: 10,
-    paddingHorizontal: 10,
+    borderRadius: 8,
+    paddingHorizontal: 8,
     paddingVertical: 0,
     height: 32,
     fontSize: 13,
@@ -200,9 +207,9 @@ const styles = StyleSheet.create({
   },
   sendBtn: {
     height: 32,
-    minWidth: 52,
-    paddingHorizontal: 10,
-    borderRadius: 10,
+    minWidth: 48,
+    paddingHorizontal: 8,
+    borderRadius: 8,
     borderWidth: 1,
     justifyContent: 'center',
     alignItems: 'center',
