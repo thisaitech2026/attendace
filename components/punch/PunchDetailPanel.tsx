@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useState } from 'react';
 import {
   Alert,
   Platform,
@@ -16,7 +16,8 @@ import { Card } from '@/components/ui/Card';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { useApp } from '@/contexts/AppContext';
 import Colors from '@/constants/Colors';
-import { getCurrentWifiInfo, verifyOfficeWifi } from '@/services/wifiService';
+import { useOfficeWifi } from '@/hooks/useOfficeWifi';
+import { verifyOfficeWifi } from '@/services/wifiService';
 import {
   formatPunchAlertMessage,
   formatPunchAlertTitle,
@@ -42,26 +43,14 @@ export function PunchDetailPanel({ onClose }: PunchDetailPanelProps) {
   const scheme = useColorScheme() ?? 'light';
   const colors = Colors[scheme];
 
-  const [wifiValid, setWifiValid] = useState(false);
-  const [wifiMessage, setWifiMessage] = useState('Checking network...');
   const [loading, setLoading] = useState(false);
+  const { wifiValid, wifiMessage } = useOfficeWifi();
 
   const today = attendance[0];
   const canPunchIn = today && !today.punchIn;
   const canPunchOut = today && today.punchIn && !today.punchOut;
   const employeeName = employee ? `${employee.firstName} ${employee.lastName}` : undefined;
   const detailLines = formatPunchPreviewLines(today, employee);
-
-  const checkWifi = useCallback(async () => {
-    await getCurrentWifiInfo();
-    const result = await verifyOfficeWifi();
-    setWifiValid(result.valid);
-    setWifiMessage(result.message);
-  }, []);
-
-  useEffect(() => {
-    checkWifi();
-  }, [checkWifi]);
 
   const showPunchResult = (record: typeof today) => {
     if (!record) return;

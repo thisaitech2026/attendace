@@ -4,15 +4,17 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { SymbolView } from 'expo-symbols';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 
 import { Card } from '@/components/ui/Card';
 import { ProfileHeader } from '@/components/ui/ProfileHeader';
 import { SectionHeader } from '@/components/ui/QuickAction';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { useApp } from '@/contexts/AppContext';
-import { APP_NAME } from '@/constants/config';
+import { APP_NAME, OFFICE_WIFI_SSID } from '@/constants/config';
 import Colors from '@/constants/Colors';
+import { useAutoWifiPunchIn } from '@/hooks/useAutoWifiPunchIn';
+import { useOfficeWifi } from '@/hooks/useOfficeWifi';
 import { verifyOfficeWifi } from '@/services/wifiService';
 import { formatDisplayTime } from '@/utils/formatTime';
 import { useColorScheme } from '@/components/useColorScheme';
@@ -31,6 +33,7 @@ export default function DashboardScreen() {
   const colors = Colors[scheme];
   const insets = useSafeAreaInsets();
   const [punchLoading, setPunchLoading] = useState(false);
+  const { wifiValid, wifiMessage, wifiSsid, isChecking } = useOfficeWifi();
 
   const today = attendance[0];
 
@@ -41,32 +44,71 @@ export default function DashboardScreen() {
   const punchStatus = today?.punchIn ? (today.punchOut ? 'Done' : 'Active') : 'Away';
   const punchTone = today?.punchIn ? (today.punchOut ? 'success' : 'primary') : 'warning';
 
+  const handleAutoPunchIn = useCallback(
+    async (ssid: string | null) => {
+      setPunchLoading(true);
+      try {
+        await doPunchIn('wifi', ssid);
+      } catch (e) {
+        showPunchAlert('Error', e instanceof Error ? e.message : 'Punch in failed');
+        throw e;
+      } finally {
+        setPunchLoading(false);
+      }
+    },
+    [doPunchIn]
+  );
+
+  useAutoWifiPunchIn({
+    enabled: Boolean(canPunchIn),
+    wifiValid,
+    wifiSsid,
+    isChecking,
+    onPunchIn: handleAutoPunchIn,
+  });
+
   const punchButtonTitle = punchLoading
     ? 'Please wait...'
     : punchComplete
       ? 'Done for today'
       : canPunchOut
         ? 'Punch Out'
-        : 'Punch In Now';
+        : isChecking
+          ? 'Checking WiFi...'
+          : wifiValid
+            ? 'Punch In via WiFi'
+            : `Connect to ${OFFICE_WIFI_SSID} WiFi`;
 
   const heroHint = punchComplete
     ? 'Attendance completed for today'
     : canPunchOut
       ? 'Tap below to punch out'
-      : 'Tap below to punch in';
+      : wifiValid
+        ? `${wifiMessage} · auto punch-in enabled`
+        : isChecking
+          ? 'Checking office WiFi...'
+          : wifiMessage;
 
   const handleHeroPunch = async () => {
     if (punchLoading || punchComplete) return;
 
     if (canPunchIn) {
+      if (!wifiValid) {
+        showPunchAlert(
+          'Office WiFi Required',
+          `Connect to the ${OFFICE_WIFI_SSID} network to punch in. Punch-in will happen automatically once you are connected.`
+        );
+        return;
+      }
+
       setPunchLoading(true);
       try {
         const result = await verifyOfficeWifi();
-        if (result.valid) {
-          await doPunchIn('wifi', result.ssid);
-        } else {
-          await doPunchIn('manual', null);
+        if (!result.valid) {
+          showPunchAlert('WiFi Verification Failed', result.message);
+          return;
         }
+        await doPunchIn('wifi', result.ssid);
       } catch (e) {
         showPunchAlert('Error', e instanceof Error ? e.message : 'Punch in failed');
       } finally {
@@ -169,12 +211,24 @@ export default function DashboardScreen() {
           </View>
           <Pressable
             onPress={handleHeroPunch}
-            disabled={punchLoading || punchComplete}
+            disabled={punchLoading || punchComplete || (Boolean(canPunchIn) && !wifiValid && !isChecking)}
             style={({ pressed }) => [
               styles.heroBtn,
               {
-                opacity: punchLoading || punchComplete ? 0.7 : pressed ? 0.88 : 1,
-                transform: [{ scale: pressed && !punchLoading && !punchComplete ? 0.98 : 1 }],
+                opacity:
+                  punchLoading || punchComplete || (Boolean(canPunchIn) && !wifiValid && !isChecking)
+                    ? 0.7
+                    : pressed
+                      ? 0.88
+                      : 1,
+                transform: [
+                  {
+                    scale:
+                      pressed && !punchLoading && !punchComplete && !(canPunchIn && !wifiValid)
+                        ? 0.98
+                        : 1,
+                  },
+                ],
               },
             ]}
             accessibilityRole="button"

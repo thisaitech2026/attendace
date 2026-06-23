@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { format, parseISO } from 'date-fns';
 
@@ -8,7 +8,9 @@ import { ScreenHeader } from '@/components/ui/ScreenHeader';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { useApp } from '@/contexts/AppContext';
 import Colors from '@/constants/Colors';
-import { getCurrentWifiInfo, verifyOfficeWifi } from '@/services/wifiService';
+import { useAutoWifiPunchIn } from '@/hooks/useAutoWifiPunchIn';
+import { useOfficeWifi } from '@/hooks/useOfficeWifi';
+import { verifyOfficeWifi } from '@/services/wifiService';
 import { formatDisplayTime } from '@/utils/formatTime';
 import { showAlert } from '@/utils/uiAlert';
 import { useColorScheme } from '@/components/useColorScheme';
@@ -18,31 +20,40 @@ export default function AttendanceScreen() {
   const scheme = useColorScheme() ?? 'light';
   const colors = Colors[scheme];
 
-  const [wifiValid, setWifiValid] = useState(false);
-  const [wifiMessage, setWifiMessage] = useState('Checking network...');
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const { wifiValid, wifiMessage, wifiSsid, isChecking, refresh: refreshWifi } = useOfficeWifi();
 
   const today = attendance[0];
   const canPunchIn = today && !today.punchIn;
   const canPunchOut = today && today.punchIn && !today.punchOut;
 
-  const checkWifi = useCallback(async () => {
-    await getCurrentWifiInfo();
-    const result = await verifyOfficeWifi();
-    setWifiValid(result.valid);
-    setWifiMessage(result.message);
-  }, []);
+  const handleAutoPunchIn = useCallback(
+    async (ssid: string | null) => {
+      setLoading(true);
+      try {
+        await doPunchIn('wifi', ssid);
+      } catch (e) {
+        showAlert('Error', e instanceof Error ? e.message : 'Punch in failed');
+        throw e;
+      } finally {
+        setLoading(false);
+      }
+    },
+    [doPunchIn]
+  );
 
-  useEffect(() => {
-    checkWifi();
-    const interval = setInterval(checkWifi, 10000);
-    return () => clearInterval(interval);
-  }, [checkWifi]);
+  useAutoWifiPunchIn({
+    enabled: Boolean(canPunchIn),
+    wifiValid,
+    wifiSsid,
+    isChecking,
+    onPunchIn: handleAutoPunchIn,
+  });
 
   const onRefresh = async () => {
     setRefreshing(true);
-    await Promise.all([refreshData(), checkWifi()]);
+    await Promise.all([refreshData(), refreshWifi()]);
     setRefreshing(false);
   };
 
@@ -100,7 +111,9 @@ export default function AttendanceScreen() {
           <Text style={styles.wifiIcon}>{wifiValid ? '✅' : '📶'}</Text>
           <View style={styles.wifiInfo}>
             <Text style={[styles.wifiTitle, { color: colors.text }]}>Office WiFi</Text>
-            <Text style={[styles.wifiMsg, { color: colors.textSecondary }]}>{wifiMessage}</Text>
+            <Text style={[styles.wifiMsg, { color: colors.textSecondary }]}>
+              {isChecking ? 'Checking network...' : wifiMessage}
+            </Text>
           </View>
         </View>
       </Card>
