@@ -23,6 +23,7 @@ import {
   formatPunchAlertTitle,
   formatPunchPreviewLines,
 } from '@/utils/punchDetails';
+import { isOfficeEmployee, isWorkFromHomeEmployee } from '@/utils/punchPolicy';
 import { useColorScheme } from '@/components/useColorScheme';
 
 function showAlert(title: string, message: string, onOk?: () => void) {
@@ -45,6 +46,8 @@ export function PunchDetailPanel({ onClose }: PunchDetailPanelProps) {
 
   const [loading, setLoading] = useState(false);
   const { wifiValid, wifiMessage } = useOfficeWifi();
+  const officeEmployee = isOfficeEmployee(employee);
+  const wfhEmployee = isWorkFromHomeEmployee(employee);
 
   const today = attendance[0];
   const canPunchIn = today && !today.punchIn;
@@ -88,7 +91,7 @@ export function PunchDetailPanel({ onClose }: PunchDetailPanelProps) {
     setLoading(true);
     try {
       const result = await verifyOfficeWifi();
-      const method = result.valid ? 'wifi' : 'manual';
+      const method = wfhEmployee ? 'manual' : result.valid ? 'wifi' : 'manual';
       const record = await doPunchOut(method);
       if (record) showPunchResult(record);
     } catch (e) {
@@ -123,8 +126,12 @@ export function PunchDetailPanel({ onClose }: PunchDetailPanelProps) {
         </Card>
 
         <Card style={[styles.wifiCard, { borderColor: wifiValid ? colors.success : colors.border }]}>
-          <Text style={[styles.sectionLabel, { color: colors.textSecondary }]}>Office WiFi</Text>
-          <Text style={[styles.wifiMsg, { color: colors.text }]}>{wifiMessage}</Text>
+          <Text style={[styles.sectionLabel, { color: colors.textSecondary }]}>
+            {wfhEmployee ? 'Work From Home' : 'Office WiFi'}
+          </Text>
+          <Text style={[styles.wifiMsg, { color: colors.text }]}>
+            {wfhEmployee ? 'Manual punch only — requires HR approval' : wifiMessage}
+          </Text>
         </Card>
 
         <Card style={styles.todayCard}>
@@ -178,16 +185,16 @@ export function PunchDetailPanel({ onClose }: PunchDetailPanelProps) {
         </Card>
 
         <View style={styles.actions}>
-          {canPunchIn ? (
-            <>
-              <Button
-                title="Punch In via WiFi"
-                onPress={handleWifiPunchIn}
-                loading={loading}
-                disabled={!wifiValid}
-              />
-              <Button title="Manual Punch In" variant="outline" onPress={handleManualPunchIn} loading={loading} />
-            </>
+          {canPunchIn && officeEmployee ? (
+            <Button
+              title="Punch In via Office WiFi"
+              onPress={handleWifiPunchIn}
+              loading={loading}
+              disabled={!wifiValid}
+            />
+          ) : null}
+          {canPunchIn && wfhEmployee ? (
+            <Button title="Manual Punch In (WFH)" onPress={handleManualPunchIn} loading={loading} />
           ) : null}
           {canPunchOut ? (
             <Button title="Punch Out Now" variant="danger" onPress={handlePunchOut} loading={loading} />

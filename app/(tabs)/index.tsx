@@ -17,6 +17,7 @@ import { useAutoWifiPunchIn } from '@/hooks/useAutoWifiPunchIn';
 import { useOfficeWifi } from '@/hooks/useOfficeWifi';
 import { verifyOfficeWifi } from '@/services/wifiService';
 import { formatDisplayTime } from '@/utils/formatTime';
+import { isOfficeEmployee, isWorkFromHomeEmployee } from '@/utils/punchPolicy';
 import { useColorScheme } from '@/components/useColorScheme';
 
 function showPunchAlert(title: string, message: string) {
@@ -34,6 +35,8 @@ export default function DashboardScreen() {
   const insets = useSafeAreaInsets();
   const [punchLoading, setPunchLoading] = useState(false);
   const { wifiValid, wifiMessage, wifiSsid, isChecking } = useOfficeWifi();
+  const officeEmployee = isOfficeEmployee(employee);
+  const wfhEmployee = isWorkFromHomeEmployee(employee);
 
   const today = attendance[0];
 
@@ -60,7 +63,7 @@ export default function DashboardScreen() {
   );
 
   useAutoWifiPunchIn({
-    enabled: Boolean(canPunchIn),
+    enabled: Boolean(canPunchIn && officeEmployee),
     wifiValid,
     wifiSsid,
     isChecking,
@@ -73,30 +76,42 @@ export default function DashboardScreen() {
       ? 'Done for today'
       : canPunchOut
         ? 'Punch Out'
-        : isChecking
-          ? 'Checking WiFi...'
-          : wifiValid
-            ? 'Punch In via WiFi'
-            : `Connect to ${OFFICE_WIFI_SSID} WiFi`;
+        : wfhEmployee
+          ? 'Manual punch on Attendance tab'
+          : isChecking
+            ? 'Checking WiFi...'
+            : wifiValid
+              ? 'Punch In via Office WiFi'
+              : `Connect to ${OFFICE_WIFI_SSID} WiFi`;
 
   const heroHint = punchComplete
     ? 'Attendance completed for today'
     : canPunchOut
       ? 'Tap below to punch out'
-      : wifiValid
-        ? `${wifiMessage} · auto punch-in enabled`
-        : isChecking
-          ? 'Checking office WiFi...'
-          : wifiMessage;
+      : wfhEmployee
+        ? 'Work from home — use the Attendance tab for manual punch'
+        : wifiValid
+          ? `${wifiMessage} · punches in automatically on office WiFi`
+          : isChecking
+            ? 'Checking office WiFi...'
+            : wifiMessage;
 
   const handleHeroPunch = async () => {
     if (punchLoading || punchComplete) return;
 
     if (canPunchIn) {
+      if (wfhEmployee) {
+        showPunchAlert(
+          'Work From Home',
+          'Manual punch is on the Attendance tab. Your punch will be sent to HR for approval.'
+        );
+        return;
+      }
+
       if (!wifiValid) {
         showPunchAlert(
           'Office WiFi Required',
-          `Connect to the ${OFFICE_WIFI_SSID} network to punch in. Punch-in will happen automatically once you are connected.`
+          `Connect to the ${OFFICE_WIFI_SSID} network to punch in. Punch-in happens automatically once you are on office WiFi.`
         );
         return;
       }
@@ -121,7 +136,7 @@ export default function DashboardScreen() {
       setPunchLoading(true);
       try {
         const result = await verifyOfficeWifi();
-        const method = result.valid ? 'wifi' : 'manual';
+        const method = wfhEmployee ? 'manual' : result.valid ? 'wifi' : 'manual';
         const record = await doPunchOut(method);
         if (record) {
           showPunchAlert(
@@ -211,12 +226,18 @@ export default function DashboardScreen() {
           </View>
           <Pressable
             onPress={handleHeroPunch}
-            disabled={punchLoading || punchComplete || (Boolean(canPunchIn) && !wifiValid && !isChecking)}
+            disabled={
+              punchLoading ||
+              punchComplete ||
+              (Boolean(canPunchIn) && (wfhEmployee || (!wifiValid && !isChecking)))
+            }
             style={({ pressed }) => [
               styles.heroBtn,
               {
                 opacity:
-                  punchLoading || punchComplete || (Boolean(canPunchIn) && !wifiValid && !isChecking)
+                  punchLoading ||
+                  punchComplete ||
+                  (Boolean(canPunchIn) && (wfhEmployee || (!wifiValid && !isChecking)))
                     ? 0.7
                     : pressed
                       ? 0.88
@@ -224,7 +245,10 @@ export default function DashboardScreen() {
                 transform: [
                   {
                     scale:
-                      pressed && !punchLoading && !punchComplete && !(canPunchIn && !wifiValid)
+                      pressed &&
+                      !punchLoading &&
+                      !punchComplete &&
+                      !(canPunchIn && (wfhEmployee || !wifiValid))
                         ? 0.98
                         : 1,
                   },
