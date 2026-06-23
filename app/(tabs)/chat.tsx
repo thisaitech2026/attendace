@@ -73,12 +73,12 @@ export default function ChatScreen() {
             firstName={firstName}
             lastName={lastName}
             avatar={sender?.avatar}
-            size={34}
-            borderRadius={12}
+            size={28}
+            borderRadius={10}
             borderWidth={0}
             backgroundColor={colors.primaryLight}
             textColor={colors.primary}
-            fontSize={12}
+            fontSize={10}
           />
         ) : null}
         <View style={[styles.bubble, isMe ? { backgroundColor: colors.primary } : { backgroundColor: colors.card, borderColor: colors.borderLight }]}>
@@ -167,39 +167,40 @@ export default function ChatScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   headerWrap: { paddingHorizontal: 20, paddingBottom: 4 },
-  messageList: { paddingHorizontal: 16, paddingBottom: 12, paddingTop: 8 },
-  messageRow: { flexDirection: 'row', marginBottom: 14, alignItems: 'flex-end', gap: 8 },
+  messageList: { paddingHorizontal: 16, paddingBottom: 8, paddingTop: 6 },
+  messageRow: { flexDirection: 'row', marginBottom: 6, alignItems: 'flex-end', gap: 6 },
   messageRowMe: { justifyContent: 'flex-end' },
   bubble: {
     maxWidth: '78%',
-    borderRadius: 18,
-    padding: 12,
+    borderRadius: 14,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
     borderWidth: 1,
   },
-  sender: { fontSize: 12, fontWeight: '700', marginBottom: 4 },
-  categoryTag: { alignSelf: 'flex-start', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 8, marginBottom: 6 },
-  categoryText: { fontSize: 10, fontWeight: '700' },
-  messageText: { fontSize: 15, lineHeight: 21, fontWeight: '500' },
-  time: { fontSize: 10, marginTop: 6, alignSelf: 'flex-end', fontWeight: '500' },
-  composer: { borderTopWidth: 1, paddingTop: 4, paddingHorizontal: 10 },
-  quickRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 5, marginBottom: 4 },
-  quickChip: { paddingHorizontal: 8, paddingVertical: 4, borderRadius: 12, borderWidth: 1 },
+  sender: { fontSize: 11, fontWeight: '700', marginBottom: 2 },
+  categoryTag: { alignSelf: 'flex-start', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 6, marginBottom: 4 },
+  categoryText: { fontSize: 9, fontWeight: '700' },
+  messageText: { fontSize: 14, lineHeight: 19, fontWeight: '500' },
+  time: { fontSize: 9, marginTop: 3, alignSelf: 'flex-end', fontWeight: '500' },
+  composer: { borderTopWidth: 1, paddingTop: 6, paddingHorizontal: 10 },
+  quickRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 4, marginBottom: 6 },
+  quickChip: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 10, borderWidth: 1 },
   quickText: { fontSize: 10, fontWeight: '600' },
-  inputRow: { flexDirection: 'row', alignItems: 'center', gap: 5 },
+  inputRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   input: {
     flex: 1,
     borderWidth: 1,
     borderRadius: 10,
     paddingHorizontal: 10,
     paddingVertical: 0,
-    height: 32,
-    fontSize: 13,
-    lineHeight: 16,
+    height: 36,
+    fontSize: 14,
+    lineHeight: 18,
     fontWeight: '500',
     ...(Platform.OS === 'android' ? { includeFontPadding: false, textAlignVertical: 'center' as const } : {}),
   },
   sendBtn: {
-    height: 32,
+    height: 36,
     minWidth: 52,
     paddingHorizontal: 10,
     borderRadius: 10,
